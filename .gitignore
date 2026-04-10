@@ -1,0 +1,51 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local docs kept intentionally uncommitted
+docs/*.md
+
+# Bridge runtime outputs
+bridge/*.json
+!bridge/.gitkeep
+
+# Python runtime outputs
+python-engine/data/session-workspace/*
+!python-engine/data/session-workspace/.gitkeep
+
+# Unity generated folders
+unity-app/[Ll]ibrary/
+unity-app/[Tt]emp/
+unity-app/[Oo]bj/
+unity-app/[Bb]uild/
+unity-app/[Bb]uilds/
+unity-app/[Ll]ogs/
+unity-app/[Uu]ser[Ss]ettings/
+unity-app/[Mm]emoryCaptures/
+unity-app/[Rr]ecordings/
+
+# Unity generated project files
+unity-app/*.csproj
+unity-app/*.unityproj
+unity-app/*.sln
+unity-app/*.slnx
+unity-app/*.suo
+unity-app/*.tmp
+unity-app/*.user
+unity-app/*.userprefs
+unity-app/*.pidb
+unity-app/*.booproj
+unity-app/*.svd
+unity-app/*.pdb
+unity-app/*.mdb
+unity-app/*.opendb
+unity-app/*.VC.db
+
+# IDE
+.vscode/
+unity-app/.idea/

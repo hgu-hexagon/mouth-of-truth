@@ -1,9 +1,9 @@
 using System;
-using NewMouthOfTruth.Game.Analysis;
-using NewMouthOfTruth.Game.Data;
-using NewMouthOfTruth.Game.Input;
+using MouthOfTruth.Game.Analysis;
+using MouthOfTruth.Game.Data;
+using MouthOfTruth.Game.Input;
 
-namespace NewMouthOfTruth.Game.Session
+namespace MouthOfTruth.Game.Session
 {
     public class MouthOfTruthGameStateMachine
     {
@@ -191,6 +191,7 @@ namespace NewMouthOfTruth.Game.Session
                 mSelectedQuestionDefinition,
                 mCurrentVerdictKind,
                 mCurrentAnswerTranscript,
+                mCardDwellSelectionTracker.HoveredDurationSeconds,
                 mElapsedAnswerSeconds,
                 mElapsedSilenceSeconds);
         }

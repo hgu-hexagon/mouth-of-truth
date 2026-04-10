@@ -1,7 +1,7 @@
 using System;
-using NewMouthOfTruth.Game.Data;
+using MouthOfTruth.Game.Data;
 
-namespace NewMouthOfTruth.Game.Input
+namespace MouthOfTruth.Game.Input
 {
     public class CardDwellSelectionTracker
     {

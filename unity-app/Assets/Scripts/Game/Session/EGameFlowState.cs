@@ -1,4 +1,4 @@
-namespace NewMouthOfTruth.Game.Session
+namespace MouthOfTruth.Game.Session
 {
     public enum EGameFlowState
     {

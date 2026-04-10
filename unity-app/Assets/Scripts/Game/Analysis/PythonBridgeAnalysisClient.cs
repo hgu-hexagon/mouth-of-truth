@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NewMouthOfTruth.Game.Analysis
+namespace MouthOfTruth.Game.Analysis
 {
     public class PythonBridgeAnalysisClient : IAnswerAnalysisClient
     {

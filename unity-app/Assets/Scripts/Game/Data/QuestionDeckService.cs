@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NewMouthOfTruth.Game.Data
+namespace MouthOfTruth.Game.Data
 {
     public class QuestionDeckService
     {

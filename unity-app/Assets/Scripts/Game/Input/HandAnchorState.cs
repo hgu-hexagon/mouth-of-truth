@@ -1,4 +1,4 @@
-namespace NewMouthOfTruth.Game.Input
+namespace MouthOfTruth.Game.Input
 {
     public enum EHandAnchorState
     {

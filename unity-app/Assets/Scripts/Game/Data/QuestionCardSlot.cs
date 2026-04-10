@@ -1,6 +1,6 @@
 using System;
 
-namespace NewMouthOfTruth.Game.Data
+namespace MouthOfTruth.Game.Data
 {
     public enum EQuestionCardSlot
     {

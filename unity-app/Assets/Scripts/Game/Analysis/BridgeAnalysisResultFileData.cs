@@ -1,6 +1,6 @@
 using System;
 
-namespace NewMouthOfTruth.Game.Analysis
+namespace MouthOfTruth.Game.Analysis
 {
     [Serializable]
     public class BridgeAnalysisResultFileData

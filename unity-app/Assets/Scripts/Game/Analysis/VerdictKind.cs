@@ -1,4 +1,4 @@
-namespace NewMouthOfTruth.Game.Analysis
+namespace MouthOfTruth.Game.Analysis
 {
     public enum EVerdictKind
     {

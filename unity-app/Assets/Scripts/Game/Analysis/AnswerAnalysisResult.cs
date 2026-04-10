@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NewMouthOfTruth.Game.Analysis
+namespace MouthOfTruth.Game.Analysis
 {
     public class AnswerAnalysisResult
     {

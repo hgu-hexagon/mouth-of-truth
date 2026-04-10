@@ -1,6 +1,6 @@
 using System;
 
-namespace NewMouthOfTruth.Game.Session
+namespace MouthOfTruth.Game.Session
 {
     public class AnswerCollectionPolicy
     {

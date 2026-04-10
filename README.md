@@ -1,11 +1,11 @@
-# New Mouth of Truth
+# Mouth of Truth
 
-Unity-first game prototype for the revised Mouth of Truth assignment.
+Unity-first game project for the revised Mouth of Truth experience.
 
 ## Structure
 
 - `unity-app/`
-  The new game shell and presentation layer.
+  The game shell and presentation layer.
 - `python-engine/`
   Future analysis adapters and reusable Python-side contracts.
 - `assets/`
@@ -13,14 +13,18 @@ Unity-first game prototype for the revised Mouth of Truth assignment.
 - `bridge/`
   Runtime JSON exchange directory kept compatible with managed-engine flows.
 
-## Current Focus
+## Current Runtime
 
-The first implementation stage establishes:
+The current repository already includes a playable placeholder flow with:
 
-- question pool loading from JSON
-- non-repeating three-card round generation
-- card dwell selection rules
-- hand insertion and pause/resume state semantics
+- title screen and start button
+- three hidden question cards drawn from a non-repeating JSON pool
+- hover + dwell card selection
+- question reveal and macOS TTS narration fallback
+- hand insertion / pause / resume semantics through a replaceable input adapter
+- answer timeout and silence-based completion rules
 - verdict model for `TRUE`, `FALSE`, and `UNCERTAIN`
+- placeholder art paths that can be swapped without changing code
+- Python bridge contracts ready for real analysis integration
 
 Detailed Korean design and contract notes are intentionally left uncommitted.

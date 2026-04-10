@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace NewMouthOfTruth.Game.Presentation
+namespace MouthOfTruth.Game.Presentation
 {
     public class CardPresentationAnchorSet : MonoBehaviour
     {

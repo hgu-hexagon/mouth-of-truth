@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 
-from new_mouth_of_truth.contracts.verdict_kind import VerdictKind
+from mouth_of_truth.contracts.verdict_kind import VerdictKind
 
 
 def build_utc_timestamp() -> str:

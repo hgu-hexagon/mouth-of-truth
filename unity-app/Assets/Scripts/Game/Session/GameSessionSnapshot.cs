@@ -1,7 +1,7 @@
-using NewMouthOfTruth.Game.Analysis;
-using NewMouthOfTruth.Game.Data;
+using MouthOfTruth.Game.Analysis;
+using MouthOfTruth.Game.Data;
 
-namespace NewMouthOfTruth.Game.Session
+namespace MouthOfTruth.Game.Session
 {
     public class GameSessionSnapshot
     {
@@ -12,6 +12,7 @@ namespace NewMouthOfTruth.Game.Session
             QuestionDefinition selectedQuestionDefinition,
             EVerdictKind? currentVerdictKind,
             string currentAnswerTranscript,
+            float hoveredCardDwellSeconds,
             float elapsedAnswerSeconds,
             float elapsedSilenceSeconds)
         {
@@ -21,6 +22,7 @@ namespace NewMouthOfTruth.Game.Session
             SelectedQuestionDefinition = selectedQuestionDefinition;
             CurrentVerdictKind = currentVerdictKind;
             CurrentAnswerTranscript = currentAnswerTranscript;
+            HoveredCardDwellSeconds = hoveredCardDwellSeconds;
             ElapsedAnswerSeconds = elapsedAnswerSeconds;
             ElapsedSilenceSeconds = elapsedSilenceSeconds;
         }
@@ -36,6 +38,8 @@ namespace NewMouthOfTruth.Game.Session
         public EVerdictKind? CurrentVerdictKind { get; }
 
         public string CurrentAnswerTranscript { get; }
+
+        public float HoveredCardDwellSeconds { get; }
 
         public float ElapsedAnswerSeconds { get; }
 

@@ -3,12 +3,12 @@ from __future__ import annotations
 from hashlib import sha256
 from pathlib import Path
 
-from new_mouth_of_truth.contracts.analysis_contracts import (
+from mouth_of_truth.contracts.analysis_contracts import (
     AnalysisResult,
     read_analysis_request,
     write_analysis_result,
 )
-from new_mouth_of_truth.contracts.verdict_kind import VerdictKind
+from mouth_of_truth.contracts.verdict_kind import VerdictKind
 
 
 MINIMUM_FACE_RECOGNITION_COUNT = 5

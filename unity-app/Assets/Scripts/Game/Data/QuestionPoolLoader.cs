@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace NewMouthOfTruth.Game.Data
+namespace MouthOfTruth.Game.Data
 {
     public static class QuestionPoolLoader
     {

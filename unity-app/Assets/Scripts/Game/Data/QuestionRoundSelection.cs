@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NewMouthOfTruth.Game.Data
+namespace MouthOfTruth.Game.Data
 {
     public class QuestionRoundSelection
     {

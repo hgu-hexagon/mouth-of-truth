@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NewMouthOfTruth.Game.Analysis
+namespace MouthOfTruth.Game.Analysis
 {
     public class SimulatedAnswerAnalysisClient : IAnswerAnalysisClient
     {
@@ -37,18 +37,30 @@ namespace NewMouthOfTruth.Game.Analysis
                     new AnswerAnalysisResult(EVerdictKind.Uncertain, reasonCodes));
             }
 
-            int paritySeed = (
-                answerAnalysisRequest.QuestionDefinition.ID
-                + "|"
-                + answerAnalysisRequest.AnswerTranscript.Trim()).GetHashCode();
+            int paritySeed = calculateStableParitySeed(
+                answerAnalysisRequest.QuestionDefinition.ID,
+                answerAnalysisRequest.AnswerTranscript);
 
             EVerdictKind verdictKind =
-                Math.Abs(paritySeed) % 2 == 0
+                paritySeed % 2 == 0
                     ? EVerdictKind.True
                     : EVerdictKind.False;
 
             return Task.FromResult(
                 new AnswerAnalysisResult(verdictKind, Array.Empty<string>()));
+        }
+
+        private int calculateStableParitySeed(string questionID, string answerTranscript)
+        {
+            string combinedText = $"{questionID}|{answerTranscript.Trim()}";
+            int checksum = 0;
+
+            foreach (char character in combinedText)
+            {
+                checksum += character;
+            }
+
+            return checksum;
         }
     }
 }

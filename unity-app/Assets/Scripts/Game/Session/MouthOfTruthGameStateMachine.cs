@@ -184,17 +184,15 @@ namespace NewMouthOfTruth.Game.Session
 
         public GameSessionSnapshot CreateSnapshot()
         {
-            return new GameSessionSnapshot
-            {
-                CurrentState = CurrentState,
-                CurrentRoundSelection = mCurrentRoundSelection,
-                SelectedQuestionCardSlot = mSelectedQuestionCardSlot,
-                SelectedQuestionDefinition = mSelectedQuestionDefinition,
-                CurrentVerdictKind = mCurrentVerdictKind,
-                CurrentAnswerTranscript = mCurrentAnswerTranscript,
-                ElapsedAnswerSeconds = mElapsedAnswerSeconds,
-                ElapsedSilenceSeconds = mElapsedSilenceSeconds,
-            };
+            return new GameSessionSnapshot(
+                CurrentState,
+                mCurrentRoundSelection,
+                mSelectedQuestionCardSlot,
+                mSelectedQuestionDefinition,
+                mCurrentVerdictKind,
+                mCurrentAnswerTranscript,
+                mElapsedAnswerSeconds,
+                mElapsedSilenceSeconds);
         }
 
         private void ensureCurrentState(EGameFlowState expectedGameFlowState)

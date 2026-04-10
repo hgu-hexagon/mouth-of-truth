@@ -5,21 +5,41 @@ namespace NewMouthOfTruth.Game.Session
 {
     public class GameSessionSnapshot
     {
-        public EGameFlowState CurrentState { get; init; }
+        public GameSessionSnapshot(
+            EGameFlowState currentState,
+            QuestionRoundSelection currentRoundSelection,
+            EQuestionCardSlot? selectedQuestionCardSlot,
+            QuestionDefinition selectedQuestionDefinition,
+            EVerdictKind? currentVerdictKind,
+            string currentAnswerTranscript,
+            float elapsedAnswerSeconds,
+            float elapsedSilenceSeconds)
+        {
+            CurrentState = currentState;
+            CurrentRoundSelection = currentRoundSelection;
+            SelectedQuestionCardSlot = selectedQuestionCardSlot;
+            SelectedQuestionDefinition = selectedQuestionDefinition;
+            CurrentVerdictKind = currentVerdictKind;
+            CurrentAnswerTranscript = currentAnswerTranscript;
+            ElapsedAnswerSeconds = elapsedAnswerSeconds;
+            ElapsedSilenceSeconds = elapsedSilenceSeconds;
+        }
 
-        public QuestionRoundSelection CurrentRoundSelection { get; init; }
+        public EGameFlowState CurrentState { get; }
 
-        public EQuestionCardSlot? SelectedQuestionCardSlot { get; init; }
+        public QuestionRoundSelection CurrentRoundSelection { get; }
 
-        public QuestionDefinition SelectedQuestionDefinition { get; init; }
+        public EQuestionCardSlot? SelectedQuestionCardSlot { get; }
 
-        public EVerdictKind? CurrentVerdictKind { get; init; }
+        public QuestionDefinition SelectedQuestionDefinition { get; }
 
-        public string CurrentAnswerTranscript { get; init; }
+        public EVerdictKind? CurrentVerdictKind { get; }
 
-        public float ElapsedAnswerSeconds { get; init; }
+        public string CurrentAnswerTranscript { get; }
 
-        public float ElapsedSilenceSeconds { get; init; }
+        public float ElapsedAnswerSeconds { get; }
+
+        public float ElapsedSilenceSeconds { get; }
 
         public bool IsAnswerPaused => CurrentState == EGameFlowState.AnswerPaused;
     }

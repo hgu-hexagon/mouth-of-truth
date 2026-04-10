@@ -1,0 +1,67 @@
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+
+from new_mouth_of_truth.contracts.verdict_kind import VerdictKind
+
+
+def build_utc_timestamp() -> str:
+    """Builds one ISO 8601 UTC timestamp."""
+    return datetime.now(timezone.utc).isoformat()
+
+
+@dataclass(frozen=True)
+class AnalysisRequest:
+    """Represents one Unity-to-Python analysis request."""
+
+    request_id: str
+    question_id: str
+    question_text: str
+    answer_transcript: str
+    face_recognition_count: int
+    voice_segment_count: int
+    requested_at_utc: str
+
+
+@dataclass(frozen=True)
+class AnalysisResult:
+    """Represents one Python-to-Unity analysis response."""
+
+    request_id: str
+    verdict: VerdictKind
+    reason_codes: list[str] = field(default_factory=list)
+    completed_at_utc: str = field(default_factory=build_utc_timestamp)
+
+
+def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
+    """Reads one analysis request from JSON."""
+    file_path = Path(file_path)
+    payload = json.loads(file_path.read_text(encoding="utf-8"))
+
+    return AnalysisRequest(
+        request_id=payload["RequestID"],
+        question_id=payload["QuestionID"],
+        question_text=payload["QuestionText"],
+        answer_transcript=payload.get("AnswerTranscript", ""),
+        face_recognition_count=int(payload.get("FaceRecognitionCount", 0)),
+        voice_segment_count=int(payload.get("VoiceSegmentCount", 0)),
+        requested_at_utc=payload["RequestedAtUtc"],
+    )
+
+
+def write_analysis_result(file_path: str | Path, analysis_result: AnalysisResult) -> None:
+    """Writes one analysis result JSON in the Unity bridge format."""
+    file_path = Path(file_path)
+    payload = {
+        "RequestID": analysis_result.request_id,
+        "Verdict": analysis_result.verdict.value,
+        "ReasonCodes": analysis_result.reason_codes,
+        "CompletedAtUtc": analysis_result.completed_at_utc,
+    }
+    file_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )

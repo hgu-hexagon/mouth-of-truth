@@ -1,0 +1,20 @@
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace MouthOfTruth.Game.Narration
+{
+    public class SilentQuestionNarrationService : IQuestionNarrationService
+    {
+        private readonly int mDelayMilliseconds;
+
+        public SilentQuestionNarrationService(int delayMilliseconds = 1200)
+        {
+            mDelayMilliseconds = delayMilliseconds;
+        }
+
+        public Task SpeakQuestionAsync(string questionText, CancellationToken cancellationToken)
+        {
+            return Task.Delay(mDelayMilliseconds, cancellationToken);
+        }
+    }
+}

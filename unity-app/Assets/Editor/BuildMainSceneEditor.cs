@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 
 namespace MouthOfTruth.Editor
 {
-    public static class GenerateMainScene
+    public static class BuildMainSceneEditor
     {
         private const string MAIN_SCENE_PATH = "Assets/Scenes/Main.unity";
 

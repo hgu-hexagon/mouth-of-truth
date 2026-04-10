@@ -1,17 +1,19 @@
 # Reference Assets
 
-## User-Provided Reference Images
+## Concept Art Reference Groups
 
-The files in `user-provided/` were copied from the design references shared during planning.
+The files under `concept-art/` organize the planning references by role so that the
+runtime project can keep product-facing asset paths separate from source references.
 
-- `stone-wall-reference.jpeg`
-- `red-carpet-reference.jpeg`
-- `logo-reference.jpeg`
-- `rug-reference.jpeg`
-- `card-back-reference.jpeg`
-- `truth-mouth-reference.jpeg`
-- `true-verdict-reference.jpeg`
-- `false-verdict-reference.jpeg`
+- `concept-art/backgrounds/title-stone-wall-reference.jpeg`
+- `concept-art/branding/title-logo-reference.jpeg`
+- `concept-art/cards/question-card-back-reference.jpeg`
+- `concept-art/environment/persian-carpets-pack-reference.jpeg`
+- `concept-art/environment/persian-rug-reference.jpeg`
+- `concept-art/environment/red-carpet-runner-reference.jpeg`
+- `concept-art/mouth/truth-mouth-face-reference.jpeg`
+- `concept-art/verdict/verdict-true-reference.jpeg`
+- `concept-art/verdict/verdict-false-reference.jpeg`
 
 ## Target Asset Packs
 

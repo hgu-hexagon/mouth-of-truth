@@ -1,13 +1,13 @@
 using UnityEngine;
 
-namespace MouthOfTruth.Game.Input.Development
+namespace MouthOfTruth.Game.Input.Keyboard
 {
-    public class DebugHandInputAdapter : IHandInteractionInputAdapter
+    public class KeyboardHandInputAdapter : IHandInteractionInputAdapter
     {
         private readonly KeyCode mInsertKeyCode;
         private readonly KeyCode mReturnToTitleKeyCode;
 
-        public DebugHandInputAdapter(
+        public KeyboardHandInputAdapter(
             KeyCode insertKeyCode = KeyCode.Space,
             KeyCode returnToTitleKeyCode = KeyCode.Backspace)
         {

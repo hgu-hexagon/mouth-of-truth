@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MouthOfTruth.Game.Analysis;
 using MouthOfTruth.Game.Data;
 using MouthOfTruth.Game.Input;
-using MouthOfTruth.Game.Input.Development;
+using MouthOfTruth.Game.Input.Keyboard;
 using MouthOfTruth.Game.Narration;
 using MouthOfTruth.Game.Presentation.Runtime;
 using MouthOfTruth.Game.Session;
@@ -296,12 +296,12 @@ namespace MouthOfTruth.Game.App
                 return new PythonBridgeAnalysisClient();
             }
 
-            return new SimulatedAnswerAnalysisClient();
+            return new DeterministicAnswerAnalysisClient();
         }
 
         private IHandInteractionInputAdapter createHandInteractionInputAdapter()
         {
-            return new DebugHandInputAdapter();
+            return new KeyboardHandInputAdapter();
         }
     }
 }

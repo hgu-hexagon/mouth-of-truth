@@ -15,7 +15,7 @@ MINIMUM_FACE_RECOGNITION_COUNT = 5
 MINIMUM_VOICE_SEGMENT_COUNT = 1
 
 
-def build_simulated_analysis_result(
+def build_deterministic_analysis_result(
     request_file_path: str | Path,
 ) -> AnalysisResult:
     """Builds one deterministic placeholder result from a Unity bridge request."""
@@ -51,5 +51,5 @@ def build_simulated_analysis_result(
 
 def run_once(request_file_path: str | Path, result_file_path: str | Path) -> None:
     """Reads one request JSON and writes one result JSON."""
-    analysis_result = build_simulated_analysis_result(request_file_path)
+    analysis_result = build_deterministic_analysis_result(request_file_path)
     write_analysis_result(result_file_path, analysis_result)

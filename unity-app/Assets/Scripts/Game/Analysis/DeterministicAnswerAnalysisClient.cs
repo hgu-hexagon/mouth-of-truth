@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MouthOfTruth.Game.Analysis
 {
-    public class SimulatedAnswerAnalysisClient : IAnswerAnalysisClient
+    public class DeterministicAnswerAnalysisClient : IAnswerAnalysisClient
     {
         private const int MINIMUM_FACE_RECOGNITION_COUNT = 5;
         private const int MINIMUM_VOICE_SEGMENT_COUNT = 1;

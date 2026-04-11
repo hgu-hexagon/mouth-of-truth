@@ -82,20 +82,28 @@ namespace MouthOfTruth.Game.Analysis
         private async Task runPythonBridgeProcessAsync(CancellationToken cancellationToken)
         {
             string pythonInterpreterPath = PythonAnalysisBridgePaths.GetPythonInterpreterPath();
+            string bridgeLauncherScriptPath = PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath();
 
-            if (File.Exists(pythonInterpreterPath) == false)
+            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false && File.Exists(pythonInterpreterPath) == false)
             {
                 throw new FileNotFoundException(
                     "The configured Python interpreter was not found.",
                     pythonInterpreterPath);
             }
 
+            if (File.Exists(bridgeLauncherScriptPath) == false)
+            {
+                throw new FileNotFoundException(
+                    "The Python bridge launcher script was not found.",
+                    bridgeLauncherScriptPath);
+            }
+
             using Process process = new Process();
             process.StartInfo = new ProcessStartInfo
             {
-                FileName = pythonInterpreterPath,
+                FileName = PythonAnalysisBridgePaths.GetShellPath(),
                 Arguments =
-                    $"-m {PythonAnalysisBridgePaths.GetBridgeRunnerModuleName()} " +
+                    $"\"{bridgeLauncherScriptPath}\" " +
                     $"\"{PythonAnalysisBridgePaths.GetRequestFilePath()}\" " +
                     $"\"{PythonAnalysisBridgePaths.GetResultFilePath()}\"",
                 WorkingDirectory = PythonAnalysisBridgePaths.GetProjectRootPath(),
@@ -105,6 +113,11 @@ namespace MouthOfTruth.Game.Analysis
                 CreateNoWindow = true,
             };
             process.StartInfo.Environment["PYTHONPATH"] = PythonAnalysisBridgePaths.GetPythonModuleRootPath();
+
+            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false)
+            {
+                process.StartInfo.Environment["MOUTH_OF_TRUTH_PYTHON"] = pythonInterpreterPath;
+            }
 
             if (process.Start() == false)
             {

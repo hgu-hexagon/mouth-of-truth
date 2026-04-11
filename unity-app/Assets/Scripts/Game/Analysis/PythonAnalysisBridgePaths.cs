@@ -8,10 +8,9 @@ namespace MouthOfTruth.Game.Analysis
         private const string BRIDGE_DIRECTORY_NAME = "bridge";
         private const string REQUEST_FILE_NAME = "analysis_request.json";
         private const string RESULT_FILE_NAME = "analysis_result.json";
-        private const string DEFAULT_PYTHON_INTERPRETER_PATH =
-            "/Users/potterlim/Developments/Packages/miniforge/envs/mouth-truth/bin/python";
         private const string PYTHON_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON";
         private const string PYTHON_MODULE_NAME = "mouth_of_truth.runners.bridge_analysis_runner";
+        private const string DEFAULT_SHELL_PATH = "/bin/zsh";
 
         public static string GetProjectRootPath()
         {
@@ -45,7 +44,17 @@ namespace MouthOfTruth.Game.Analysis
                 return configuredInterpreterPath;
             }
 
-            return DEFAULT_PYTHON_INTERPRETER_PATH;
+            return string.Empty;
+        }
+
+        public static string GetShellPath()
+        {
+            return DEFAULT_SHELL_PATH;
+        }
+
+        public static string GetBridgeLauncherScriptPath()
+        {
+            return Path.Combine(GetProjectRootPath(), "python-engine", "scripts", "run_bridge_analysis.sh");
         }
 
         public static string GetPythonModuleRootPath()

@@ -28,3 +28,10 @@ The current repository already includes a playable placeholder flow with:
 - Python bridge contracts ready for real analysis integration
 
 Detailed Korean design and contract notes are intentionally left uncommitted.
+
+## Developer setup
+
+Committed setup guides are available here:
+
+- `docs/developer-setup-checklist-ko.md`
+- `docs/developer-setup-checklist-en.md`

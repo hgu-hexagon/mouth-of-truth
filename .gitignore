@@ -81,3 +81,4 @@ unity-app/*.VC.db
 unity-app/.idea/
 
 unity-app/ProjectSettings/PackageManagerSettings.asset
+unity-app/mono_crash.*.json

@@ -1,0 +1,13 @@
+# Runtime Python dependencies for the current Mouth of Truth project.
+# Create the project environment from `python-engine/environment.yml`.
+
+huggingface_hub==1.8.0
+librosa==0.11.0
+numpy==2.4.4
+opencv-python==4.13.0.92
+safetensors==0.7.0
+soundfile==0.13.1
+torch==2.11.0
+torchaudio==2.11.0
+transformers==5.4.0
+ultralytics==8.4.33

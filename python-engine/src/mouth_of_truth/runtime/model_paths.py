@@ -6,6 +6,7 @@ from pathlib import Path
 
 FACE_MODEL_RELATIVE_PATH = Path("face") / "yolo26x_rafdb_best.pt"
 VOICE_MODEL_RELATIVE_PATH = Path("voice") / "best_wav2vec2_iemocap"
+WHISPER_MODEL_CACHE_RELATIVE_PATH = Path("whisper")
 MODELS_ROOT_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_MODELS_ROOT"
 
 
@@ -17,6 +18,11 @@ def resolve_face_model_path() -> Path:
 def resolve_voice_model_directory() -> Path:
     """Resolves the voice-emotion model directory from the known model roots."""
     return resolve_model_path(VOICE_MODEL_RELATIVE_PATH)
+
+
+def resolve_whisper_model_cache_directory() -> Path:
+    """Resolves the local Whisper cache directory from the known model roots."""
+    return resolve_model_path(WHISPER_MODEL_CACHE_RELATIVE_PATH)
 
 
 def resolve_model_path(relative_model_path: Path) -> Path:

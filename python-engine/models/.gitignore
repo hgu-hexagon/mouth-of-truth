@@ -4,6 +4,7 @@
 !README.md
 !face/
 !voice/
+!whisper/
 
 face/*
 !face/.gitkeep
@@ -12,3 +13,7 @@ face/*
 voice/*
 !voice/.gitkeep
 !voice/README.md
+
+whisper/*
+!whisper/.gitkeep
+!whisper/README.md

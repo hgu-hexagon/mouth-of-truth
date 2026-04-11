@@ -4,8 +4,9 @@ from pathlib import Path
 
 import librosa
 import torch
-from huggingface_hub.constants import HF_HUB_CACHE
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+
+from mouth_of_truth.runtime.model_paths import resolve_whisper_model_cache_directory
 
 
 WHISPER_MODEL_NAME = "openai/whisper-tiny"
@@ -18,10 +19,14 @@ class WhisperTranscriber:
     def __init__(
         self,
         model_name: str = WHISPER_MODEL_NAME,
-        cache_directory: str = HF_HUB_CACHE,
+        cache_directory: str | Path | None = None,
     ) -> None:
         self._model_name = model_name
-        self._cache_directory = cache_directory
+        self._cache_directory = (
+            Path(cache_directory).expanduser().resolve()
+            if cache_directory is not None
+            else resolve_whisper_model_cache_directory()
+        )
         self._transcription_pipeline = None
 
     def transcribe_audio_file(

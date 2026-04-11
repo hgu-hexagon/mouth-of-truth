@@ -1,10 +1,10 @@
+using UnityEngine;
+
 namespace MouthOfTruth.Game.Input
 {
     public interface IHandInteractionInputAdapter
     {
-        bool WasInsertPressedThisFrame();
-
-        bool WasInsertReleasedThisFrame();
+        bool TryGetPointerScreenPosition(out Vector2 screenPosition);
 
         bool WasReturnToTitleTriggeredThisFrame();
     }

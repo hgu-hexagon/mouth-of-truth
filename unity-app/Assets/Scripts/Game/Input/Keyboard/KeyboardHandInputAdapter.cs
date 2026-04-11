@@ -4,24 +4,17 @@ namespace MouthOfTruth.Game.Input.Keyboard
 {
     public class KeyboardHandInputAdapter : IHandInteractionInputAdapter
     {
-        private readonly KeyCode mInsertKeyCode;
         private readonly KeyCode mReturnToTitleKeyCode;
 
-        public KeyboardHandInputAdapter(
-            KeyCode insertKeyCode = KeyCode.Space,
-            KeyCode returnToTitleKeyCode = KeyCode.Backspace)
+        public KeyboardHandInputAdapter(KeyCode returnToTitleKeyCode = KeyCode.Backspace)
         {
-            mInsertKeyCode = insertKeyCode;
             mReturnToTitleKeyCode = returnToTitleKeyCode;
         }
-        public bool WasInsertPressedThisFrame()
-        {
-            return UnityEngine.Input.GetKeyDown(mInsertKeyCode);
-        }
 
-        public bool WasInsertReleasedThisFrame()
+        public bool TryGetPointerScreenPosition(out Vector2 screenPosition)
         {
-            return UnityEngine.Input.GetKeyUp(mInsertKeyCode);
+            screenPosition = UnityEngine.Input.mousePosition;
+            return true;
         }
 
         public bool WasReturnToTitleTriggeredThisFrame()

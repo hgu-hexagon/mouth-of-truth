@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MouthOfTruth.Game.Analysis;
 using MouthOfTruth.Game.Data;
+using MouthOfTruth.Game.Input;
 using MouthOfTruth.Game.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -40,6 +41,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private InputField mAnswerInputField;
         private Image mMouthImage;
         private Image mHandImage;
+        private Image mPointerImage;
         private Image mVerdictImage;
         private Text mVerdictText;
         private Button mStartButton;
@@ -74,6 +76,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private CardPresentationAnchorSet mCardPresentationAnchorSet;
         private MouthAnchorSet mMouthAnchorSet;
         private bool mUseWorldEnvironmentLayout;
+        private EUiActionTarget? mLastHoveredUiActionTarget;
 
         private bool mStartRequested;
         private bool mTryAgainRequested;
@@ -107,6 +110,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerInputField, false);
             setObjectActive(mMouthImage, false);
             setObjectActive(mHandImage, false);
+            setObjectActive(mPointerImage, false);
             setObjectActive(mVerdictImage, false);
             setObjectActive(mVerdictText, false);
             setObjectActive(mTryAgainButton, false);
@@ -116,6 +120,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mStatusText.text = "손으로 START GAME을 선택하거나 마우스로 클릭하세요.";
             mAnswerTimerText.text = string.Empty;
             mLastAudibleHoveredCardSlot = null;
+            mLastHoveredUiActionTarget = null;
             refreshWorldPresentationLayout();
             ensureAmbiencePlayback();
         }
@@ -134,6 +139,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerInputField, false);
             setObjectActive(mMouthImage, false);
             setObjectActive(mHandImage, false);
+            setObjectActive(mPointerImage, false);
             setObjectActive(mVerdictImage, false);
             setObjectActive(mVerdictText, false);
             setObjectActive(mTryAgainButton, false);
@@ -153,6 +159,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mStatusText.text = "카드 위에 포인터를 올리고 0.7초 유지하면 선택됩니다.";
             mAnswerTimerText.text = "시연 시간 15초";
             mLastAudibleHoveredCardSlot = null;
+            mLastHoveredUiActionTarget = null;
         }
 
         public void UpdateCardHoverVisual(EQuestionCardSlot? hoveredQuestionCardSlot, float hoverProgress)
@@ -216,6 +223,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mQuestionText, true);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
+            setObjectActive(mPointerImage, false);
             mQuestionText.text = questionText;
             mPromptText.text = "질문 낭독 중";
             mStatusText.text = "진실의 입이 질문을 읽고 있습니다.";
@@ -226,6 +234,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, true);
+            setObjectActive(mPointerImage, false);
             setObjectActive(mAnswerInputField, true);
             setObjectActive(mAnswerTimerText, true);
             setObjectActive(mQuestionPanelImage, true);
@@ -261,6 +270,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mPromptText.text = "답변 중";
             mStatusText.text = "답변을 진행하세요. 손이 입 밖으로 나오면 일시정지됩니다.";
+            setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
         }
 
@@ -269,6 +279,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.interactable = false;
             mPromptText.text = "답변 일시정지";
             mStatusText.text = "손을 다시 입 안으로 넣으면 답변이 이어집니다.";
+            setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
         }
 
@@ -277,6 +288,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.interactable = false;
             mPromptText.text = "분석 중";
             mStatusText.text = "진실의 입이 답변을 분석하고 있습니다.";
+            setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
         }
 
@@ -291,6 +303,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mStatusPanelImage, true);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, true);
+            setObjectActive(mPointerImage, false);
             setObjectActive(mVerdictImage, true);
             setObjectActive(mVerdictText, true);
             setObjectActive(mResultPanelImage, true);
@@ -328,8 +341,26 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 $"답변 {elapsedAnswerSeconds:0.0}s / 무음 {elapsedSilenceSeconds:0.0}s";
         }
 
-        public EQuestionCardSlot? GetHoveredQuestionCardSlot()
+        public EQuestionCardSlot? GetHoveredQuestionCardSlot(Vector2? pointerScreenPosition)
         {
+            if (pointerScreenPosition.HasValue)
+            {
+                foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
+                {
+                    if (pair.Value.gameObject.activeInHierarchy == false)
+                    {
+                        continue;
+                    }
+
+                    if (isScreenPointOverRectTransform(pair.Value.RectTransform, pointerScreenPosition.Value))
+                    {
+                        return pair.Key;
+                    }
+                }
+
+                return null;
+            }
+
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
                 if (pair.Value.IsHovered)
@@ -339,6 +370,111 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             return null;
+        }
+
+        public EUiActionTarget? GetHoveredUiActionTarget(Vector2? pointerScreenPosition)
+        {
+            if (pointerScreenPosition.HasValue == false)
+            {
+                return null;
+            }
+
+            Vector2 screenPosition = pointerScreenPosition.Value;
+
+            if (isScreenPointOverButton(mStartButton, screenPosition))
+            {
+                return EUiActionTarget.StartGame;
+            }
+
+            if (isScreenPointOverButton(mTryAgainButton, screenPosition))
+            {
+                return EUiActionTarget.TryAgain;
+            }
+
+            if (isScreenPointOverButton(mBackToTitleButton, screenPosition))
+            {
+                return EUiActionTarget.BackToTitle;
+            }
+
+            return null;
+        }
+
+        public void UpdateActionButtonHoverVisual(
+            EUiActionTarget? hoveredUiActionTarget,
+            float hoverProgress)
+        {
+            if (hoveredUiActionTarget != mLastHoveredUiActionTarget)
+            {
+                mLastHoveredUiActionTarget = hoveredUiActionTarget;
+            }
+
+            updateButtonVisual(mStartButton, hoveredUiActionTarget == EUiActionTarget.StartGame, hoverProgress);
+            updateButtonVisual(mTryAgainButton, hoveredUiActionTarget == EUiActionTarget.TryAgain, hoverProgress);
+            updateButtonVisual(
+                mBackToTitleButton,
+                hoveredUiActionTarget == EUiActionTarget.BackToTitle,
+                hoverProgress);
+        }
+
+        public EHandAnchorState GetHandAnchorState(Vector2? pointerScreenPosition)
+        {
+            if (pointerScreenPosition.HasValue == false)
+            {
+                return EHandAnchorState.OutsideMouth;
+            }
+
+            float mouthDiameterPixels = Mathf.Max(
+                1.0f,
+                Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
+            float frontAnchorRadiusPixels = mouthDiameterPixels * 0.34f;
+            float innerAnchorRadiusPixels = mouthDiameterPixels * 0.18f;
+            Vector2 screenPosition = pointerScreenPosition.Value;
+            float distanceToInnerAnchor = Vector2.Distance(screenPosition, getHandInnerPosition());
+
+            if (distanceToInnerAnchor <= innerAnchorRadiusPixels)
+            {
+                return EHandAnchorState.AtInnerAnchor;
+            }
+
+            float distanceToFrontAnchor = Vector2.Distance(screenPosition, getHandFrontPosition());
+
+            if (distanceToFrontAnchor <= frontAnchorRadiusPixels
+                || distanceToInnerAnchor <= frontAnchorRadiusPixels)
+            {
+                return EHandAnchorState.AtFrontAnchor;
+            }
+
+            return EHandAnchorState.OutsideMouth;
+        }
+
+        public void UpdatePointerVisual(bool isVisible, Vector2? pointerScreenPosition)
+        {
+            if (mPointerImage == null)
+            {
+                return;
+            }
+
+            if (isVisible == false || pointerScreenPosition.HasValue == false)
+            {
+                setObjectActive(mPointerImage, false);
+                return;
+            }
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    mCanvasRootRectTransform,
+                    pointerScreenPosition.Value,
+                    null,
+                    out Vector2 anchoredPosition) == false)
+            {
+                setObjectActive(mPointerImage, false);
+                return;
+            }
+
+            setObjectActive(mPointerImage, true);
+            RectTransform pointerRectTransform = mPointerImage.rectTransform;
+            pointerRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            pointerRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            pointerRectTransform.anchoredPosition = anchoredPosition;
         }
 
         public string GetAnswerTranscript()
@@ -493,6 +629,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.preserveAspect = true;
             mHandImage.sprite = mHandCursorSprite;
             mHandImage.preserveAspect = true;
+            mPointerImage.sprite = mHandCursorSprite;
+            mPointerImage.preserveAspect = true;
             mVerdictImage.preserveAspect = true;
             mQuestionPanelImage.sprite = mQuestionPanelSprite;
             mQuestionPanelImage.type = Image.Type.Sliced;
@@ -759,6 +897,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(180.0f, 220.0f),
                 Color.white);
+            mPointerImage = createImage(
+                "HandPointer",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                Vector2.zero,
+                new Vector2(120.0f, 160.0f),
+                Color.white);
             mVerdictImage = createImage(
                 "VerdictImage",
                 mCanvasRootTransform,
@@ -804,6 +950,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             createCardView(EQuestionCardSlot.LeftCard, FALLBACK_LEFT_CARD_POSITION);
             createCardView(EQuestionCardSlot.CenterCard, FALLBACK_CENTER_CARD_POSITION);
             createCardView(EQuestionCardSlot.RightCard, FALLBACK_RIGHT_CARD_POSITION);
+            mPointerImage.transform.SetAsLastSibling();
+            mPointerImage.raycastTarget = false;
         }
 
         private void buildAudioSources()
@@ -989,6 +1137,47 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 FontStyle.Bold);
             label.text = labelText;
             return button;
+        }
+
+        private bool isScreenPointOverButton(Button button, Vector2 screenPosition)
+        {
+            return button != null
+                && button.gameObject.activeInHierarchy
+                && button.interactable
+                && isScreenPointOverRectTransform(
+                    button.GetComponent<RectTransform>(),
+                    screenPosition);
+        }
+
+        private bool isScreenPointOverRectTransform(
+            RectTransform rectTransform,
+            Vector2 screenPosition)
+        {
+            return rectTransform != null
+                && RectTransformUtility.RectangleContainsScreenPoint(
+                    rectTransform,
+                    screenPosition,
+                    null);
+        }
+
+        private void updateButtonVisual(Button button, bool isHovered, float hoverProgress)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            float effectiveHoverProgress = isHovered ? Mathf.Clamp01(hoverProgress) : 0.0f;
+            RectTransform rectTransform = button.GetComponent<RectTransform>();
+            rectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.06f, effectiveHoverProgress);
+
+            if (button.image != null)
+            {
+                button.image.color = Color.Lerp(
+                    new Color(0.42f, 0.18f, 0.10f, 0.95f),
+                    new Color(0.74f, 0.54f, 0.26f, 1.0f),
+                    effectiveHoverProgress);
+            }
         }
 
         private void setCardsVisible(bool isVisible)

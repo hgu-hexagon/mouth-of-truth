@@ -40,7 +40,7 @@ namespace MouthOfTruth.Game.Analysis
             File.WriteAllText(PythonAnalysisBridgePaths.GetRequestFilePath(), requestJson);
             deletePreviousResultIfPresent();
 
-            await runPythonBridgeProcessAsync(cancellationToken);
+            await runPythonBridgeProcessAsync(cancellationToken).ConfigureAwait(false);
 
             if (File.Exists(PythonAnalysisBridgePaths.GetResultFilePath()) == false)
             {
@@ -129,7 +129,7 @@ namespace MouthOfTruth.Game.Analysis
 
             bool exitedWithinTimeout = await Task.Run(
                 () => process.WaitForExit(DEFAULT_TIMEOUT_MILLISECONDS),
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (exitedWithinTimeout == false)
             {
@@ -144,8 +144,8 @@ namespace MouthOfTruth.Game.Analysis
                 throw new TimeoutException("Timed out while waiting for the Python analysis process.");
             }
 
-            string standardOutput = await standardOutputTask;
-            string standardError = await standardErrorTask;
+            string standardOutput = await standardOutputTask.ConfigureAwait(false);
+            string standardError = await standardErrorTask.ConfigureAwait(false);
 
             if (process.ExitCode != 0)
             {

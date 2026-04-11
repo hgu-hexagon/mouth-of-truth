@@ -13,12 +13,21 @@ PROJECT_ROOT_PATH="$(cd "${PYTHON_ENGINE_ROOT_PATH}/.." && pwd)"
 REQUEST_FILE_PATH="$1"
 RESULT_FILE_PATH="$2"
 PYTHON_MODULE_ROOT_PATH="${PYTHON_ENGINE_ROOT_PATH}/src"
-CONDA_ENVIRONMENT_NAME="${MOUTH_OF_TRUTH_CONDA_ENV:-mouth-of-truth}"
-
 condaEnvironmentExists() {
   local condaExecutablePath="$1"
+  local condaEnvironmentName="$2"
 
-  "${condaExecutablePath}" env list --json 2>/dev/null | grep -F "\"${CONDA_ENVIRONMENT_NAME}\"" >/dev/null 2>&1
+  "${condaExecutablePath}" env list --json 2>/dev/null | grep -F "\"${condaEnvironmentName}\"" >/dev/null 2>&1
+}
+
+buildCondaEnvironmentCandidates() {
+  if [[ -n "${MOUTH_OF_TRUTH_CONDA_ENV:-}" ]]; then
+    printf '%s\n' "${MOUTH_OF_TRUTH_CONDA_ENV}"
+    return
+  fi
+
+  printf '%s\n' "mouth-of-truth"
+  printf '%s\n' "mouth-truth"
 }
 
 if [[ -n "${MOUTH_OF_TRUTH_PYTHON:-}" ]]; then
@@ -38,21 +47,31 @@ CONDA_CANDIDATE_PATHS=(
 )
 
 for condaCandidatePath in "${CONDA_CANDIDATE_PATHS[@]}"; do
-  if [[ -n "${condaCandidatePath}" && -x "${condaCandidatePath}" ]] && condaEnvironmentExists "${condaCandidatePath}"; then
-    PYTHONPATH="${PYTHON_MODULE_ROOT_PATH}" \
-      exec "${condaCandidatePath}" run --no-capture-output -n "${CONDA_ENVIRONMENT_NAME}" python \
-      -m mouth_of_truth.runners.bridge_analysis_runner \
-      "${REQUEST_FILE_PATH}" \
-      "${RESULT_FILE_PATH}"
+  if [[ -z "${condaCandidatePath}" || ! -x "${condaCandidatePath}" ]]; then
+    continue
   fi
+
+  while IFS= read -r condaEnvironmentName; do
+    if condaEnvironmentExists "${condaCandidatePath}" "${condaEnvironmentName}"; then
+      PYTHONPATH="${PYTHON_MODULE_ROOT_PATH}" \
+        exec "${condaCandidatePath}" run --no-capture-output -n "${condaEnvironmentName}" python \
+        -m mouth_of_truth.runners.bridge_analysis_runner \
+        "${REQUEST_FILE_PATH}" \
+        "${RESULT_FILE_PATH}"
+    fi
+  done < <(buildCondaEnvironmentCandidates)
 done
 
-if command -v conda >/dev/null 2>&1 && condaEnvironmentExists "$(command -v conda)"; then
-  PYTHONPATH="${PYTHON_MODULE_ROOT_PATH}" \
-    exec conda run --no-capture-output -n "${CONDA_ENVIRONMENT_NAME}" python \
-    -m mouth_of_truth.runners.bridge_analysis_runner \
-    "${REQUEST_FILE_PATH}" \
-    "${RESULT_FILE_PATH}"
+if command -v conda >/dev/null 2>&1; then
+  while IFS= read -r condaEnvironmentName; do
+    if condaEnvironmentExists "$(command -v conda)" "${condaEnvironmentName}"; then
+      PYTHONPATH="${PYTHON_MODULE_ROOT_PATH}" \
+        exec conda run --no-capture-output -n "${condaEnvironmentName}" python \
+        -m mouth_of_truth.runners.bridge_analysis_runner \
+        "${REQUEST_FILE_PATH}" \
+        "${RESULT_FILE_PATH}"
+    fi
+  done < <(buildCondaEnvironmentCandidates)
 fi
 
 if command -v python3 >/dev/null 2>&1; then

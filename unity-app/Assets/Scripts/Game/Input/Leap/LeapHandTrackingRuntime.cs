@@ -128,7 +128,8 @@ namespace MouthOfTruth.Game.Input.Leap
             mLeapServiceProvider.SetTargetServerNamespaceToConnectTo(mServerNamespace);
 #endif
             mLeapServiceProvider.enabled = true;
-            LastTrackingMessage = "Leap tracking service provider initialized.";
+            LastTrackingMessage =
+                $"Leap tracking service provider initialized for '{mServerNamespace}'.";
         }
 
         private void updateTrackingState()

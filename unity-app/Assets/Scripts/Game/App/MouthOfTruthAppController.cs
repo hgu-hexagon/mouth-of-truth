@@ -470,7 +470,9 @@ namespace MouthOfTruth.Game.App
                 return new DeterministicAnswerAnalysisClient();
             }
 
-            if (File.Exists(PythonAnalysisBridgePaths.GetPythonInterpreterPath()))
+            if (File.Exists(PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath())
+                && Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath())
+                && File.Exists(PythonAnalysisBridgePaths.GetShellPath()))
             {
                 return new PythonBridgeAnalysisClient();
             }

@@ -4,6 +4,17 @@ import sys
 import traceback
 from pathlib import Path
 
+
+def _ensure_package_root_on_sys_path() -> None:
+    """Adds the python-engine src directory for direct script execution."""
+    package_root_path = Path(__file__).resolve().parents[2]
+
+    if str(package_root_path) not in sys.path:
+        sys.path.insert(0, str(package_root_path))
+
+
+_ensure_package_root_on_sys_path()
+
 from mouth_of_truth.contracts.analysis_contracts import (
     AnalysisRequest,
     read_analysis_request,

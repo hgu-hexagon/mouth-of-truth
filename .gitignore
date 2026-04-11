@@ -19,6 +19,7 @@ bridge/*.json
 # Python runtime outputs
 python-engine/data/session-workspace/*
 !python-engine/data/session-workspace/.gitkeep
+python-engine/data/validation/
 
 # Unity generated folders
 unity-app/[Ll]ibrary/

@@ -7,7 +7,6 @@ from pathlib import Path
 FACE_MODEL_RELATIVE_PATH = Path("face") / "yolo26x_rafdb_best.pt"
 VOICE_MODEL_RELATIVE_PATH = Path("voice") / "best_wav2vec2_iemocap"
 MODELS_ROOT_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_MODELS_ROOT"
-LEGACY_MODELS_ROOT_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_LEGACY_MODELS_ROOT"
 
 
 def resolve_face_model_path() -> Path:
@@ -21,7 +20,7 @@ def resolve_voice_model_directory() -> Path:
 
 
 def resolve_model_path(relative_model_path: Path) -> Path:
-    """Resolves one model path from the current project or legacy fallbacks."""
+    """Resolves one model path from the current project or one explicit override."""
     searched_paths: list[Path] = []
 
     for models_root_path in build_candidate_model_roots():
@@ -42,20 +41,11 @@ def build_candidate_model_roots() -> list[Path]:
     """Builds the ordered list of candidate model roots."""
     candidate_model_roots: list[Path] = []
     configured_models_root = os.environ.get(MODELS_ROOT_ENVIRONMENT_VARIABLE_NAME, "").strip()
-    configured_legacy_models_root = os.environ.get(
-        LEGACY_MODELS_ROOT_ENVIRONMENT_VARIABLE_NAME,
-        "",
-    ).strip()
 
     if configured_models_root:
         candidate_model_roots.append(Path(configured_models_root))
 
     candidate_model_roots.append(get_local_models_root())
-
-    if configured_legacy_models_root:
-        candidate_model_roots.append(Path(configured_legacy_models_root))
-
-    candidate_model_roots.append(get_legacy_models_root())
 
     unique_model_roots: list[Path] = []
 
@@ -73,11 +63,6 @@ def build_candidate_model_roots() -> list[Path]:
 def get_local_models_root() -> Path:
     """Returns the current project's local models directory."""
     return get_python_engine_root() / "models"
-
-
-def get_legacy_models_root() -> Path:
-    """Returns the sibling legacy project's models directory."""
-    return get_project_root().parent / "mouth-of-truth" / "python-engine" / "models"
 
 
 def get_project_root() -> Path:

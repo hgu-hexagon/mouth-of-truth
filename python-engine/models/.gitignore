@@ -1,0 +1,14 @@
+# Keep this directory structure in Git, but never commit large local model binaries.
+*
+!.gitignore
+!README.md
+!face/
+!voice/
+
+face/*
+!face/.gitkeep
+!face/README.md
+
+voice/*
+!voice/.gitkeep
+!voice/README.md

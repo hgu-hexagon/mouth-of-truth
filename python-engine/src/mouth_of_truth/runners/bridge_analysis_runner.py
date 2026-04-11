@@ -1,24 +1,28 @@
 from __future__ import annotations
 
 import sys
+import traceback
 from pathlib import Path
 
 from mouth_of_truth.contracts.analysis_contracts import (
     AnalysisRequest,
-    AnalysisResult,
     read_analysis_request,
     write_analysis_result,
 )
-from mouth_of_truth.contracts.verdict_kind import VerdictKind
+from mouth_of_truth.face.frame_directory_pipeline import (
+    analyze_face_frame_directory,
+    build_empty_face_analysis,
+)
+from mouth_of_truth.fusion.judgment_policy import build_analysis_result as build_fused_analysis_result
 from mouth_of_truth.speech.whisper_transcriber import WhisperTranscriber
+from mouth_of_truth.voice.voice_emotion_pipeline import (
+    build_empty_voice_analysis,
+    run_voice_emotion_pipeline,
+)
 
 
-MINIMUM_FACE_RECOGNITION_COUNT = 5
-MINIMUM_VOICE_SEGMENT_COUNT = 1
-
-
-def build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
-    """Builds one verdict result from one request payload."""
+def build_analysis_result(analysis_request: AnalysisRequest):
+    """Builds one verdict result from one bridge request payload."""
     answer_transcript = analysis_request.answer_transcript.strip()
 
     if not answer_transcript and analysis_request.answer_audio_file_path.strip():
@@ -29,32 +33,18 @@ def build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
             language_hint=language_hint,
         ).strip()
 
-    reason_codes: list[str] = []
+    face_analysis = analyze_face_data(analysis_request)
+    voice_analysis = analyze_voice_data(analysis_request)
+    face_recognition_count = resolve_face_recognition_count(analysis_request, face_analysis)
+    voice_segment_count = resolve_voice_segment_count(analysis_request, voice_analysis)
 
-    if analysis_request.face_recognition_count < MINIMUM_FACE_RECOGNITION_COUNT:
-        reason_codes.append("insufficient_face_data")
-
-    if analysis_request.voice_segment_count < MINIMUM_VOICE_SEGMENT_COUNT or not answer_transcript:
-        reason_codes.append("insufficient_voice_data")
-
-    if reason_codes:
-        return AnalysisResult(
-            request_id=analysis_request.request_id,
-            verdict=VerdictKind.UNCERTAIN,
-            answer_transcript=answer_transcript,
-            reason_codes=reason_codes,
-        )
-
-    parity_seed = calculate_stable_parity_seed(
-        analysis_request.question_id,
-        answer_transcript,
-    )
-    verdict = VerdictKind.TRUE if parity_seed % 2 == 0 else VerdictKind.FALSE
-
-    return AnalysisResult(
+    return build_fused_analysis_result(
         request_id=analysis_request.request_id,
-        verdict=verdict,
         answer_transcript=answer_transcript,
+        face_result=face_analysis["summary"],
+        voice_result=voice_analysis["summary"],
+        face_recognition_count=face_recognition_count,
+        voice_segment_count=voice_segment_count,
     )
 
 
@@ -65,14 +55,56 @@ def run_once(request_file_path: str | Path, result_file_path: str | Path) -> Non
     write_analysis_result(result_file_path, analysis_result)
 
 
-def calculate_stable_parity_seed(question_id: str, answer_transcript: str) -> int:
-    """Builds one deterministic parity seed from the request transcript."""
-    checksum = 0
+def analyze_face_data(analysis_request: AnalysisRequest) -> dict:
+    """Analyzes one saved face-frame directory, if it exists."""
+    face_frames_directory_path = analysis_request.face_frames_directory_path.strip()
 
-    for character in f"{question_id}|{answer_transcript.strip()}":
-        checksum += ord(character)
+    if not face_frames_directory_path:
+        return build_empty_face_analysis()
 
-    return checksum
+    try:
+        return analyze_face_frame_directory(face_frames_directory_path)
+    except Exception as exception:
+        print(
+            "Face analysis failed. Falling back to empty face data.\n"
+            f"{exception}\n{traceback.format_exc()}",
+            file=sys.stderr,
+        )
+        return build_empty_face_analysis()
+
+
+def analyze_voice_data(analysis_request: AnalysisRequest) -> dict:
+    """Analyzes one saved answer audio file, if it exists."""
+    answer_audio_file_path = analysis_request.answer_audio_file_path.strip()
+
+    if not answer_audio_file_path:
+        return build_empty_voice_analysis()
+
+    try:
+        return run_voice_emotion_pipeline(answer_audio_file_path)
+    except Exception as exception:
+        print(
+            "Voice analysis failed. Falling back to empty voice data.\n"
+            f"{exception}\n{traceback.format_exc()}",
+            file=sys.stderr,
+        )
+        return build_empty_voice_analysis()
+
+
+def resolve_face_recognition_count(analysis_request: AnalysisRequest, face_analysis: dict) -> int:
+    """Resolves the face-recognition count used for judgment readiness."""
+    if analysis_request.face_frames_directory_path.strip():
+        return int(face_analysis.get("recognition_count", 0))
+
+    return analysis_request.face_frame_count
+
+
+def resolve_voice_segment_count(analysis_request: AnalysisRequest, voice_analysis: dict) -> int:
+    """Resolves the voice-segment count used for judgment readiness."""
+    if analysis_request.answer_audio_file_path.strip():
+        return int(voice_analysis.get("segment_count", 0))
+
+    return analysis_request.voice_segment_count
 
 
 def detect_language_hint(question_text: str) -> str | None:

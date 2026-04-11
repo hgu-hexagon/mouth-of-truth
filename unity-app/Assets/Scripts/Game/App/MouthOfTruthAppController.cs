@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MouthOfTruth.Game.Analysis;
 using MouthOfTruth.Game.Data;
+using MouthOfTruth.Game.Face;
 using MouthOfTruth.Game.Input;
 using MouthOfTruth.Game.Input.Keyboard;
 using MouthOfTruth.Game.Narration;
@@ -18,14 +19,13 @@ namespace MouthOfTruth.Game.App
     [DisallowMultipleComponent]
     public class MouthOfTruthAppController : MonoBehaviour
     {
-        private const int PROVISIONAL_FACE_RECOGNITION_COUNT = 6;
-
         private MouthOfTruthGameView mGameView;
         private MouthOfTruthGameStateMachine mGameStateMachine;
         private IQuestionNarrationService mQuestionNarrationService;
         private IAnswerAnalysisClient mAnswerAnalysisClient;
         private IHandInteractionInputAdapter mHandInteractionInputAdapter;
         private IAnswerCaptureInputAdapter mAnswerCaptureInputAdapter;
+        private IFaceCaptureInputAdapter mFaceCaptureInputAdapter;
         private CancellationTokenSource mLifecycleCancellationTokenSource;
 
         private bool mIsInitialized;
@@ -37,6 +37,7 @@ namespace MouthOfTruth.Game.App
             mLifecycleCancellationTokenSource = new CancellationTokenSource();
             mGameView = GetComponent<MouthOfTruthGameView>() ?? gameObject.AddComponent<MouthOfTruthGameView>();
             await mGameView.InitializeAsync();
+            await requestCaptureAuthorizationsAsync();
             initializeStateMachine();
             mIsInitialized = true;
         }
@@ -90,6 +91,8 @@ namespace MouthOfTruth.Game.App
 
         private void OnDestroy()
         {
+            mAnswerCaptureInputAdapter?.CancelCollection();
+            mFaceCaptureInputAdapter?.CancelCollection();
             mLifecycleCancellationTokenSource?.Cancel();
             mLifecycleCancellationTokenSource?.Dispose();
         }
@@ -114,6 +117,7 @@ namespace MouthOfTruth.Game.App
             mAnswerAnalysisClient = createAnalysisClient();
             mHandInteractionInputAdapter = createHandInteractionInputAdapter();
             mAnswerCaptureInputAdapter = createAnswerCaptureInputAdapter();
+            mFaceCaptureInputAdapter = createFaceCaptureInputAdapter();
             mGameView.SetAnswerTranscriptPlaceholder(mAnswerCaptureInputAdapter.TranscriptPlaceholderText);
             mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
             mGameStateMachine.OpenStartScreen();
@@ -183,6 +187,7 @@ namespace MouthOfTruth.Game.App
             }
 
             AnswerCaptureFrameSnapshot frameSnapshot = mAnswerCaptureInputAdapter.Update(Time.deltaTime);
+            mFaceCaptureInputAdapter.Update(Time.deltaTime);
             applyTranscriptUpdate(frameSnapshot.TranscriptText);
             bool shouldFinishAnswer = mGameStateMachine.AdvanceAnswerCollection(
                 Time.deltaTime,
@@ -226,6 +231,7 @@ namespace MouthOfTruth.Game.App
 
             await mGameView.AnimateHandInsertionAsync();
             mGameStateMachine.NotifyHandReachedInnerAnchor();
+            GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
             try
             {
                 beginOrResumeAnswerCapture(isResumingAnswer);
@@ -240,6 +246,7 @@ namespace MouthOfTruth.Game.App
                 mAnswerCaptureInputAdapter.Reset();
                 beginOrResumeAnswerCapture(isResumingAnswer: false);
             }
+            beginOrResumeFaceCapture(snapshot.SelectedQuestionDefinition?.ID, isResumingAnswer);
 
             mGameView.ShowAnswering();
             mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
@@ -251,6 +258,7 @@ namespace MouthOfTruth.Game.App
             mIsTransitionBusy = true;
             mGameStateMachine.NotifyHandExitedFrontAnchor();
             mAnswerCaptureInputAdapter.PauseCollection();
+            mFaceCaptureInputAdapter.PauseCollection();
             await mGameView.AnimateHandRemovalAsync();
             mGameView.ShowAnswerPaused();
             mGameView.SetAnswerTranscriptEditable(false);
@@ -265,6 +273,8 @@ namespace MouthOfTruth.Game.App
             AnswerCaptureResult answerCaptureResult = await mAnswerCaptureInputAdapter.CompleteCollectionAsync(
                 snapshot.SelectedQuestionDefinition?.ID,
                 mLifecycleCancellationTokenSource.Token);
+            FaceCaptureResult faceCaptureResult = await mFaceCaptureInputAdapter.CompleteCollectionAsync(
+                mLifecycleCancellationTokenSource.Token);
 
             if (string.IsNullOrWhiteSpace(answerCaptureResult.TranscriptText) == false)
             {
@@ -272,7 +282,10 @@ namespace MouthOfTruth.Game.App
                 snapshot = mGameStateMachine.CreateSnapshot();
             }
 
-            AnswerAnalysisRequest answerAnalysisRequest = buildAnalysisRequest(snapshot, answerCaptureResult);
+            AnswerAnalysisRequest answerAnalysisRequest = buildAnalysisRequest(
+                snapshot,
+                answerCaptureResult,
+                faceCaptureResult);
             AnswerAnalysisResult answerAnalysisResult;
 
             try
@@ -300,21 +313,20 @@ namespace MouthOfTruth.Game.App
 
         private AnswerAnalysisRequest buildAnalysisRequest(
             GameSessionSnapshot snapshot,
-            AnswerCaptureResult answerCaptureResult)
+            AnswerCaptureResult answerCaptureResult,
+            FaceCaptureResult faceCaptureResult)
         {
             string answerTranscript = string.IsNullOrWhiteSpace(answerCaptureResult.TranscriptText)
                 ? snapshot.CurrentAnswerTranscript.Trim()
                 : answerCaptureResult.TranscriptText.Trim();
             int voiceSegmentCount = answerCaptureResult.VoiceSegmentCount;
-            int faceRecognitionCount = string.IsNullOrWhiteSpace(answerTranscript)
-                ? 0
-                : PROVISIONAL_FACE_RECOGNITION_COUNT;
 
             return new AnswerAnalysisRequest(
                 snapshot.SelectedQuestionDefinition,
                 answerTranscript,
                 answerCaptureResult.AudioFilePath,
-                faceRecognitionCount,
+                faceCaptureResult.FaceFramesDirectoryPath,
+                faceCaptureResult.CapturedFrameCount,
                 voiceSegmentCount);
         }
 
@@ -323,6 +335,7 @@ namespace MouthOfTruth.Game.App
             mLastObservedTranscript = string.Empty;
             mGameView.ClearAnswerTranscript();
             mAnswerCaptureInputAdapter.Reset();
+            mFaceCaptureInputAdapter?.Reset();
         }
 
         private IQuestionNarrationService createNarrationService()
@@ -372,6 +385,11 @@ namespace MouthOfTruth.Game.App
             return new KeyboardTranscriptAnswerInputAdapter(mGameView);
         }
 
+        private IFaceCaptureInputAdapter createFaceCaptureInputAdapter()
+        {
+            return new WebcamFaceCaptureInputAdapter();
+        }
+
         private void beginOrResumeAnswerCapture(bool isResumingAnswer)
         {
             if (isResumingAnswer == false)
@@ -381,6 +399,17 @@ namespace MouthOfTruth.Game.App
             }
 
             mAnswerCaptureInputAdapter.ResumeCollection();
+        }
+
+        private void beginOrResumeFaceCapture(string questionID, bool isResumingAnswer)
+        {
+            if (isResumingAnswer == false)
+            {
+                mFaceCaptureInputAdapter.BeginCollection(questionID);
+                return;
+            }
+
+            mFaceCaptureInputAdapter.ResumeCollection();
         }
 
         private void applyTranscriptUpdate(string transcriptText)
@@ -395,6 +424,27 @@ namespace MouthOfTruth.Game.App
             mLastObservedTranscript = normalizedTranscriptText;
             mGameStateMachine.UpdateAnswerTranscript(normalizedTranscriptText);
             mGameView.SetAnswerTranscriptText(normalizedTranscriptText);
+        }
+
+        private async Task requestCaptureAuthorizationsAsync()
+        {
+            await requestAuthorizationIfNeededAsync(UserAuthorization.Microphone);
+            await requestAuthorizationIfNeededAsync(UserAuthorization.WebCam);
+        }
+
+        private async Task requestAuthorizationIfNeededAsync(UserAuthorization userAuthorization)
+        {
+            if (Application.HasUserAuthorization(userAuthorization))
+            {
+                return;
+            }
+
+            AsyncOperation requestOperation = Application.RequestUserAuthorization(userAuthorization);
+
+            while (requestOperation.isDone == false)
+            {
+                await Task.Yield();
+            }
         }
     }
 }

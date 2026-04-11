@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -22,7 +22,8 @@ class AnalysisRequest:
     question_text: str
     answer_transcript: str
     answer_audio_file_path: str
-    face_recognition_count: int
+    face_frames_directory_path: str
+    face_frame_count: int
     voice_segment_count: int
     requested_at_utc: str
 
@@ -49,7 +50,8 @@ def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
         question_text=payload["QuestionText"],
         answer_transcript=payload.get("AnswerTranscript", ""),
         answer_audio_file_path=payload.get("AnswerAudioFilePath", ""),
-        face_recognition_count=int(payload.get("FaceRecognitionCount", 0)),
+        face_frames_directory_path=payload.get("FaceFramesDirectoryPath", ""),
+        face_frame_count=int(payload.get("FaceFrameCount", 0)),
         voice_segment_count=int(payload.get("VoiceSegmentCount", 0)),
         requested_at_utc=payload["RequestedAtUtc"],
     )

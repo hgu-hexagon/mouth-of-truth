@@ -23,7 +23,7 @@ def build_deterministic_analysis_result(
 
     reason_codes: list[str] = []
 
-    if analysis_request.face_recognition_count < MINIMUM_FACE_RECOGNITION_COUNT:
+    if analysis_request.face_frame_count < MINIMUM_FACE_RECOGNITION_COUNT:
         reason_codes.append("insufficient_face_data")
 
     if analysis_request.voice_segment_count < MINIMUM_VOICE_SEGMENT_COUNT:

@@ -10,7 +10,8 @@ namespace MouthOfTruth.Game.Analysis
         public string QuestionText = string.Empty;
         public string AnswerTranscript = string.Empty;
         public string AnswerAudioFilePath = string.Empty;
-        public int FaceRecognitionCount;
+        public string FaceFramesDirectoryPath = string.Empty;
+        public int FaceFrameCount;
         public int VoiceSegmentCount;
         public string RequestedAtUtc = string.Empty;
     }

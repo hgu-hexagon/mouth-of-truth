@@ -21,7 +21,7 @@ namespace MouthOfTruth.Game.Analysis
 
             List<string> reasonCodes = new List<string>();
 
-            if (answerAnalysisRequest.FaceRecognitionCount < MINIMUM_FACE_RECOGNITION_COUNT)
+            if (answerAnalysisRequest.FaceFrameCount < MINIMUM_FACE_RECOGNITION_COUNT)
             {
                 reasonCodes.Add("insufficient_face_data");
             }

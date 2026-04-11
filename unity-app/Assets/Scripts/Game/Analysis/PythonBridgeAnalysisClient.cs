@@ -30,7 +30,8 @@ namespace MouthOfTruth.Game.Analysis
                     QuestionText = answerAnalysisRequest.QuestionDefinition.Text,
                     AnswerTranscript = answerAnalysisRequest.AnswerTranscript,
                     AnswerAudioFilePath = answerAnalysisRequest.AnswerAudioFilePath,
-                    FaceRecognitionCount = answerAnalysisRequest.FaceRecognitionCount,
+                    FaceFramesDirectoryPath = answerAnalysisRequest.FaceFramesDirectoryPath,
+                    FaceFrameCount = answerAnalysisRequest.FaceFrameCount,
                     VoiceSegmentCount = answerAnalysisRequest.VoiceSegmentCount,
                     RequestedAtUtc = DateTime.UtcNow.ToString("O"),
                 };

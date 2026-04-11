@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MouthOfTruth.Game.Analysis;
 using MouthOfTruth.Game.Data;
+using MouthOfTruth.Game.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,6 +13,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
     [DisallowMultipleComponent]
     public class MouthOfTruthGameView : MonoBehaviour
     {
+        private static readonly Vector2 FALLBACK_LEFT_CARD_POSITION = new Vector2(-390.0f, 60.0f);
+        private static readonly Vector2 FALLBACK_CENTER_CARD_POSITION = new Vector2(0.0f, 60.0f);
+        private static readonly Vector2 FALLBACK_RIGHT_CARD_POSITION = new Vector2(390.0f, 60.0f);
+        private static readonly Vector2 FALLBACK_MOUTH_POSITION = new Vector2(0.0f, 60.0f);
+        private static readonly Vector2 FALLBACK_HAND_FRONT_POSITION = new Vector2(0.0f, -20.0f);
+        private static readonly Vector2 FALLBACK_HAND_INNER_POSITION = new Vector2(0.0f, 230.0f);
+
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
 
@@ -62,6 +70,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private AudioClip mResultFalseClip;
         private AudioClip mResultUncertainClip;
         private EQuestionCardSlot? mLastAudibleHoveredCardSlot;
+        private Camera mWorldCamera;
+        private CardPresentationAnchorSet mCardPresentationAnchorSet;
+        private MouthAnchorSet mMouthAnchorSet;
+        private bool mUseWorldEnvironmentLayout;
 
         private bool mStartRequested;
         private bool mTryAgainRequested;
@@ -71,10 +83,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             ensureEventSystemExists();
             buildCanvas();
+            cacheWorldPresentationReferences();
             buildAudioSources();
             await loadSpritesAsync();
             await loadAudioClipsAsync();
             applyTheme();
+            refreshWorldPresentationLayout();
             ShowStartScreen();
         }
 
@@ -83,7 +97,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mLogoImage, true);
             setObjectActive(mTitleVignetteImage, true);
             setObjectActive(mStartButton, true);
-            setObjectActive(mCarpetImage, true);
+            setObjectActive(mBackgroundImage, mUseWorldEnvironmentLayout == false);
+            setObjectActive(mCarpetImage, mUseWorldEnvironmentLayout == false);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mStatusPanelImage, true);
@@ -101,11 +116,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mStatusText.text = "손으로 START GAME을 선택하거나 마우스로 클릭하세요.";
             mAnswerTimerText.text = string.Empty;
             mLastAudibleHoveredCardSlot = null;
+            refreshWorldPresentationLayout();
             ensureAmbiencePlayback();
         }
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
         {
+            setObjectActive(mBackgroundImage, mUseWorldEnvironmentLayout == false);
+            setObjectActive(mCarpetImage, mUseWorldEnvironmentLayout == false);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mStartButton, false);
@@ -130,6 +148,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 pair.Value.ResetHoverState();
             }
 
+            applyCardAnchorPositions();
             mPromptText.text = "질문 카드를 선택하세요";
             mStatusText.text = "카드 위에 포인터를 올리고 0.7초 유지하면 선택됩니다.";
             mAnswerTimerText.text = "시연 시간 15초";
@@ -171,7 +190,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             QuestionCardView selectedCardView = mCardViews[selectedQuestionCardSlot];
             Vector2 startPosition = selectedCardView.RectTransform.anchoredPosition;
-            Vector2 endPosition = new Vector2(0.0f, 10.0f);
+            Vector2 endPosition = getCenteredCardRevealPosition();
 
             await animateOverTimeAsync(
                 0.75f,
@@ -200,6 +219,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.text = questionText;
             mPromptText.text = "질문 낭독 중";
             mStatusText.text = "진실의 입이 질문을 읽고 있습니다.";
+            applyMouthAnchoredLayout();
         }
 
         public void ShowAwaitingHandInsertion()
@@ -214,7 +234,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.text = string.Empty;
             mAnswerInputField.interactable = false;
             mPromptText.text = "손을 입 안에 넣으세요";
-            mStatusText.text = "현재는 Space 키 기반 키보드 입력으로 손 삽입 동작을 대체합니다.";
+            mStatusText.text = "손을 입 안으로 넣으면 답변이 시작됩니다.";
+            applyMouthAnchoredLayout();
             setHandVisual(0.0f);
         }
 
@@ -241,14 +262,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.interactable = true;
             mAnswerInputField.ActivateInputField();
             mPromptText.text = "답변 중";
-            mStatusText.text = "답변을 입력하세요. Space를 떼면 일시정지됩니다.";
+            mStatusText.text = "답변을 진행하세요. 손이 입 밖으로 나오면 일시정지됩니다.";
+            applyMouthAnchoredLayout();
         }
 
         public void ShowAnswerPaused()
         {
             mAnswerInputField.interactable = false;
             mPromptText.text = "답변 일시정지";
-            mStatusText.text = "손이 빠졌습니다. Space를 다시 눌러 입 안으로 넣으세요.";
+            mStatusText.text = "손을 다시 입 안으로 넣으면 답변이 이어집니다.";
+            applyMouthAnchoredLayout();
         }
 
         public void ShowAnalyzing()
@@ -256,11 +279,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.interactable = false;
             mPromptText.text = "분석 중";
             mStatusText.text = "진실의 입이 답변을 분석하고 있습니다.";
+            applyMouthAnchoredLayout();
         }
 
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
             setCardsVisible(false);
+            setObjectActive(mBackgroundImage, mUseWorldEnvironmentLayout == false);
+            setObjectActive(mCarpetImage, mUseWorldEnvironmentLayout == false);
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mQuestionText, true);
             setObjectActive(mQuestionPanelImage, true);
@@ -288,9 +314,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 _ => "UNCERTAIN",
             };
             mPromptText.text = "결과";
-            mStatusText.text = string.IsNullOrWhiteSpace(transcriptText)
-                ? "답변 기록이 비어 있습니다."
-                : $"답변 기록: {transcriptText}";
+            mStatusText.text = verdictKind switch
+            {
+                EVerdictKind.True => "진실의 입이 답변을 진실로 판정했습니다.",
+                EVerdictKind.False => "진실의 입이 답변을 거짓으로 판정했습니다.",
+                _ => "진실의 입이 답변을 확정적으로 판정하지 못했습니다.",
+            };
+            applyMouthAnchoredLayout();
             playVerdictCue(verdictKind);
         }
 
@@ -444,6 +474,137 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 pair.Value.SetBack(mCardBackSprite);
                 pair.Value.SetDecorSprites(mCardGlowSprite, mDwellFillSprite);
             }
+        }
+
+        private void cacheWorldPresentationReferences()
+        {
+            mWorldCamera = Camera.main;
+
+            if (mWorldCamera == null)
+            {
+                mWorldCamera = FindAnyObjectByType<Camera>();
+            }
+
+            mCardPresentationAnchorSet = FindAnyObjectByType<CardPresentationAnchorSet>();
+            mMouthAnchorSet = FindAnyObjectByType<MouthAnchorSet>();
+            mUseWorldEnvironmentLayout =
+                mWorldCamera != null
+                && mCardPresentationAnchorSet != null
+                && mCardPresentationAnchorSet.HasRequiredAnchors()
+                && mMouthAnchorSet != null
+                && mMouthAnchorSet.HasRequiredAnchors();
+        }
+
+        private void refreshWorldPresentationLayout()
+        {
+            if (mUseWorldEnvironmentLayout == false)
+            {
+                return;
+            }
+
+            applyCardAnchorPositions();
+            applyMouthAnchoredLayout();
+            setHandVisual(0.0f);
+        }
+
+        private void applyCardAnchorPositions()
+        {
+            foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
+            {
+                pair.Value.SetAnchoredPosition(getCardAnchorPosition(pair.Key));
+            }
+        }
+
+        private void applyMouthAnchoredLayout()
+        {
+            RectTransform mouthRectTransform = mMouthImage.rectTransform;
+            mouthRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            mouthRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            mouthRectTransform.anchoredPosition = getMouthAnchorPosition();
+        }
+
+        private Vector2 getCenteredCardRevealPosition()
+        {
+            return getCardAnchorPosition(EQuestionCardSlot.CenterCard) + new Vector2(0.0f, 10.0f);
+        }
+
+        private Vector2 getCardAnchorPosition(EQuestionCardSlot questionCardSlot)
+        {
+            Vector2 fallbackPosition = questionCardSlot switch
+            {
+                EQuestionCardSlot.LeftCard => FALLBACK_LEFT_CARD_POSITION,
+                EQuestionCardSlot.CenterCard => FALLBACK_CENTER_CARD_POSITION,
+                EQuestionCardSlot.RightCard => FALLBACK_RIGHT_CARD_POSITION,
+                _ => FALLBACK_CENTER_CARD_POSITION,
+            };
+
+            if (mUseWorldEnvironmentLayout == false)
+            {
+                return fallbackPosition;
+            }
+
+            Transform anchorTransform = mCardPresentationAnchorSet.GetAnchor(questionCardSlot);
+            return tryProjectWorldAnchor(anchorTransform, fallbackPosition, out Vector2 anchoredPosition)
+                ? anchoredPosition
+                : fallbackPosition;
+        }
+
+        private Vector2 getMouthAnchorPosition()
+        {
+            return tryProjectWorldAnchor(
+                mMouthAnchorSet != null ? mMouthAnchorSet.TruthMouth : null,
+                FALLBACK_MOUTH_POSITION,
+                out Vector2 anchoredPosition)
+                ? anchoredPosition
+                : FALLBACK_MOUTH_POSITION;
+        }
+
+        private Vector2 getHandFrontPosition()
+        {
+            return tryProjectWorldAnchor(
+                mMouthAnchorSet != null ? mMouthAnchorSet.MouthFrontAnchor : null,
+                FALLBACK_HAND_FRONT_POSITION,
+                out Vector2 anchoredPosition)
+                ? anchoredPosition
+                : FALLBACK_HAND_FRONT_POSITION;
+        }
+
+        private Vector2 getHandInnerPosition()
+        {
+            return tryProjectWorldAnchor(
+                mMouthAnchorSet != null ? mMouthAnchorSet.MouthInnerAnchor : null,
+                FALLBACK_HAND_INNER_POSITION,
+                out Vector2 anchoredPosition)
+                ? anchoredPosition
+                : FALLBACK_HAND_INNER_POSITION;
+        }
+
+        private bool tryProjectWorldAnchor(
+            Transform worldAnchorTransform,
+            Vector2 fallbackPosition,
+            out Vector2 anchoredPosition)
+        {
+            anchoredPosition = fallbackPosition;
+
+            if (mUseWorldEnvironmentLayout == false
+                || worldAnchorTransform == null
+                || mWorldCamera == null)
+            {
+                return false;
+            }
+
+            Vector3 screenPosition = mWorldCamera.WorldToScreenPoint(worldAnchorTransform.position);
+
+            if (screenPosition.z <= 0.0f)
+            {
+                return false;
+            }
+
+            return RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                mCanvasRootRectTransform,
+                screenPosition,
+                null,
+                out anchoredPosition);
         }
 
         private void buildCanvas()
@@ -604,9 +765,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mStatusPanelImage.transform.SetSiblingIndex(mPromptText.transform.GetSiblingIndex());
             mResultPanelImage.transform.SetSiblingIndex(mVerdictImage.transform.GetSiblingIndex());
 
-            createCardView(EQuestionCardSlot.LeftCard, new Vector2(-390.0f, 60.0f));
-            createCardView(EQuestionCardSlot.CenterCard, new Vector2(0.0f, 60.0f));
-            createCardView(EQuestionCardSlot.RightCard, new Vector2(390.0f, 60.0f));
+            createCardView(EQuestionCardSlot.LeftCard, FALLBACK_LEFT_CARD_POSITION);
+            createCardView(EQuestionCardSlot.CenterCard, FALLBACK_CENTER_CARD_POSITION);
+            createCardView(EQuestionCardSlot.RightCard, FALLBACK_RIGHT_CARD_POSITION);
         }
 
         private void buildAudioSources()
@@ -732,7 +893,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 FontStyle.Italic);
             placeholderText.alignment = TextAnchor.MiddleLeft;
             placeholderText.color = new Color(0.80f, 0.74f, 0.66f, 0.7f);
-            placeholderText.text = "답변을 입력하세요. 타이핑이 멈추면 3초 뒤 자동 종료됩니다.";
+            placeholderText.text = "입력된 답변이 이 영역에 표시됩니다.";
 
             Text valueText = createText(
                 "Text",
@@ -841,11 +1002,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void setHandVisual(float insertionProgress)
         {
             RectTransform handRectTransform = mHandImage.rectTransform;
-            handRectTransform.anchorMin = new Vector2(0.5f, 0.18f);
-            handRectTransform.anchorMax = new Vector2(0.5f, 0.18f);
+            handRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            handRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             handRectTransform.anchoredPosition = Vector2.Lerp(
-                new Vector2(0.0f, -20.0f),
-                new Vector2(0.0f, 230.0f),
+                getHandFrontPosition(),
+                getHandInnerPosition(),
                 insertionProgress);
             handRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 0.80f, insertionProgress);
             mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.92f, 0.78f, insertionProgress));

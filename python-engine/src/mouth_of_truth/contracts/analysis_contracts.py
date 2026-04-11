@@ -21,6 +21,7 @@ class AnalysisRequest:
     question_id: str
     question_text: str
     answer_transcript: str
+    answer_audio_file_path: str
     face_recognition_count: int
     voice_segment_count: int
     requested_at_utc: str
@@ -32,6 +33,7 @@ class AnalysisResult:
 
     request_id: str
     verdict: VerdictKind
+    answer_transcript: str = ""
     reason_codes: list[str] = field(default_factory=list)
     completed_at_utc: str = field(default_factory=build_utc_timestamp)
 
@@ -46,6 +48,7 @@ def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
         question_id=payload["QuestionID"],
         question_text=payload["QuestionText"],
         answer_transcript=payload.get("AnswerTranscript", ""),
+        answer_audio_file_path=payload.get("AnswerAudioFilePath", ""),
         face_recognition_count=int(payload.get("FaceRecognitionCount", 0)),
         voice_segment_count=int(payload.get("VoiceSegmentCount", 0)),
         requested_at_utc=payload["RequestedAtUtc"],
@@ -58,6 +61,7 @@ def write_analysis_result(file_path: str | Path, analysis_result: AnalysisResult
     payload = {
         "RequestID": analysis_result.request_id,
         "Verdict": analysis_result.verdict.value,
+        "AnswerTranscript": analysis_result.answer_transcript,
         "ReasonCodes": analysis_result.reason_codes,
         "CompletedAtUtc": analysis_result.completed_at_utc,
     }

@@ -8,11 +8,13 @@ namespace MouthOfTruth.Game.Analysis
         public AnswerAnalysisRequest(
             QuestionDefinition questionDefinition,
             string answerTranscript,
+            string answerAudioFilePath,
             int faceRecognitionCount,
             int voiceSegmentCount)
         {
             QuestionDefinition = questionDefinition ?? throw new ArgumentNullException(nameof(questionDefinition));
             AnswerTranscript = answerTranscript ?? string.Empty;
+            AnswerAudioFilePath = answerAudioFilePath ?? string.Empty;
             FaceRecognitionCount = faceRecognitionCount;
             VoiceSegmentCount = voiceSegmentCount;
         }
@@ -20,6 +22,8 @@ namespace MouthOfTruth.Game.Analysis
         public QuestionDefinition QuestionDefinition { get; }
 
         public string AnswerTranscript { get; }
+
+        public string AnswerAudioFilePath { get; }
 
         public int FaceRecognitionCount { get; }
 

@@ -33,6 +33,7 @@ def build_deterministic_analysis_result(
         return AnalysisResult(
             request_id=analysis_request.request_id,
             verdict=VerdictKind.UNCERTAIN,
+            answer_transcript=analysis_request.answer_transcript,
             reason_codes=reason_codes,
         )
 
@@ -46,6 +47,7 @@ def build_deterministic_analysis_result(
     return AnalysisResult(
         request_id=analysis_request.request_id,
         verdict=verdict,
+        answer_transcript=analysis_request.answer_transcript,
     )
 
 

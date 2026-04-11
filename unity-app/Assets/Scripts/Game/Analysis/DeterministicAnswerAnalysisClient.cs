@@ -34,7 +34,10 @@ namespace MouthOfTruth.Game.Analysis
             if (reasonCodes.Count > 0)
             {
                 return Task.FromResult(
-                    new AnswerAnalysisResult(EVerdictKind.Uncertain, reasonCodes));
+                    new AnswerAnalysisResult(
+                        EVerdictKind.Uncertain,
+                        answerAnalysisRequest.AnswerTranscript,
+                        reasonCodes));
             }
 
             int paritySeed = calculateStableParitySeed(
@@ -47,7 +50,10 @@ namespace MouthOfTruth.Game.Analysis
                     : EVerdictKind.False;
 
             return Task.FromResult(
-                new AnswerAnalysisResult(verdictKind, Array.Empty<string>()));
+                new AnswerAnalysisResult(
+                    verdictKind,
+                    answerAnalysisRequest.AnswerTranscript,
+                    Array.Empty<string>()));
         }
 
         private int calculateStableParitySeed(string questionID, string answerTranscript)

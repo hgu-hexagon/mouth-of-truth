@@ -1,0 +1,103 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import librosa
+import torch
+from huggingface_hub.constants import HF_HUB_CACHE
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+
+
+WHISPER_MODEL_NAME = "openai/whisper-tiny"
+WHISPER_SAMPLE_RATE = 16000
+
+
+class WhisperTranscriber:
+    """Transcribes one audio file with a cached Whisper pipeline."""
+
+    def __init__(
+        self,
+        model_name: str = WHISPER_MODEL_NAME,
+        cache_directory: str = HF_HUB_CACHE,
+    ) -> None:
+        self._model_name = model_name
+        self._cache_directory = cache_directory
+        self._transcription_pipeline = None
+
+    def transcribe_audio_file(
+        self,
+        audio_file_path: str | Path,
+        language_hint: str | None = None,
+    ) -> str:
+        """Returns the recognized transcript for one audio file."""
+        resolved_audio_file_path = Path(audio_file_path).expanduser().resolve()
+
+        if resolved_audio_file_path.exists() is False:
+            raise FileNotFoundError(f"Speech audio file not found: {resolved_audio_file_path}")
+
+        waveform, _ = librosa.load(
+            resolved_audio_file_path,
+            sr=WHISPER_SAMPLE_RATE,
+            mono=True,
+        )
+        transcription = self._get_transcription_pipeline()(
+            waveform,
+            generate_kwargs=self._build_generate_kwargs(language_hint),
+        )
+        return str(transcription.get("text", "")).strip()
+
+    def _build_generate_kwargs(self, language_hint: str | None) -> dict[str, str]:
+        generate_kwargs = {"task": "transcribe"}
+
+        if language_hint:
+            generate_kwargs["language"] = language_hint
+
+        return generate_kwargs
+
+    def _get_transcription_pipeline(self):
+        if self._transcription_pipeline is not None:
+            return self._transcription_pipeline
+
+        local_files_only = self._is_model_cached()
+        processor = AutoProcessor.from_pretrained(
+            self._model_name,
+            cache_dir=self._cache_directory,
+            local_files_only=local_files_only,
+        )
+        model = AutoModelForSpeechSeq2Seq.from_pretrained(
+            self._model_name,
+            cache_dir=self._cache_directory,
+            local_files_only=local_files_only,
+        )
+        model.eval()
+
+        self._transcription_pipeline = pipeline(
+            task="automatic-speech-recognition",
+            model=model,
+            tokenizer=processor.tokenizer,
+            feature_extractor=processor.feature_extractor,
+            device=self._get_pipeline_device(),
+            dtype=self._get_torch_dtype(),
+        )
+
+        return self._transcription_pipeline
+
+    def _get_pipeline_device(self):
+        if torch.cuda.is_available():
+            return 0
+
+        if getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+            return torch.device("mps")
+
+        return -1
+
+    def _get_torch_dtype(self):
+        return torch.float16 if torch.cuda.is_available() else torch.float32
+
+    def _is_model_cached(self) -> bool:
+        model_cache_directory = (
+            Path(self._cache_directory)
+            / f"models--{self._model_name.replace('/', '--')}"
+            / "snapshots"
+        )
+        return model_cache_directory.exists()

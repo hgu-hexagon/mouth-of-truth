@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MouthOfTruth.Game.Analysis;
@@ -9,6 +10,7 @@ using MouthOfTruth.Game.Input.Keyboard;
 using MouthOfTruth.Game.Narration;
 using MouthOfTruth.Game.Presentation.Runtime;
 using MouthOfTruth.Game.Session;
+using MouthOfTruth.Game.Voice;
 using UnityEngine;
 
 namespace MouthOfTruth.Game.App
@@ -16,18 +18,18 @@ namespace MouthOfTruth.Game.App
     [DisallowMultipleComponent]
     public class MouthOfTruthAppController : MonoBehaviour
     {
-        private const float TYPING_ACTIVITY_GRACE_SECONDS = 0.75f;
+        private const int PROVISIONAL_FACE_RECOGNITION_COUNT = 6;
 
         private MouthOfTruthGameView mGameView;
         private MouthOfTruthGameStateMachine mGameStateMachine;
         private IQuestionNarrationService mQuestionNarrationService;
         private IAnswerAnalysisClient mAnswerAnalysisClient;
         private IHandInteractionInputAdapter mHandInteractionInputAdapter;
+        private IAnswerCaptureInputAdapter mAnswerCaptureInputAdapter;
         private CancellationTokenSource mLifecycleCancellationTokenSource;
 
         private bool mIsInitialized;
         private bool mIsTransitionBusy;
-        private float mTypingActivityGraceSeconds;
         private string mLastObservedTranscript = string.Empty;
 
         private async void Start()
@@ -111,6 +113,9 @@ namespace MouthOfTruth.Game.App
             mQuestionNarrationService = createNarrationService();
             mAnswerAnalysisClient = createAnalysisClient();
             mHandInteractionInputAdapter = createHandInteractionInputAdapter();
+            mAnswerCaptureInputAdapter = createAnswerCaptureInputAdapter();
+            mGameView.SetAnswerTranscriptPlaceholder(mAnswerCaptureInputAdapter.TranscriptPlaceholderText);
+            mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
             mGameStateMachine.OpenStartScreen();
         }
 
@@ -177,22 +182,11 @@ namespace MouthOfTruth.Game.App
                 return;
             }
 
-            string currentTranscript = mGameView.GetAnswerTranscript();
-
-            if (string.Equals(currentTranscript, mLastObservedTranscript, StringComparison.Ordinal) == false)
-            {
-                mLastObservedTranscript = currentTranscript;
-                mTypingActivityGraceSeconds = TYPING_ACTIVITY_GRACE_SECONDS;
-                mGameStateMachine.UpdateAnswerTranscript(currentTranscript);
-            }
-
-            if (mTypingActivityGraceSeconds > 0.0f)
-            {
-                mTypingActivityGraceSeconds -= Time.deltaTime;
-            }
-
-            bool isSpeechDetected = mTypingActivityGraceSeconds > 0.0f;
-            bool shouldFinishAnswer = mGameStateMachine.AdvanceAnswerCollection(Time.deltaTime, isSpeechDetected);
+            AnswerCaptureFrameSnapshot frameSnapshot = mAnswerCaptureInputAdapter.Update(Time.deltaTime);
+            applyTranscriptUpdate(frameSnapshot.TranscriptText);
+            bool shouldFinishAnswer = mGameStateMachine.AdvanceAnswerCollection(
+                Time.deltaTime,
+                frameSnapshot.IsSpeechDetected);
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
             mGameView.UpdateAnswerMetrics(snapshot.ElapsedAnswerSeconds, snapshot.ElapsedSilenceSeconds);
 
@@ -215,6 +209,7 @@ namespace MouthOfTruth.Game.App
                 mLifecycleCancellationTokenSource.Token);
             mGameStateMachine.MarkQuestionNarrationCompleted();
             mGameView.ShowAwaitingHandInsertion();
+            mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
             resetAnswerTracking();
             mIsTransitionBusy = false;
         }
@@ -222,6 +217,7 @@ namespace MouthOfTruth.Game.App
         private async Task insertHandAsync()
         {
             mIsTransitionBusy = true;
+            bool isResumingAnswer = mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused;
 
             if (mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion)
             {
@@ -230,7 +226,23 @@ namespace MouthOfTruth.Game.App
 
             await mGameView.AnimateHandInsertionAsync();
             mGameStateMachine.NotifyHandReachedInnerAnchor();
+            try
+            {
+                beginOrResumeAnswerCapture(isResumingAnswer);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning(
+                    "Falling back to keyboard answer entry because microphone capture failed.\n"
+                    + exception);
+                mAnswerCaptureInputAdapter = new KeyboardTranscriptAnswerInputAdapter(mGameView);
+                mGameView.SetAnswerTranscriptPlaceholder(mAnswerCaptureInputAdapter.TranscriptPlaceholderText);
+                mAnswerCaptureInputAdapter.Reset();
+                beginOrResumeAnswerCapture(isResumingAnswer: false);
+            }
+
             mGameView.ShowAnswering();
+            mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
             mIsTransitionBusy = false;
         }
 
@@ -238,8 +250,10 @@ namespace MouthOfTruth.Game.App
         {
             mIsTransitionBusy = true;
             mGameStateMachine.NotifyHandExitedFrontAnchor();
+            mAnswerCaptureInputAdapter.PauseCollection();
             await mGameView.AnimateHandRemovalAsync();
             mGameView.ShowAnswerPaused();
+            mGameView.SetAnswerTranscriptEditable(false);
             mIsTransitionBusy = false;
         }
 
@@ -248,35 +262,67 @@ namespace MouthOfTruth.Game.App
             mIsTransitionBusy = true;
             mGameView.ShowAnalyzing();
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
-            AnswerAnalysisRequest answerAnalysisRequest = buildAnalysisRequest(snapshot);
-            AnswerAnalysisResult answerAnalysisResult = await mAnswerAnalysisClient.AnalyzeAsync(
-                answerAnalysisRequest,
+            AnswerCaptureResult answerCaptureResult = await mAnswerCaptureInputAdapter.CompleteCollectionAsync(
+                snapshot.SelectedQuestionDefinition?.ID,
                 mLifecycleCancellationTokenSource.Token);
+
+            if (string.IsNullOrWhiteSpace(answerCaptureResult.TranscriptText) == false)
+            {
+                applyTranscriptUpdate(answerCaptureResult.TranscriptText);
+                snapshot = mGameStateMachine.CreateSnapshot();
+            }
+
+            AnswerAnalysisRequest answerAnalysisRequest = buildAnalysisRequest(snapshot, answerCaptureResult);
+            AnswerAnalysisResult answerAnalysisResult;
+
+            try
+            {
+                answerAnalysisResult = await mAnswerAnalysisClient.AnalyzeAsync(
+                    answerAnalysisRequest,
+                    mLifecycleCancellationTokenSource.Token);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning(
+                    "Primary answer analysis failed. Falling back to deterministic analysis.\n"
+                    + exception);
+                answerAnalysisResult = await new DeterministicAnswerAnalysisClient().AnalyzeAsync(
+                    answerAnalysisRequest,
+                    mLifecycleCancellationTokenSource.Token);
+            }
+
+            applyTranscriptUpdate(answerAnalysisResult.AnswerTranscript);
+            snapshot = mGameStateMachine.CreateSnapshot();
             mGameStateMachine.CompleteAnalysis(answerAnalysisResult);
             mGameView.ShowResult(answerAnalysisResult.VerdictKind, snapshot.CurrentAnswerTranscript);
             mIsTransitionBusy = false;
         }
 
-        private AnswerAnalysisRequest buildAnalysisRequest(GameSessionSnapshot snapshot)
+        private AnswerAnalysisRequest buildAnalysisRequest(
+            GameSessionSnapshot snapshot,
+            AnswerCaptureResult answerCaptureResult)
         {
-            string answerTranscript = snapshot.CurrentAnswerTranscript.Trim();
-            string[] words = answerTranscript.Split(
-                new[] { ' ', '\n', '\t' },
-                StringSplitOptions.RemoveEmptyEntries);
-            int voiceSegmentCount = words.Length >= 2 ? 1 : 0;
-            int faceRecognitionCount = words.Length >= 4 ? 6 : Mathf.Min(4, words.Length);
+            string answerTranscript = string.IsNullOrWhiteSpace(answerCaptureResult.TranscriptText)
+                ? snapshot.CurrentAnswerTranscript.Trim()
+                : answerCaptureResult.TranscriptText.Trim();
+            int voiceSegmentCount = answerCaptureResult.VoiceSegmentCount;
+            int faceRecognitionCount = string.IsNullOrWhiteSpace(answerTranscript)
+                ? 0
+                : PROVISIONAL_FACE_RECOGNITION_COUNT;
 
             return new AnswerAnalysisRequest(
                 snapshot.SelectedQuestionDefinition,
                 answerTranscript,
+                answerCaptureResult.AudioFilePath,
                 faceRecognitionCount,
                 voiceSegmentCount);
         }
 
         private void resetAnswerTracking()
         {
-            mTypingActivityGraceSeconds = 0.0f;
             mLastObservedTranscript = string.Empty;
+            mGameView.ClearAnswerTranscript();
+            mAnswerCaptureInputAdapter.Reset();
         }
 
         private IQuestionNarrationService createNarrationService()
@@ -296,12 +342,59 @@ namespace MouthOfTruth.Game.App
                 return new PythonBridgeAnalysisClient();
             }
 
+            if (string.Equals(analysisMode, "deterministic", StringComparison.OrdinalIgnoreCase))
+            {
+                return new DeterministicAnswerAnalysisClient();
+            }
+
+            if (File.Exists(PythonAnalysisBridgePaths.GetPythonInterpreterPath()))
+            {
+                return new PythonBridgeAnalysisClient();
+            }
+
             return new DeterministicAnswerAnalysisClient();
         }
 
         private IHandInteractionInputAdapter createHandInteractionInputAdapter()
         {
             return new KeyboardHandInputAdapter();
+        }
+
+        private IAnswerCaptureInputAdapter createAnswerCaptureInputAdapter()
+        {
+            MicrophoneAnswerInputAdapter microphoneAnswerInputAdapter = new MicrophoneAnswerInputAdapter();
+
+            if (microphoneAnswerInputAdapter.HasAvailableDevice())
+            {
+                return microphoneAnswerInputAdapter;
+            }
+
+            return new KeyboardTranscriptAnswerInputAdapter(mGameView);
+        }
+
+        private void beginOrResumeAnswerCapture(bool isResumingAnswer)
+        {
+            if (isResumingAnswer == false)
+            {
+                mAnswerCaptureInputAdapter.BeginCollection();
+                return;
+            }
+
+            mAnswerCaptureInputAdapter.ResumeCollection();
+        }
+
+        private void applyTranscriptUpdate(string transcriptText)
+        {
+            string normalizedTranscriptText = transcriptText ?? string.Empty;
+
+            if (string.Equals(normalizedTranscriptText, mLastObservedTranscript, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            mLastObservedTranscript = normalizedTranscriptText;
+            mGameStateMachine.UpdateAnswerTranscript(normalizedTranscriptText);
+            mGameView.SetAnswerTranscriptText(normalizedTranscriptText);
         }
     }
 }

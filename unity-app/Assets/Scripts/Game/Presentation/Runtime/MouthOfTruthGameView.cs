@@ -259,8 +259,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnswering()
         {
-            mAnswerInputField.interactable = true;
-            mAnswerInputField.ActivateInputField();
             mPromptText.text = "답변 중";
             mStatusText.text = "답변을 진행하세요. 손이 입 밖으로 나오면 일시정지됩니다.";
             applyMouthAnchoredLayout();
@@ -346,6 +344,44 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public string GetAnswerTranscript()
         {
             return mAnswerInputField?.text ?? string.Empty;
+        }
+
+        public void SetAnswerTranscriptText(string transcriptText)
+        {
+            if (mAnswerInputField == null)
+            {
+                return;
+            }
+
+            mAnswerInputField.SetTextWithoutNotify(transcriptText ?? string.Empty);
+        }
+
+        public void ClearAnswerTranscript()
+        {
+            SetAnswerTranscriptText(string.Empty);
+        }
+
+        public void SetAnswerTranscriptPlaceholder(string placeholderText)
+        {
+            if (mAnswerInputField?.placeholder is Text placeholderLabel)
+            {
+                placeholderLabel.text = placeholderText ?? string.Empty;
+            }
+        }
+
+        public void SetAnswerTranscriptEditable(bool isEditable)
+        {
+            if (mAnswerInputField == null)
+            {
+                return;
+            }
+
+            mAnswerInputField.interactable = isEditable;
+
+            if (isEditable)
+            {
+                mAnswerInputField.ActivateInputField();
+            }
         }
 
         public bool ConsumeStartRequested()

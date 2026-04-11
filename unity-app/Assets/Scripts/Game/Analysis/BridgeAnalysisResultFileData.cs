@@ -7,6 +7,7 @@ namespace MouthOfTruth.Game.Analysis
     {
         public string RequestID = string.Empty;
         public string Verdict = string.Empty;
+        public string AnswerTranscript = string.Empty;
         public string[] ReasonCodes = Array.Empty<string>();
         public string CompletedAtUtc = string.Empty;
     }

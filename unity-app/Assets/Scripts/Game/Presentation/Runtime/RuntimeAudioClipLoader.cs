@@ -15,10 +15,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return null;
             }
 
+            AudioType audioType = getAudioType(filePath);
+
+            if (audioType == AudioType.UNKNOWN)
+            {
+                Debug.LogWarning($"Unsupported audio format for '{filePath}'.");
+                return null;
+            }
+
             string absoluteUri = new Uri(filePath).AbsoluteUri;
 
             using UnityWebRequest unityWebRequest =
-                UnityWebRequestMultimedia.GetAudioClip(absoluteUri, AudioType.WAV);
+                UnityWebRequestMultimedia.GetAudioClip(absoluteUri, audioType);
             UnityWebRequestAsyncOperation requestOperation = unityWebRequest.SendWebRequest();
 
             while (requestOperation.isDone == false)
@@ -41,6 +49,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             return audioClip;
+        }
+
+        private static AudioType getAudioType(string filePath)
+        {
+            string fileExtension = Path.GetExtension(filePath)?.ToLowerInvariant();
+
+            return fileExtension switch
+            {
+                ".wav" => AudioType.WAV,
+                ".ogg" => AudioType.OGGVORBIS,
+                _ => AudioType.UNKNOWN,
+            };
         }
     }
 }

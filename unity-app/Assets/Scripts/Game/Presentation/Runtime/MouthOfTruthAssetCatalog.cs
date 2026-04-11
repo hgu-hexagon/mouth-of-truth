@@ -67,33 +67,33 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingArtPath("effects/card_selection_progress_fill.png");
 
         public static string TitleAmbiencePath =>
-            GetStreamingAudioPath("ambience/title_temple_ambience_loop.wav");
+            GetStreamingAudioPath("ambience/title_temple_ambience_loop.ogg");
 
         public static string ButtonConfirmPath =>
-            GetStreamingAudioPath("ui/button_confirm.wav");
+            GetStreamingAudioPath("ui/button_confirm.ogg");
 
         public static string CardHoverPath =>
-            GetStreamingAudioPath("cards/card_hover.wav");
+            GetStreamingAudioPath("cards/card_hover.ogg");
 
         public static string CardSelectPath =>
-            GetStreamingAudioPath("cards/card_select.wav");
+            GetStreamingAudioPath("cards/card_select.ogg");
 
         public static string CardRevealPath =>
-            GetStreamingAudioPath("cards/card_reveal.wav");
+            GetStreamingAudioPath("cards/card_reveal.ogg");
 
         public static string HandInsertPath =>
-            GetStreamingAudioPath("interaction/hand_insert.wav");
+            GetStreamingAudioPath("interaction/hand_insert.ogg");
 
         public static string HandPausePath =>
-            GetStreamingAudioPath("interaction/hand_pause.wav");
+            GetStreamingAudioPath("interaction/hand_pause.ogg");
 
         public static string ResultTruePath =>
-            GetStreamingAudioPath("results/result_true.wav");
+            GetStreamingAudioPath("results/result_true.ogg");
 
         public static string ResultFalsePath =>
-            GetStreamingAudioPath("results/result_false.wav");
+            GetStreamingAudioPath("results/result_false.ogg");
 
         public static string ResultUncertainPath =>
-            GetStreamingAudioPath("results/result_uncertain.wav");
+            GetStreamingAudioPath("results/result_uncertain.ogg");
     }
 }

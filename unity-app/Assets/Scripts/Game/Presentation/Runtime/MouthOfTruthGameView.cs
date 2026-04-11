@@ -49,6 +49,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mResultPanelSprite;
         private Sprite mCardGlowSprite;
         private Sprite mDwellFillSprite;
+        private AudioSource mAmbienceAudioSource;
+        private AudioSource mInterfaceAudioSource;
+        private AudioClip mTitleAmbienceClip;
+        private AudioClip mButtonConfirmClip;
+        private AudioClip mCardHoverClip;
+        private AudioClip mCardSelectClip;
+        private AudioClip mCardRevealClip;
+        private AudioClip mHandInsertClip;
+        private AudioClip mHandPauseClip;
+        private AudioClip mResultTrueClip;
+        private AudioClip mResultFalseClip;
+        private AudioClip mResultUncertainClip;
+        private EQuestionCardSlot? mLastAudibleHoveredCardSlot;
 
         private bool mStartRequested;
         private bool mTryAgainRequested;
@@ -58,7 +71,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             ensureEventSystemExists();
             buildCanvas();
+            buildAudioSources();
             await loadSpritesAsync();
+            await loadAudioClipsAsync();
             applyTheme();
             ShowStartScreen();
         }
@@ -85,6 +100,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mPromptText.text = "START GAME";
             mStatusText.text = "손으로 START GAME을 선택하거나 마우스로 클릭하세요.";
             mAnswerTimerText.text = string.Empty;
+            mLastAudibleHoveredCardSlot = null;
+            ensureAmbiencePlayback();
         }
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
@@ -116,10 +133,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mPromptText.text = "질문 카드를 선택하세요";
             mStatusText.text = "카드 위에 포인터를 올리고 0.7초 유지하면 선택됩니다.";
             mAnswerTimerText.text = "시연 시간 15초";
+            mLastAudibleHoveredCardSlot = null;
         }
 
         public void UpdateCardHoverVisual(EQuestionCardSlot? hoveredQuestionCardSlot, float hoverProgress)
         {
+            if (hoveredQuestionCardSlot != mLastAudibleHoveredCardSlot)
+            {
+                if (hoveredQuestionCardSlot.HasValue)
+                {
+                    playInterfaceCue(mCardHoverClip, 0.65f);
+                }
+
+                mLastAudibleHoveredCardSlot = hoveredQuestionCardSlot;
+            }
+
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
                 bool isHovered = hoveredQuestionCardSlot == pair.Key;
@@ -133,6 +161,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mPromptText.text = "진실의 입이 질문을 받아들이고 있습니다.";
             mStatusText.text = "선택된 카드가 중앙으로 이동합니다.";
+            playInterfaceCue(mCardSelectClip, 0.90f);
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -159,6 +188,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.text = questionDefinition.Text;
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
+            playInterfaceCue(mCardRevealClip, 0.85f);
         }
 
         public void ShowNarratingQuestion(string questionText)
@@ -191,6 +221,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public async Task AnimateHandInsertionAsync()
         {
             setObjectActive(mHandImage, true);
+            playInterfaceCue(mHandInsertClip, 0.9f);
 
             await animateOverTimeAsync(
                 0.45f,
@@ -199,6 +230,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task AnimateHandRemovalAsync()
         {
+            playInterfaceCue(mHandPauseClip, 0.9f);
             await animateOverTimeAsync(
                 0.35f,
                 progress => setHandVisual(Mathf.Lerp(1.0f, 0.0f, easeOut(progress))));
@@ -259,6 +291,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mStatusText.text = string.IsNullOrWhiteSpace(transcriptText)
                 ? "답변 기록이 비어 있습니다."
                 : $"답변 기록: {transcriptText}";
+            playVerdictCue(verdictKind);
         }
 
         public void UpdateAnswerMetrics(float elapsedAnswerSeconds, float elapsedSilenceSeconds)
@@ -357,6 +390,30 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.sprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TruthMouthFacePath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.85f, 0.83f, 0.78f, 1.0f));
+        }
+
+        private async Task loadAudioClipsAsync()
+        {
+            mTitleAmbienceClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.TitleAmbiencePath);
+            mButtonConfirmClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ButtonConfirmPath);
+            mCardHoverClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardHoverPath);
+            mCardSelectClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardSelectPath);
+            mCardRevealClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardRevealPath);
+            mHandInsertClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandInsertPath);
+            mHandPauseClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandPausePath);
+            mResultTrueClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultTruePath);
+            mResultFalseClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultFalsePath);
+            mResultUncertainClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultUncertainPath);
         }
 
         private void applyTheme()
@@ -552,6 +609,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             createCardView(EQuestionCardSlot.RightCard, new Vector2(390.0f, 60.0f));
         }
 
+        private void buildAudioSources()
+        {
+            mAmbienceAudioSource = gameObject.AddComponent<AudioSource>();
+            mAmbienceAudioSource.loop = true;
+            mAmbienceAudioSource.playOnAwake = false;
+            mAmbienceAudioSource.volume = 0.32f;
+
+            mInterfaceAudioSource = gameObject.AddComponent<AudioSource>();
+            mInterfaceAudioSource.loop = false;
+            mInterfaceAudioSource.playOnAwake = false;
+            mInterfaceAudioSource.volume = 0.85f;
+        }
+
         private void ensureEventSystemExists()
         {
             if (FindAnyObjectByType<EventSystem>() != null)
@@ -704,7 +774,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             buttonImage.color = new Color(0.42f, 0.18f, 0.10f, 0.95f);
 
             Button button = buttonObject.AddComponent<Button>();
-            button.onClick.AddListener(() => clickedAction?.Invoke());
+            button.onClick.AddListener(
+                () =>
+                {
+                    playInterfaceCue(mButtonConfirmClip, 0.85f);
+                    clickedAction?.Invoke();
+                });
 
             Text label = createText(
                 "Label",
@@ -774,6 +849,41 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 insertionProgress);
             handRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 0.80f, insertionProgress);
             mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.92f, 0.78f, insertionProgress));
+        }
+
+        private void ensureAmbiencePlayback()
+        {
+            if (mAmbienceAudioSource == null
+                || mTitleAmbienceClip == null
+                || mAmbienceAudioSource.isPlaying)
+            {
+                return;
+            }
+
+            mAmbienceAudioSource.clip = mTitleAmbienceClip;
+            mAmbienceAudioSource.Play();
+        }
+
+        private void playInterfaceCue(AudioClip audioClip, float volumeScale)
+        {
+            if (mInterfaceAudioSource == null || audioClip == null)
+            {
+                return;
+            }
+
+            mInterfaceAudioSource.PlayOneShot(audioClip, volumeScale);
+        }
+
+        private void playVerdictCue(EVerdictKind verdictKind)
+        {
+            AudioClip verdictClip = verdictKind switch
+            {
+                EVerdictKind.True => mResultTrueClip,
+                EVerdictKind.False => mResultFalseClip,
+                _ => mResultUncertainClip,
+            };
+
+            playInterfaceCue(verdictClip, 0.95f);
         }
     }
 }

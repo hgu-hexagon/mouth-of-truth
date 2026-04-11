@@ -6,17 +6,23 @@ namespace MouthOfTruth.Game.Presentation.Runtime
     public static class MouthOfTruthAssetCatalog
     {
         private const string ART_DIRECTORY_NAME = "art";
+        private const string AUDIO_DIRECTORY_NAME = "audio";
 
         public static string GetStreamingArtPath(string relativePath)
         {
             return Path.Combine(Application.streamingAssetsPath, ART_DIRECTORY_NAME, relativePath);
         }
 
+        public static string GetStreamingAudioPath(string relativePath)
+        {
+            return Path.Combine(Application.streamingAssetsPath, AUDIO_DIRECTORY_NAME, relativePath);
+        }
+
         public static string TitleBackgroundPath =>
             GetStreamingArtPath("backgrounds/title_background_stone_wall.jpeg");
 
         public static string TitleLogoPath =>
-            GetStreamingArtPath("ui/logo_title_main.jpeg");
+            GetStreamingArtPath("ui/logo_title_main.png");
 
         public static string TitleVignettePath =>
             GetStreamingArtPath("ui/title_vignette.png");
@@ -37,13 +43,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingArtPath("cards/question_card_back.jpeg");
 
         public static string TruthMouthFacePath =>
-            GetStreamingArtPath("mouth/truth_mouth_face.jpeg");
+            GetStreamingArtPath("mouth/truth_mouth_face.png");
 
         public static string TrueVerdictPath =>
-            GetStreamingArtPath("verdict/verdict_true.jpeg");
+            GetStreamingArtPath("verdict/verdict_true.png");
 
         public static string FalseVerdictPath =>
-            GetStreamingArtPath("verdict/verdict_false.jpeg");
+            GetStreamingArtPath("verdict/verdict_false.png");
 
         public static string UncertainVerdictPath =>
             GetStreamingArtPath("verdict/verdict_uncertain.png");
@@ -59,5 +65,35 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public static string CardSelectionProgressFillPath =>
             GetStreamingArtPath("effects/card_selection_progress_fill.png");
+
+        public static string TitleAmbiencePath =>
+            GetStreamingAudioPath("ambience/title_temple_ambience_loop.wav");
+
+        public static string ButtonConfirmPath =>
+            GetStreamingAudioPath("ui/button_confirm.wav");
+
+        public static string CardHoverPath =>
+            GetStreamingAudioPath("cards/card_hover.wav");
+
+        public static string CardSelectPath =>
+            GetStreamingAudioPath("cards/card_select.wav");
+
+        public static string CardRevealPath =>
+            GetStreamingAudioPath("cards/card_reveal.wav");
+
+        public static string HandInsertPath =>
+            GetStreamingAudioPath("interaction/hand_insert.wav");
+
+        public static string HandPausePath =>
+            GetStreamingAudioPath("interaction/hand_pause.wav");
+
+        public static string ResultTruePath =>
+            GetStreamingAudioPath("results/result_true.wav");
+
+        public static string ResultFalsePath =>
+            GetStreamingAudioPath("results/result_false.wav");
+
+        public static string ResultUncertainPath =>
+            GetStreamingAudioPath("results/result_uncertain.wav");
     }
 }

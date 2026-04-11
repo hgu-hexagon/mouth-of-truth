@@ -79,3 +79,5 @@ unity-app/*.VC.db
 # IDE
 .vscode/
 unity-app/.idea/
+
+unity-app/ProjectSettings/PackageManagerSettings.asset

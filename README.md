@@ -15,17 +15,17 @@ Unity-first game project for the revised Mouth of Truth experience.
 
 ## Current Runtime
 
-The current repository already includes a playable placeholder flow with:
+The current repository includes a playable product flow with:
 
 - title screen and start button
 - three hidden question cards drawn from a non-repeating JSON pool
 - hover + dwell card selection
-- question reveal and macOS TTS narration fallback
+- question reveal and macOS TTS narration
 - hand insertion / pause / resume semantics through a replaceable input adapter
 - answer timeout and silence-based completion rules
 - verdict model for `TRUE`, `FALSE`, and `UNCERTAIN`
 - placeholder art paths that can be swapped without changing code
-- Python bridge contracts ready for real analysis integration
+- Python bridge integration for microphone capture, Whisper transcription, and verdict generation
 
 Detailed Korean design and contract notes are intentionally left uncommitted.
 

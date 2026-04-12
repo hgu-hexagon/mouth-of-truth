@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 
 from mouth_of_truth.contracts.verdict_kind import VerdictKind
@@ -41,7 +42,7 @@ class AnalysisResult:
 
 def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
     """Reads one analysis request from JSON."""
-    file_path = Path(file_path)
+    file_path = Path(file_path).expanduser().resolve()
     payload = json.loads(file_path.read_text(encoding="utf-8"))
 
     return AnalysisRequest(
@@ -49,8 +50,14 @@ def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
         question_id=payload["QuestionID"],
         question_text=payload["QuestionText"],
         answer_transcript=payload.get("AnswerTranscript", ""),
-        answer_audio_file_path=payload.get("AnswerAudioFilePath", ""),
-        face_frames_directory_path=payload.get("FaceFramesDirectoryPath", ""),
+        answer_audio_file_path=resolve_runtime_relative_path(
+            file_path,
+            payload.get("AnswerAudioFilePath", ""),
+        ),
+        face_frames_directory_path=resolve_runtime_relative_path(
+            file_path,
+            payload.get("FaceFramesDirectoryPath", ""),
+        ),
         face_frame_count=int(payload.get("FaceFrameCount", 0)),
         voice_segment_count=int(payload.get("VoiceSegmentCount", 0)),
         requested_at_utc=payload["RequestedAtUtc"],
@@ -71,3 +78,27 @@ def write_analysis_result(file_path: str | Path, analysis_result: AnalysisResult
         json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+
+
+def resolve_runtime_relative_path(
+    request_file_path: Path,
+    raw_path: str,
+) -> str:
+    """Resolves one runtime-root-relative path from the request payload."""
+    normalized_raw_path = raw_path.strip()
+
+    if not normalized_raw_path:
+        return ""
+
+    candidate_path = Path(normalized_raw_path).expanduser()
+
+    if candidate_path.is_absolute():
+        return str(candidate_path.resolve())
+
+    configured_runtime_root = os.environ.get("MOUTH_OF_TRUTH_RUNTIME_ROOT", "").strip()
+    runtime_root_path = (
+        Path(configured_runtime_root).expanduser().resolve()
+        if configured_runtime_root
+        else request_file_path.parent
+    )
+    return str((runtime_root_path / candidate_path).resolve())

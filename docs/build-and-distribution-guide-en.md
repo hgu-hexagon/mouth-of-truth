@@ -2,149 +2,103 @@
 
 ## Overview
 
-This document explains how to build and distribute the Mouth of Truth project
-as a final product package.
-
-This document assumes the following conditions.
-
-- Final PNG assets are already applied to the project.
-- Leap Motion input is already integrated.
-- The Python analysis runtime and local model assets are ready.
+This document explains how to build and distribute Mouth of Truth as a macOS
+product package.
 
 After completing this guide, you should be able to:
 
-- build the macOS distribution package
-- gather all required runtime files
-- decide which files must be shipped to users
+- prepare the distributable Python runtime
+- run the macOS release build
+- identify the files that must be delivered to users
 - tell users which file they must launch
 
-## Pre-build checklist
+## Pre-release checklist
 
 Verify the following first.
 
 - The Unity project opens from `unity-app/`.
 - The main scene is `Assets/Scenes/Main.unity`.
-- The Python environment is ready.
-- The distributable Python runtime folder is ready.
-- The face model, voice model, and Whisper cache exist under `python-engine/models/`.
 - Final PNG assets are applied under `unity-app/Assets/StreamingAssets/art/`.
-- Leap Motion packages and scene bindings are complete.
+- Leap Motion integration and hardware validation are complete.
+- The local model assets for Python analysis are ready.
+- `python-engine/scripts/validate_bridge_runtime.sh` passes.
 
-## Distribution package layout
+## Build the distributable Python runtime
 
-The release unit is **not a single app file**.
+Do not ship the Unity `.app` bundle alone.
+The release package must include the Python runtime.
 
-Use this directory layout as the release baseline.
+Run this command from the repository root.
 
-- `MouthOfTruth/`
-  - `MouthOfTruth.app`
-  - `Run Mouth of Truth.command`
-  - `python-engine/`
-  - `python-runtime/`
-  - `bridge/`
+```bash
+conda activate mouth-of-truth
+python-engine/scripts/package_python_runtime.sh
+```
 
-Each item has a specific role.
+The script performs the following actions.
 
-- `MouthOfTruth.app`
-  - the Unity player
-- `Run Mouth of Truth.command`
-  - the macOS launcher that starts the app from the correct runtime root
-- `python-engine/`
-  - the analysis bridge scripts and Python modules
-- `python-runtime/`
-  - the distributable Python executable and package runtime
-- `bridge/`
-  - the runtime JSON exchange directory between Unity and Python
+- Packages the `mouth-of-truth` conda environment
+- Creates `python-runtime/` at the repository root
+- Expands the distributable Python executable and packages into that directory
 
-Important:
+If you use a different environment name, set it first.
 
-- Do not ship the `.app` bundle alone.
-- Ship the entire `MouthOfTruth/` directory.
+```bash
+MOUTH_OF_TRUTH_CONDA_ENV=<conda-env-name> \
+python-engine/scripts/package_python_runtime.sh
+```
 
 ## Build the macOS release
 
-### 0. Prepare the distributable Python runtime
-
-Prepare one of the following:
-
-- place a `python-runtime/` folder at the repository root
-- or set `MOUTH_OF_TRUTH_PYTHON_RUNTIME_ROOT` to the distributable Python runtime folder
-
-The distributable Python runtime must include:
-
-- `bin/python` or an equivalent Python executable
-- the Python packages required by this project
-
 ### 1. Refresh the main scene
 
-Run this Unity menu item first.
+Run this Unity menu item.
 
 - `Mouth Of Truth > Build Main Scene`
 
-This step updates the main scene using the current environment assets and anchor
-layout.
+This step regenerates `Main.unity` from the current environment assets and
+anchor layout.
 
-### 2. Build the macOS release package
+### 2. Run the macOS release build
 
 Run this Unity menu item.
 
 - `Mouth Of Truth > Build Mac Release`
 
-This build performs the following actions.
-
-- Builds `Main.unity` into a macOS app
-- Creates the output under `dist/macos/MouthOfTruth/`
-- Copies `python-engine/`
-- Creates the `bridge/` directory
-- Generates the `Run Mouth of Truth.command` launcher
-- Copies `python-runtime/` when the runtime folder is available
-
-Note:
-
-- The first macOS release build can take a long time while Unity prepares the
-  URP shader cache.
-- If the build is slow but the console does not show an error, let it continue
-  until it finishes.
-
-## Build output location
-
-When the build succeeds, the output is created here.
-
-- `dist/macos/MouthOfTruth/`
-
-The primary artifacts are:
+The build creates the following output.
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
+- `dist/macos/MouthOfTruth/python-engine/`
+- `dist/macos/MouthOfTruth/python-runtime/`
+- `dist/macos/MouthOfTruth/bridge/`
 
-## Pre-release verification
+## Files that must exist after the build
 
-Verify the following before distribution.
+Verify that all of the following exist.
 
-- `MouthOfTruth.app` exists
-- `Run Mouth of Truth.command` exists
-- `python-engine/` exists
-- `python-runtime/` exists
-- `bridge/` exists
+- `dist/macos/MouthOfTruth/MouthOfTruth.app`
+- `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
+- `dist/macos/MouthOfTruth/python-engine/`
+- `dist/macos/MouthOfTruth/python-runtime/`
+- `dist/macos/MouthOfTruth/bridge/`
 
-Then verify the baseline runtime flow.
-
-- The title screen opens.
-- Card selection works.
-- Question TTS plays.
-- Answer collection starts after hand insertion.
-- The result screen appears.
+Do not ship the build if any of these items are missing.
 
 ## Files to deliver to users
 
-Deliver the entire directory below to users.
+Deliver the entire directory below.
 
 - `dist/macos/MouthOfTruth/`
 
-Recommended delivery methods:
+Recommended delivery method:
 
-- compress the folder as a ZIP file
-- ship it as the internal release package before installer wrapping
+- compress `MouthOfTruth/` as a ZIP file
+
+Important:
+
+- Do not ship `MouthOfTruth.app` by itself.
+- Always ship the full `MouthOfTruth/` directory.
 
 ## File the user should launch
 
@@ -152,14 +106,42 @@ After extracting the package, the user should launch:
 
 - `Run Mouth of Truth.command`
 
-This launcher sets the correct runtime root and then opens `MouthOfTruth.app`.
+The launcher sets the runtime root correctly and then opens
+`MouthOfTruth.app`.
 
 As a secondary option, the user can launch:
 
 - `MouthOfTruth.app`
 
-For operation and support, the `.command` launcher is the recommended entry
-point.
+For support and operation, the `.command` launcher should be the default
+instruction.
+
+## First-launch instructions for users
+
+The first launch can prompt for:
+
+- camera permission
+- microphone permission
+
+The user must allow both permissions for the analysis features to work.
+
+For internal demo builds on macOS, also tell the user:
+
+- if macOS blocks execution, right-click the file in Finder and select **Open**
+
+## Final release verification
+
+Verify the following flow before distribution.
+
+- The title screen opens.
+- `START GAME` works.
+- Card selection works.
+- Question TTS plays.
+- Answer collection starts after hand insertion.
+- Answer pause works when the hand is removed.
+- Answer resume works when the hand returns.
+- A result screen appears.
+- `TRY AGAIN` and `BACK TO TITLE` work.
 
 ## Troubleshooting
 
@@ -171,33 +153,33 @@ Cause:
 
 Action:
 
-- Verify that both directories are present in the distribution package.
+- Verify that both directories are present in the release package.
 
-### Only the `.app` bundle was shipped
-
-Cause:
-
-- Shipping only the `.app` bundle omits the Python runtime and the bridge
-  directory.
-
-Action:
-
-- Repackage and ship the full `MouthOfTruth/` directory.
-
-### The user cannot launch the app on macOS
+### The user launched only the `.app` bundle
 
 Cause:
 
-- macOS security settings or signing policy may block execution.
+- The app bundle was copied without the product root directory.
 
 Action:
 
-- Add code signing and notarization for the chosen release channel.
-- For internal demos, provide the required security exception guidance.
+- Re-deliver the full `MouthOfTruth/` directory.
+- Ask the user to launch `Run Mouth of Truth.command`.
+
+### Packaging `python-runtime/` fails
+
+Cause:
+
+- `conda-pack` is missing, or the conda environment name is different.
+
+Action:
+
+- Recreate the environment with `python-engine/environment.yml`.
+- Set `MOUTH_OF_TRUTH_CONDA_ENV` when needed and rerun the packaging script.
 
 ## Related documents
 
 - `docs/developer-setup-checklist-en.md`
 - `python-engine/environment.yml`
 - `python-engine/requirements.txt`
-- `unity-app/Assets/Scenes/Main.unity`
+- `python-engine/scripts/package_python_runtime.sh`

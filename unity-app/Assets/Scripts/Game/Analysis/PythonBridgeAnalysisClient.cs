@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using MouthOfTruth.Game.App;
 
 namespace MouthOfTruth.Game.Analysis
 {
@@ -29,8 +30,10 @@ namespace MouthOfTruth.Game.Analysis
                     QuestionID = answerAnalysisRequest.QuestionDefinition.ID,
                     QuestionText = answerAnalysisRequest.QuestionDefinition.Text,
                     AnswerTranscript = answerAnalysisRequest.AnswerTranscript,
-                    AnswerAudioFilePath = answerAnalysisRequest.AnswerAudioFilePath,
-                    FaceFramesDirectoryPath = answerAnalysisRequest.FaceFramesDirectoryPath,
+                    AnswerAudioFilePath =
+                        buildRuntimeRelativePath(answerAnalysisRequest.AnswerAudioFilePath),
+                    FaceFramesDirectoryPath =
+                        buildRuntimeRelativePath(answerAnalysisRequest.FaceFramesDirectoryPath),
                     FaceFrameCount = answerAnalysisRequest.FaceFrameCount,
                     VoiceSegmentCount = answerAnalysisRequest.VoiceSegmentCount,
                     RequestedAtUtc = DateTime.UtcNow.ToString("O"),
@@ -163,6 +166,30 @@ namespace MouthOfTruth.Game.Analysis
             {
                 File.Delete(resultFilePath);
             }
+        }
+
+        private string buildRuntimeRelativePath(string originalPath)
+        {
+            if (string.IsNullOrWhiteSpace(originalPath))
+            {
+                return string.Empty;
+            }
+
+            string normalizedPath = Path.GetFullPath(originalPath);
+            string runtimeRootPath =
+                Path.GetFullPath(MouthOfTruthRuntimePaths.GetRuntimeRootPath());
+            string runtimeRootWithSeparator =
+                runtimeRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+
+            if (normalizedPath.StartsWith(runtimeRootWithSeparator, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(normalizedPath, runtimeRootPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return Path.GetRelativePath(runtimeRootPath, normalizedPath)
+                    .Replace(Path.DirectorySeparatorChar, '/');
+            }
+
+            return normalizedPath;
         }
     }
 }

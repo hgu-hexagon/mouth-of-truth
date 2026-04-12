@@ -2,20 +2,17 @@
 
 ## Overview
 
-This document explains how to set up the Mouth of Truth project on a new
-machine after cloning the repository from GitHub.
-
-The target audience is a developer who works with both the Unity app and the
-Python analysis runtime.
+This document explains how to set up the Mouth of Truth project on a fresh
+machine after cloning the GitHub repository.
 
 After completing this guide, you should be able to:
 
 - clone the repository
-- create the Python runtime environment
+- create the Python environment
 - open the Unity project from the correct path
-- run the main scene
-- verify the baseline game flow in deterministic mode
-- verify the Python bridge and analysis path
+- run the baseline game flow in deterministic mode
+- prepare the local model assets for full analysis
+- run the Python bridge validation
 
 ## Prerequisites
 
@@ -30,18 +27,18 @@ The current project has been validated primarily on macOS.
 
 ## Clone the repository
 
-Clone the repository into your preferred workspace.
+Run the following commands in your preferred workspace.
 
 ```bash
 git clone https://github.com/hgu-hexagon/mouth-of-truth.git
 cd mouth-of-truth
 ```
 
-In this guide, the current working directory is called `<repo-root>`.
+This guide refers to the current working directory as `<repo-root>`.
 
 ## Project structure
 
-The two important roots in this repository are:
+The two important project roots are:
 
 - Unity app:
   - `<repo-root>/unity-app`
@@ -50,22 +47,20 @@ The two important roots in this repository are:
 
 Important:
 
-- Do not open the repository root directly in Unity.
-- Open the Unity project from `unity-app/` only.
+- Open Unity from `unity-app/` only.
+- Do not open the repository root directly as a Unity project.
 
 ## Create the Python environment
 
 ### 1. Create the conda environment
 
-Create the project environment with:
+Run this command from the repository root.
 
 ```bash
 conda env create -f python-engine/environment.yml
 ```
 
-The default environment name is:
-
-- `mouth-of-truth`
+The default environment name is `mouth-of-truth`.
 
 ### 2. Activate the environment
 
@@ -73,15 +68,14 @@ The default environment name is:
 conda activate mouth-of-truth
 ```
 
-### 3. Check the dependency manifests
+### 3. Verify the Python environment
 
-The project uses these files as the Python dependency baseline:
+```bash
+python --version
+python -m compileall python-engine/src
+```
 
-- `python-engine/environment.yml`
-- `python-engine/requirements.txt`
-
-`environment.yml` defines the environment bootstrap.
-`requirements.txt` defines the core runtime packages.
+If these commands succeed, the Python sources are readable and compilable.
 
 ## Open the Unity project
 
@@ -93,7 +87,7 @@ Open this path:
 
 ### 2. Verify the Unity version
 
-The project baseline is:
+Use this editor version:
 
 - `6000.4.1f1`
 
@@ -103,111 +97,67 @@ Open this scene in Unity:
 
 - `Assets/Scenes/Main.unity`
 
-## Prepare the local analysis models
+## Baseline execution
 
-### Overview
+### Run deterministic mode
 
-The project uses local assets for face analysis, voice emotion analysis, and
-Whisper transcription.
-
-These model binaries are not committed to Git.
-To run the full analysis path, you must populate the local model directories.
-
-### Required paths
-
-The full analysis path requires these locations:
-
-- Face model:
-  - `python-engine/models/face/yolo26x_rafdb_best.pt`
-- Voice emotion model:
-  - `python-engine/models/voice/best_wav2vec2_iemocap/`
-- Whisper cache:
-  - `python-engine/models/whisper/models--openai--whisper-tiny/`
-
-## Execution modes
-
-The project supports two execution modes.
-
-### Deterministic mode
-
-This mode verifies the baseline game flow without requiring local analysis
+Deterministic mode verifies the game flow without requiring the local analysis
 models.
 
 Use this mode to verify:
 
 - the title screen
-- card selection
+- three question cards
+- hover and dwell card selection
 - question reveal
-- TTS
-- answer collection
+- macOS TTS narration
+- answer collection state changes
 - result presentation
 
-This mode generates analysis results from deterministic rules.
-
-### Python analysis mode
-
-This mode uses the real Python analysis pipeline, including microphone input,
-face frame capture, Whisper transcription, and face/voice analysis.
-
-This mode requires:
-
-- the Python environment
-- local model assets
-- microphone access
-- webcam access
-
-## Run the project in deterministic mode
-
-### 1. Launch Unity with the deterministic flag
-
-Start Unity with this environment variable:
+Launch Unity in deterministic mode from the repository root:
 
 ```bash
-cd <repo-root>
 MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic open -a "Unity" unity-app
 ```
 
-If the project is already open in Unity, restarting Unity with the environment
-variable is the safest option.
+If Unity is already open, close it first and relaunch it with the environment
+variable.
 
-### 2. Press Play in the main scene
+## Prepare full analysis mode
 
-The baseline run is successful when the following flow works:
+Full analysis mode uses:
 
-- the title screen appears
-- three question cards appear
-- hover and dwell card selection works
-- the selected question is revealed
-- TTS reads the question
-- answer collection starts
-- a result screen appears
+- microphone input
+- face frame capture
+- Whisper transcription
+- face emotion analysis
+- voice emotion analysis
 
-## Run the project in Python analysis mode
+This path requires local model assets.
 
-### 1. Populate the local model assets
+### Local model asset paths
 
-Make sure these paths exist:
+Prepare these locations:
 
-- `python-engine/models/face/yolo26x_rafdb_best.pt`
-- `python-engine/models/voice/best_wav2vec2_iemocap/`
-- `python-engine/models/whisper/models--openai--whisper-tiny/`
+- Face model:
+  - `python-engine/models/face/yolo26x_rafdb_best.pt`
+- Voice emotion model:
+  - `python-engine/models/voice/best_wav2vec2_iemocap/`
+- Whisper cache root:
+  - `python-engine/models/whisper/`
 
-### 2. Verify the Python sources
+If internet access is available, Whisper can download `whisper-tiny`
+automatically on first use.
 
-Run this command from the repository root:
+The face model and the voice emotion model are not committed to the repository.
+Request those assets from the project maintainer.
+
+## Validate the Python bridge
+
+Run the following commands from the repository root:
 
 ```bash
-cd <repo-root>
 conda activate mouth-of-truth
-python -m compileall python-engine/src
-```
-
-### 3. Verify the bridge runtime
-
-Run this command from the repository root:
-
-```bash
-cd <repo-root>
 python-engine/scripts/validate_bridge_runtime.sh
 ```
 
@@ -218,87 +168,65 @@ This validation checks:
 - Whisper transcription
 - result JSON generation
 
-### 4. Press Play in Unity
-
-Without the deterministic override, the project will prefer the Python analysis
-path.
+The validation succeeds when it prints `Bridge runtime validation succeeded.`
 
 ## Verification checklist
 
-### Deterministic mode
+The baseline setup is ready when all of the following are true.
 
-The baseline deterministic setup is complete when all of the following are true.
-
-- The Unity project opens from `unity-app/`.
+- Unity opens from `unity-app/`.
 - `Assets/Scenes/Main.unity` opens correctly.
 - Unity has no blocking compile errors.
 - Card selection works.
 - TTS plays.
-- The result screen appears.
+- A result screen appears.
 
-### Python analysis mode
-
-The Python analysis path is ready when all of the following are true.
+The full analysis path is ready when all of the following are also true.
 
 - `python -m compileall python-engine/src` passes.
-- The face model path exists.
-- The voice model path exists.
-- The Whisper cache path exists.
-- `python-engine/scripts/validate_bridge_runtime.sh` passes.
+- `validate_bridge_runtime.sh` passes.
+- The face model file exists.
+- The voice model directory exists.
+- The Whisper cache root exists.
 
-## Troubleshooting
+## Common mistakes
 
-### Unity opens a blank default scene
-
-Cause:
-
-- The repository root was opened as a Unity project by mistake.
-
-Action:
-
-- Close Unity.
-- Open `<repo-root>/unity-app` only.
-
-### Python cannot find the models
+### Unity was opened from the repository root
 
 Cause:
 
-- The local assets under `python-engine/models/` may be missing.
+- The repository root was opened instead of `unity-app/`.
 
 Action:
 
-- Recheck the face, voice, and Whisper cache paths.
-- If needed, set `MOUTH_OF_TRUTH_MODELS_ROOT` explicitly.
+- Close the incorrectly opened project.
+- Reopen `<repo-root>/unity-app` from Unity Hub.
 
-### Whisper tries to download files
+### The game runs but analysis does not
 
 Cause:
 
-- The project-local Whisper cache may be missing or incomplete.
+- Unity is running in deterministic mode, or the local model assets are missing.
 
 Action:
 
-- Populate `python-engine/models/whisper/models--openai--whisper-tiny/`.
-- Use `TRANSFORMERS_OFFLINE=1` and `HF_HUB_OFFLINE=1` during offline checks.
+- Prepare the face and voice model assets for full analysis.
+- Relaunch Unity without the deterministic override.
 
-### Unity cannot launch Python analysis
+### Whisper transcription does not start
 
 Cause:
 
-- The Python launcher cannot find a usable runtime.
+- `python-engine/models/whisper/` is missing, or the network is blocked.
 
 Action:
 
-- Verify that `conda env create -f python-engine/environment.yml` completed successfully.
-- Verify that `conda activate mouth-of-truth` works.
-- If needed, set `MOUTH_OF_TRUTH_PYTHON` to the exact Python executable path.
-- For release packages, verify that the `python-runtime/` folder is included.
+- Verify that `python-engine/models/whisper/` exists.
+- Rerun the bridge validation with network access when needed.
 
 ## Related documents
 
-- `README.md`
 - `docs/build-and-distribution-guide-en.md`
 - `python-engine/environment.yml`
 - `python-engine/requirements.txt`
 - `python-engine/models/README.md`
-- `unity-app/Packages/manifest.json`

@@ -2,85 +2,60 @@
 
 ## 개요
 
-이 문서는 Mouth of Truth 프로젝트를 최종 제품 형태로 빌드하고 배포하는 방법을 설명한다.
-
-이 문서는 아래 상황을 대상으로 한다.
-
-- 최종 PNG 자산이 프로젝트에 반영되어 있다.
-- Leap Motion 입력이 정상적으로 연결되어 있다.
-- Python 분석 런타임과 로컬 모델 자산이 준비되어 있다.
+이 문서는 Mouth of Truth를 macOS용 제품 형태로 빌드하고 배포하는 방법을 설명한다.
 
 이 문서를 완료하면 아래 작업을 수행할 수 있어야 한다.
 
-- macOS용 배포 패키지를 빌드한다.
-- 배포에 필요한 파일을 빠짐없이 묶는다.
-- 사용자에게 어떤 파일을 전달해야 하는지 판단한다.
+- 배포용 Python 런타임을 준비한다.
+- macOS 릴리즈 빌드를 실행한다.
+- 사용자에게 전달해야 할 파일을 판단한다.
 - 사용자가 어떤 파일을 실행해야 하는지 안내한다.
 
-## 빌드 전 확인
+## 배포 전 확인
 
 아래 항목을 먼저 확인한다.
 
 - Unity 프로젝트가 `unity-app/` 경로에서 열린다.
 - 메인 씬이 `Assets/Scenes/Main.unity` 이다.
-- Python 환경이 준비되어 있다.
-- 배포용 Python 런타임 폴더가 준비되어 있다.
-- 얼굴 모델, 음성 모델, Whisper 캐시가 `python-engine/models/` 아래에 있다.
 - 최종 PNG 자산이 `unity-app/Assets/StreamingAssets/art/` 아래에 반영되어 있다.
-- Leap Motion 관련 패키지와 씬 연결이 완료되어 있다.
+- Leap Motion 입력 연결과 장치 검증이 완료되어 있다.
+- Python 분석에 필요한 로컬 모델 자산이 준비되어 있다.
+- `python-engine/scripts/validate_bridge_runtime.sh` 가 통과한다.
 
-## 배포 패키지 구성
+## 배포용 Python 런타임 만들기
 
-최종 배포 단위는 **앱 파일 하나가 아니라 디렉토리 전체**다.
+배포본에는 `.app` 번들만 넣으면 안 된다.
+Unity 앱과 함께 Python 실행 환경도 묶어야 한다.
 
-최종 배포 디렉토리는 아래 구조를 기준으로 한다.
+저장소 루트에서 아래 명령을 실행한다.
 
-- `MouthOfTruth/`
-  - `MouthOfTruth.app`
-  - `Run Mouth of Truth.command`
-  - `python-engine/`
-  - `python-runtime/`
-  - `bridge/`
+```bash
+conda activate mouth-of-truth
+python-engine/scripts/package_python_runtime.sh
+```
 
-각 항목의 역할은 아래와 같다.
+이 스크립트는 아래 작업을 수행한다.
 
-- `MouthOfTruth.app`
-  - Unity 플레이어 본체
-- `Run Mouth of Truth.command`
-  - macOS에서 제품을 올바른 런타임 루트로 실행하는 런처
-- `python-engine/`
-  - 분석 브리지 스크립트와 Python 모듈
-- `python-runtime/`
-  - 배포용 Python 실행 파일과 패키지 런타임
-- `bridge/`
-  - Unity와 Python이 요청/응답 JSON을 주고받는 런타임 디렉토리
+- `mouth-of-truth` conda 환경을 패키징한다.
+- 저장소 루트에 `python-runtime/` 디렉토리를 만든다.
+- 배포용 Python 실행 파일과 패키지를 그 안에 풀어 둔다.
 
-중요:
+만약 다른 환경 이름을 쓰고 있다면 환경 변수를 먼저 설정한다.
 
-- `.app` 파일만 따로 전달하면 안 된다.
-- 반드시 `MouthOfTruth/` 디렉토리 전체를 묶어서 전달한다.
+```bash
+MOUTH_OF_TRUTH_CONDA_ENV=<conda-env-name> \
+python-engine/scripts/package_python_runtime.sh
+```
 
-## macOS 배포본 빌드
+## macOS 릴리즈 빌드
 
-### 0. 배포용 Python 런타임 준비
+### 1. 메인 씬 갱신
 
-아래 둘 중 하나를 준비한다.
-
-- 저장소 루트에 `python-runtime/` 폴더를 둔다.
-- 또는 `MOUTH_OF_TRUTH_PYTHON_RUNTIME_ROOT` 환경 변수로 배포용 Python 런타임 폴더를 지정한다.
-
-배포용 Python 런타임은 아래를 포함해야 한다.
-
-- `bin/python` 또는 동등한 Python 실행 파일
-- 프로젝트가 요구하는 Python 패키지
-
-### 1. Unity에서 메인 씬 갱신
-
-Unity 메뉴에서 아래 항목을 먼저 실행한다.
+Unity 메뉴에서 아래 항목을 실행한다.
 
 - `Mouth Of Truth > Build Main Scene`
 
-이 단계는 메인 씬을 현재 환경 자산과 앵커 배치 기준으로 다시 정리한다.
+이 단계는 현재 환경 자산과 앵커 배치를 기준으로 `Main.unity` 를 다시 정리한다.
 
 ### 2. macOS 배포 빌드 실행
 
@@ -88,48 +63,25 @@ Unity 메뉴에서 아래 항목을 실행한다.
 
 - `Mouth Of Truth > Build Mac Release`
 
-이 빌드는 아래 작업을 수행한다.
-
-- `Main.unity` 를 macOS 앱으로 빌드한다.
-- 결과물을 `dist/macos/MouthOfTruth/` 아래에 만든다.
-- `python-engine/` 를 함께 복사한다.
-- `bridge/` 디렉토리를 함께 만든다.
-- `Run Mouth of Truth.command` 런처를 함께 만든다.
-- `python-runtime/` 디렉토리가 준비되어 있으면 함께 복사한다.
-
-주의:
-
-- 첫 macOS 배포 빌드는 Unity가 URP 셰이더 캐시를 준비하느라 오래 걸릴 수 있다.
-- 빌드 시간이 길더라도 콘솔 오류가 없다면 바로 중단하지 말고 완료까지 기다린다.
-
-## 빌드 결과 위치
-
-빌드가 성공하면 아래 경로가 생성된다.
-
-- `dist/macos/MouthOfTruth/`
-
-핵심 결과물은 아래다.
+이 빌드는 아래 결과를 만든다.
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
+- `dist/macos/MouthOfTruth/python-engine/`
+- `dist/macos/MouthOfTruth/python-runtime/`
+- `dist/macos/MouthOfTruth/bridge/`
 
-## 배포 전 점검
+## 배포 전에 확인할 파일
 
-배포 전에 아래를 확인한다.
+빌드가 끝나면 아래가 모두 존재해야 한다.
 
-- `MouthOfTruth.app` 가 존재한다.
-- `Run Mouth of Truth.command` 가 존재한다.
-- `python-engine/` 가 존재한다.
-- `python-runtime/` 가 존재한다.
-- `bridge/` 가 존재한다.
+- `dist/macos/MouthOfTruth/MouthOfTruth.app`
+- `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
+- `dist/macos/MouthOfTruth/python-engine/`
+- `dist/macos/MouthOfTruth/python-runtime/`
+- `dist/macos/MouthOfTruth/bridge/`
 
-그리고 아래 흐름을 실제로 확인한다.
-
-- 시작 화면이 열린다.
-- 카드 선택이 된다.
-- 질문 TTS가 재생된다.
-- 손 삽입 후 답변 수집이 시작된다.
-- 결과 화면이 표시된다.
+위 다섯 항목 중 하나라도 빠지면 배포본으로 사용하지 않는다.
 
 ## 사용자에게 전달할 파일
 
@@ -137,10 +89,14 @@ Unity 메뉴에서 아래 항목을 실행한다.
 
 - `dist/macos/MouthOfTruth/`
 
-전달 방식은 아래 중 하나를 권장한다.
+전달 방식은 아래를 권장한다.
 
-- ZIP으로 압축해 전달
-- 설치 패키지로 다시 감싸기 전의 내부 배포본으로 전달
+- `MouthOfTruth/` 디렉토리를 ZIP으로 압축해서 전달한다.
+
+중요:
+
+- `MouthOfTruth.app` 파일 하나만 따로 전달하지 않는다.
+- 반드시 `MouthOfTruth/` 전체 디렉토리를 전달한다.
 
 ## 사용자가 실행할 파일
 
@@ -148,17 +104,44 @@ Unity 메뉴에서 아래 항목을 실행한다.
 
 - `Run Mouth of Truth.command`
 
-이 파일은 제품 루트 경로를 올바르게 잡은 뒤 `MouthOfTruth.app` 를 실행한다.
+이 런처는 제품 루트 경로를 잡고 `MouthOfTruth.app` 를 올바른 위치에서 실행한다.
 
-보조 방법으로 아래 파일을 직접 실행할 수도 있다.
+보조적으로 아래 파일을 직접 실행할 수도 있다.
 
 - `MouthOfTruth.app`
 
-다만 운영 기준으로는 `.command` 런처 실행을 기본 안내로 사용하는 편이 안전하다.
+다만 운영 기준으로는 `.command` 런처 실행을 기본 안내로 사용한다.
+
+## 첫 실행 시 사용자에게 안내할 사항
+
+사용자가 처음 실행할 때 아래 권한 요청이 뜰 수 있다.
+
+- 카메라 권한
+- 마이크 권한
+
+이 권한은 분석 기능에 필요하므로 허용해야 한다.
+
+내부 시연용 빌드라면 아래도 같이 안내한다.
+
+- macOS가 실행을 차단하면 Finder에서 파일을 우클릭한 뒤 **열기**를 선택한다.
+
+## 배포 전 최종 점검
+
+최종 배포 전에 아래 흐름을 실제로 확인한다.
+
+- 시작 화면이 열린다.
+- `START GAME` 이 동작한다.
+- 카드 선택이 된다.
+- 질문 TTS가 재생된다.
+- 손 삽입 뒤 답변 수집이 시작된다.
+- 손을 빼면 일시정지된다.
+- 손을 다시 넣으면 재개된다.
+- 결과 화면이 표시된다.
+- `TRY AGAIN` 과 `BACK TO TITLE` 이 동작한다.
 
 ## 문제 해결
 
-### 앱은 켜지지만 분석이 동작하지 않는다
+### 앱은 열리지만 분석이 동작하지 않는다
 
 원인:
 
@@ -168,30 +151,31 @@ Unity 메뉴에서 아래 항목을 실행한다.
 
 - 배포 디렉토리 안에 두 폴더가 모두 있는지 확인한다.
 
-### 앱만 복사해서 전달했다
+### 사용자가 `.app` 만 따로 실행했다
 
 원인:
 
-- `.app` 파일만 따로 전달하면 Python 런타임과 브리지 디렉토리가 빠진다.
+- 제품 루트가 아니라 앱 번들만 단독으로 옮겼다.
 
 조치:
 
-- `MouthOfTruth/` 전체 디렉토리를 다시 묶어서 전달한다.
+- `MouthOfTruth/` 전체 디렉토리를 다시 전달한다.
+- 가능하면 `Run Mouth of Truth.command` 실행을 다시 안내한다.
 
-### 사용자 환경에서 실행이 차단된다
+### python-runtime 생성이 실패한다
 
 원인:
 
-- macOS 보안 설정이나 서명 정책 문제일 수 있다.
+- `conda-pack` 가 환경에 없거나 conda 환경 이름이 다르다.
 
 조치:
 
-- 배포 방식에 맞는 코드 서명과 공증 절차를 추가한다.
-- 내부 시연용이라면 보안 설정 안내를 함께 제공한다.
+- `conda env create -f python-engine/environment.yml` 로 환경을 다시 만든다.
+- 필요하면 `MOUTH_OF_TRUTH_CONDA_ENV` 를 설정해 패키징 스크립트를 다시 실행한다.
 
 ## 관련 문서
 
 - `docs/developer-setup-checklist-ko.md`
 - `python-engine/environment.yml`
 - `python-engine/requirements.txt`
-- `unity-app/Assets/Scenes/Main.unity`
+- `python-engine/scripts/package_python_runtime.sh`

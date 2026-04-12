@@ -5,16 +5,14 @@
 이 문서는 GitHub에서 `mouth-of-truth` 저장소를 처음 내려받은 개발자가
 로컬 환경에서 프로젝트를 실행하는 방법을 설명한다.
 
-이 문서의 대상 독자는 Unity와 Python 환경을 함께 다루는 개발자다.
-
 이 문서를 완료하면 아래 작업을 수행할 수 있어야 한다.
 
 - 저장소를 클론한다.
-- Python 분석 환경을 만든다.
+- Python 환경을 만든다.
 - Unity 프로젝트를 올바른 경로로 연다.
-- 메인 씬을 실행한다.
-- deterministic 모드로 기본 흐름을 검증한다.
-- Python 분석 모드로 브리지와 분석 경로를 검증한다.
+- deterministic 모드로 기본 게임 흐름을 실행한다.
+- 전체 분석 모드에 필요한 로컬 모델 자산을 준비한다.
+- Python 브리지 검증을 실행한다.
 
 ## 사전 조건
 
@@ -25,11 +23,11 @@
 - Unity Editor `6000.4.1f1`
 - Miniforge 또는 Mambaforge
 
-현재 프로젝트는 macOS 기준으로 가장 먼저 검증되었다.
+현재 프로젝트는 macOS를 기준으로 가장 먼저 검증되었다.
 
 ## 저장소 받기
 
-원하는 작업 디렉토리에서 저장소를 클론한다.
+원하는 작업 디렉토리에서 아래 명령을 실행한다.
 
 ```bash
 git clone https://github.com/hgu-hexagon/mouth-of-truth.git
@@ -40,7 +38,7 @@ cd mouth-of-truth
 
 ## 프로젝트 구조
 
-이 저장소의 핵심 경로는 아래 둘이다.
+이 저장소에서 중요하게 보는 경로는 아래 둘이다.
 
 - Unity 앱:
   - `<repo-root>/unity-app`
@@ -49,22 +47,20 @@ cd mouth-of-truth
 
 중요:
 
-- Unity로 직접 열어야 하는 경로는 저장소 루트가 아니라 `unity-app/` 이다.
+- Unity는 저장소 루트가 아니라 `unity-app/` 경로에서만 연다.
 - 저장소 루트를 Unity 프로젝트로 열지 않는다.
 
 ## Python 환경 만들기
 
 ### 1. conda 환경 생성
 
-아래 명령으로 프로젝트 전용 conda 환경을 만든다.
+저장소 루트에서 아래 명령을 실행한다.
 
 ```bash
 conda env create -f python-engine/environment.yml
 ```
 
-기본 환경 이름은 아래와 같다.
-
-- `mouth-of-truth`
+기본 환경 이름은 `mouth-of-truth` 이다.
 
 ### 2. conda 환경 활성화
 
@@ -72,15 +68,14 @@ conda env create -f python-engine/environment.yml
 conda activate mouth-of-truth
 ```
 
-### 3. Python 의존성 기준 파일 확인
+### 3. Python 환경 확인
 
-현재 Python 의존성 기준 파일은 아래다.
+```bash
+python --version
+python -m compileall python-engine/src
+```
 
-- `python-engine/environment.yml`
-- `python-engine/requirements.txt`
-
-`environment.yml` 은 환경 생성용 파일이다.
-`requirements.txt` 는 핵심 런타임 패키지 버전 기준이다.
+위 명령이 통과하면 Python 소스는 기본적으로 읽을 수 있는 상태다.
 
 ## Unity 프로젝트 열기
 
@@ -92,7 +87,7 @@ conda activate mouth-of-truth
 
 ### 2. Unity 버전 확인
 
-프로젝트는 아래 버전을 기준으로 맞춰져 있다.
+프로젝트 기준 버전은 아래다.
 
 - `6000.4.1f1`
 
@@ -102,197 +97,134 @@ Unity에서 아래 씬을 연다.
 
 - `Assets/Scenes/Main.unity`
 
-## 로컬 분석 모델 준비
+## 기본 실행
 
-### 개요
+### deterministic 모드로 실행
 
-프로젝트는 얼굴 분석, 음성 감정 분석, Whisper 전사를 위한 로컬 모델 자산을 사용한다.
+deterministic 모드는 로컬 분석 모델 없이도 게임 흐름을 검증할 수 있는 모드다.
 
-이 모델 바이너리는 저장소에 포함되지 않는다.
-따라서 전체 분석 경로를 사용하려면 로컬 모델 디렉토리를 별도로 채워야 한다.
+이 모드를 쓰면 아래를 확인할 수 있다.
 
-### 필수 경로
+- 시작 화면
+- 카드 3장 생성
+- hover + dwell 카드 선택
+- 질문 공개
+- macOS TTS 질문 낭독
+- 답변 수집 상태 전환
+- 결과 화면 표시
 
-아래 경로가 채워져 있으면 전체 분석 경로를 사용할 수 있다.
+Unity를 deterministic 모드로 열려면 저장소 루트에서 아래 명령을 실행한다.
+
+```bash
+MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic open -a "Unity" unity-app
+```
+
+Unity가 이미 열려 있으면 닫은 뒤 다시 실행하는 편이 안전하다.
+
+## 전체 분석 모드 준비
+
+전체 분석 모드는 아래 기능을 함께 사용한다.
+
+- 마이크 입력 수집
+- 얼굴 프레임 캡처
+- Whisper 전사
+- 얼굴 감정 분석
+- 음성 감정 분석
+
+이 경로를 쓰려면 로컬 모델 자산이 필요하다.
+
+### 로컬 모델 자산 경로
+
+아래 경로를 준비한다.
 
 - 얼굴 모델:
   - `python-engine/models/face/yolo26x_rafdb_best.pt`
 - 음성 감정 모델:
   - `python-engine/models/voice/best_wav2vec2_iemocap/`
-- Whisper 캐시:
-  - `python-engine/models/whisper/models--openai--whisper-tiny/`
+- Whisper 캐시 루트:
+  - `python-engine/models/whisper/`
 
-## 실행 모드
+Whisper는 인터넷이 가능한 환경이라면 첫 실행 시 `whisper-tiny` 모델을
+자동으로 내려받을 수 있다.
 
-프로젝트는 두 가지 실행 모드를 지원한다.
+얼굴 모델과 음성 감정 모델은 저장소에 포함되지 않는다.
+이 두 자산은 프로젝트 관리자에게 별도 전달받아야 한다.
 
-### deterministic 모드
+## Python 브리지 검증
 
-이 모드는 로컬 분석 모델 없이도 기본 게임 흐름을 검증할 수 있는 모드다.
-
-이 모드를 쓰면 아래를 확인할 수 있다.
-
-- 시작 화면
-- 카드 선택
-- 질문 공개
-- 질문 TTS
-- 답변 수집 흐름
-- 결과 화면
-
-이 모드는 결정론적 규칙으로 분석 결과를 생성한다.
-
-### Python 분석 모드
-
-이 모드는 실제 마이크 입력, 얼굴 프레임 캡처, Whisper 전사, 얼굴/음성 분석까지 포함한다.
-
-이 모드를 쓰려면 아래가 모두 필요하다.
-
-- Python 환경 생성 완료
-- 로컬 모델 자산 준비 완료
-- 마이크 사용 가능
-- 웹캠 사용 가능
-
-## deterministic 모드로 실행하기
-
-### 1. Unity 실행 환경 변수 설정
-
-아래 명령으로 deterministic 모드를 강제할 수 있다.
+저장소 루트에서 아래 명령을 실행한다.
 
 ```bash
-cd <repo-root>
-MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic open -a "Unity" unity-app
-```
-
-이미 Unity Hub에서 프로젝트를 열었다면, Play 전에 같은 환경 변수로 Unity를 다시 시작하는 편이 가장 안전하다.
-
-### 2. 메인 씬에서 Play
-
-아래 흐름이 동작하면 기본 실행은 성공이다.
-
-- 시작 화면 표시
-- 카드 3장 등장
-- 카드 hover / dwell 선택
-- 질문 공개
-- 질문 TTS
-- 답변 시작
-- 결과 화면
-
-## Python 분석 모드로 실행하기
-
-### 1. 로컬 모델 자산 배치
-
-아래 경로를 모두 채운다.
-
-- `python-engine/models/face/yolo26x_rafdb_best.pt`
-- `python-engine/models/voice/best_wav2vec2_iemocap/`
-- `python-engine/models/whisper/models--openai--whisper-tiny/`
-
-### 2. Python 소스 컴파일 확인
-
-프로젝트 루트에서 아래 명령을 실행한다.
-
-```bash
-cd <repo-root>
 conda activate mouth-of-truth
-python -m compileall python-engine/src
-```
-
-### 3. 브리지 런타임 검증
-
-프로젝트 루트에서 아래 명령을 실행한다.
-
-```bash
-cd <repo-root>
 python-engine/scripts/validate_bridge_runtime.sh
 ```
 
 이 검증은 아래를 확인한다.
 
-- 브리지 요청 파일 생성
+- 브리지 요청 JSON 생성
 - Python 분석 러너 실행
-- Whisper 전사 실행
+- Whisper 전사
 - 결과 JSON 생성
 
-### 4. Unity에서 Play
+검증이 성공하면 `Bridge runtime validation succeeded.` 메시지가 출력된다.
 
-추가 환경 변수를 주지 않으면 프로젝트는 Python 분석 경로를 우선 사용한다.
+## 실행 확인
 
-## 확인 방법
+아래 항목이 모두 맞으면 기본 실행은 성공이다.
 
-### deterministic 모드 확인
-
-아래 항목이 모두 맞으면 deterministic 기준 기본 실행은 성공이다.
-
-- Unity 프로젝트가 `unity-app/` 에서 열린다.
+- Unity가 `unity-app/` 경로에서 열린다.
 - `Assets/Scenes/Main.unity` 가 열린다.
 - Unity 콘솔에 치명적 컴파일 오류가 없다.
 - 카드 선택이 동작한다.
-- 질문 TTS가 동작한다.
+- 질문 TTS가 재생된다.
 - 결과 화면이 표시된다.
 
-### Python 분석 모드 확인
-
-아래 항목이 모두 맞으면 Python 분석 경로까지 실행 가능한 상태다.
+아래 항목이 추가로 맞으면 전체 분석 경로도 실행 가능한 상태다.
 
 - `python -m compileall python-engine/src` 가 통과한다.
-- 얼굴 모델 경로가 존재한다.
-- 음성 모델 경로가 존재한다.
-- Whisper 캐시 경로가 존재한다.
-- `python-engine/scripts/validate_bridge_runtime.sh` 가 통과한다.
+- `validate_bridge_runtime.sh` 가 통과한다.
+- 얼굴 모델 파일이 존재한다.
+- 음성 모델 디렉토리가 존재한다.
+- Whisper 캐시 루트 디렉토리가 존재한다.
 
-## 문제 해결
+## 자주 발생하는 실수
 
-### Unity가 빈 기본 씬으로 열린다
-
-원인:
-
-- 저장소 루트를 Unity 프로젝트로 잘못 열었을 가능성이 높다.
-
-조치:
-
-- Unity를 닫는다.
-- `<repo-root>/unity-app` 경로만 다시 연다.
-
-### Python이 모델을 찾지 못한다
+### Unity를 저장소 루트에서 열었다
 
 원인:
 
-- `python-engine/models/` 아래 로컬 모델 자산이 비어 있을 수 있다.
+- `unity-app/` 대신 저장소 루트를 Unity 프로젝트로 열었다.
 
 조치:
 
-- 얼굴, 음성, Whisper 캐시 경로를 확인한다.
-- 필요하면 `MOUTH_OF_TRUTH_MODELS_ROOT` 를 명시적으로 설정한다.
+- 잘못 열린 프로젝트를 닫는다.
+- Unity Hub에서 `<repo-root>/unity-app` 경로를 다시 연다.
 
-### Whisper가 다운로드를 시도한다
+### 분석은 안 되지만 게임은 실행된다
 
 원인:
 
-- 현재 프로젝트 내부 Whisper 캐시가 비어 있거나 불완전할 수 있다.
+- deterministic 모드로 실행 중이거나 로컬 모델 자산이 없다.
 
 조치:
 
-- `python-engine/models/whisper/models--openai--whisper-tiny/` 경로를 채운다.
-- 오프라인 검증 시 `TRANSFORMERS_OFFLINE=1` 과 `HF_HUB_OFFLINE=1` 을 함께 사용한다.
+- 전체 분석이 필요하면 얼굴/음성 모델 자산을 준비한다.
+- deterministic 모드가 아니라 일반 모드로 Unity를 실행한다.
 
-### Unity에서 Python 분석이 실행되지 않는다
+### Whisper 전사가 시작되지 않는다
 
 원인:
 
-- Python 런처가 사용할 실행기를 찾지 못했을 수 있다.
+- `python-engine/models/whisper/` 경로가 없거나 네트워크가 차단되어 있다.
 
 조치:
 
-- `conda env create -f python-engine/environment.yml` 가 끝났는지 확인한다.
-- `conda activate mouth-of-truth` 가 가능한지 확인한다.
-- 필요하면 `MOUTH_OF_TRUTH_PYTHON` 환경 변수로 Python 실행 파일을 직접 지정한다.
-- 최종 배포 패키지에서는 `python-runtime/` 폴더가 포함되어 있는지 확인한다.
+- `python-engine/models/whisper/` 디렉토리가 있는지 확인한다.
+- 네트워크가 가능하면 브리지 검증을 다시 실행한다.
 
 ## 관련 문서
 
-- `README.md`
 - `docs/build-and-distribution-guide-ko.md`
 - `python-engine/environment.yml`
 - `python-engine/requirements.txt`
 - `python-engine/models/README.md`
-- `unity-app/Packages/manifest.json`

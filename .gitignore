@@ -19,6 +19,8 @@ bridge/*.json
 !bridge/.gitkeep
 
 # Python runtime outputs
+python-runtime/
+python-runtime.tar.gz
 python-engine/data/session-workspace/*
 !python-engine/data/session-workspace/.gitkeep
 python-engine/data/validation/

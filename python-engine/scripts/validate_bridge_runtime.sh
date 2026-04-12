@@ -10,6 +10,7 @@ REQUEST_FILE_PATH="${VALIDATION_ROOT_PATH}/bridge_request.json"
 RESULT_FILE_PATH="${VALIDATION_ROOT_PATH}/bridge_result.json"
 AIFF_FILE_PATH="${VALIDATION_ROOT_PATH}/bridge_prompt.aiff"
 WAV_FILE_PATH="${VALIDATION_ROOT_PATH}/bridge_prompt.wav"
+WAV_FILE_RELATIVE_PATH="python-engine/data/validation/bridge_prompt.wav"
 
 mkdir -p "${VALIDATION_ROOT_PATH}"
 rm -f "${REQUEST_FILE_PATH}" "${RESULT_FILE_PATH}" "${AIFF_FILE_PATH}" "${WAV_FILE_PATH}"
@@ -40,7 +41,7 @@ cat > "${REQUEST_FILE_PATH}" <<JSON
   "QuestionID": "QTEST",
   "QuestionText": "What did you have for lunch today?",
   "AnswerTranscript": "",
-  "AnswerAudioFilePath": "${WAV_FILE_PATH}",
+  "AnswerAudioFilePath": "${WAV_FILE_RELATIVE_PATH}",
   "FaceFramesDirectoryPath": "",
   "FaceFrameCount": 0,
   "VoiceSegmentCount": 0,
@@ -48,6 +49,7 @@ cat > "${REQUEST_FILE_PATH}" <<JSON
 }
 JSON
 
+MOUTH_OF_TRUTH_RUNTIME_ROOT="${PROJECT_ROOT_PATH}" \
 "${SCRIPT_DIRECTORY_PATH}/run_bridge_analysis.sh" \
   "${REQUEST_FILE_PATH}" \
   "${RESULT_FILE_PATH}"

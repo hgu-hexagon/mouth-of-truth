@@ -29,7 +29,6 @@ buildCondaEnvironmentCandidates() {
   fi
 
   printf '%s\n' "mouth-of-truth"
-  printf '%s\n' "mouth-truth"
 }
 
 buildBundledPythonCandidates() {

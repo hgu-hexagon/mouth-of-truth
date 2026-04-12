@@ -27,6 +27,11 @@ namespace MouthOfTruth.Editor
             "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Arch_A.prefab";
         private const string CARPET_PREFAB_DIRECTORY_PATH =
             "Assets/ThirdParty/Environment/PersianCarpetUrp/Prefab";
+        private static readonly string[] THIRD_PARTY_MODEL_DIRECTORIES =
+        {
+            "Assets/ThirdParty/Environment/DungeonModularPack/Meshes",
+            "Assets/ThirdParty/Environment/PersianCarpetUrp/Models",
+        };
 
         private const float CARD_ANCHOR_SPACING = 3.3f;
         private const float CARD_DEPTH_OFFSET = 7.2f;
@@ -53,8 +58,19 @@ namespace MouthOfTruth.Editor
         [MenuItem("Mouth Of Truth/Build Main Scene")]
         public static void Run()
         {
-            Scene scene = EditorSceneManager.OpenScene(DUNGEON_DEMO_SCENE_PATH, OpenSceneMode.Single);
+            normalizeThirdPartyModelImports();
+            Scene sourceScene = EditorSceneManager.OpenScene(DUNGEON_DEMO_SCENE_PATH, OpenSceneMode.Single);
+            Transform sourceEnvironmentRoot = findRequiredRoot(sourceScene, "Models");
+            GameObject environmentClone = UnityEngine.Object.Instantiate(sourceEnvironmentRoot.gameObject);
+            environmentClone.name = "Models";
+
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            SceneManager.SetActiveScene(scene);
+            SceneManager.MoveGameObjectToScene(environmentClone, scene);
+            EditorSceneManager.CloseScene(sourceScene, true);
+
             unpackScenePrefabInstances(scene);
+
             Transform environmentRoot = findRequiredRoot(scene, "Models");
             Bounds environmentBounds = calculateCombinedBounds(environmentRoot);
             CorridorAxes corridorAxes = determineCorridorAxes(environmentBounds);
@@ -63,6 +79,7 @@ namespace MouthOfTruth.Editor
             ensureEventSystem(scene);
             ensureApplicationRoot(scene);
             buildPresentationStage(scene, environmentBounds, corridorAxes);
+            unpackScenePrefabInstances(scene);
             sanitizeRendererMaterials(environmentRoot);
 
             GameObject stageRoot = scene.GetRootGameObjects()
@@ -82,6 +99,33 @@ namespace MouthOfTruth.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        private static void normalizeThirdPartyModelImports()
+        {
+            foreach (string modelDirectoryPath in THIRD_PARTY_MODEL_DIRECTORIES)
+            {
+                string[] modelGuids = AssetDatabase.FindAssets("t:Model", new[] { modelDirectoryPath });
+
+                foreach (string modelGuid in modelGuids)
+                {
+                    string modelAssetPath = AssetDatabase.GUIDToAssetPath(modelGuid);
+                    ModelImporter modelImporter = AssetImporter.GetAtPath(modelAssetPath) as ModelImporter;
+
+                    if (modelImporter == null)
+                    {
+                        continue;
+                    }
+
+                    if (modelImporter.materialImportMode == ModelImporterMaterialImportMode.None)
+                    {
+                        continue;
+                    }
+
+                    modelImporter.materialImportMode = ModelImporterMaterialImportMode.None;
+                    modelImporter.SaveAndReimport();
+                }
+            }
         }
 
         private static void unpackScenePrefabInstances(Scene scene)
@@ -477,23 +521,28 @@ namespace MouthOfTruth.Editor
                 $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
             string existingMaterialAssetPath =
                 $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
+            Texture baseTexture = getFirstAvailableTexture(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
+            Shader safeShader = Shader.Find(baseTexture != null ? "Unlit/Texture" : "Unlit/Color");
+
+            if (safeShader == null)
+            {
+                throw new InvalidOperationException("빌드용 안전 셰이더를 찾을 수 없습니다.");
+            }
 
             Material existingMaterial = AssetDatabase.LoadAssetAtPath<Material>(existingMaterialAssetPath);
 
             if (existingMaterial != null)
             {
+                if (existingMaterial.shader != safeShader)
+                {
+                    existingMaterial.shader = safeShader;
+                }
+
                 synchronizeSafeMaterial(existingMaterial, sourceMaterial);
                 return existingMaterial;
             }
 
-            Shader urpLitShader = Shader.Find("Universal Render Pipeline/Unlit");
-
-            if (urpLitShader == null)
-            {
-                throw new InvalidOperationException("Universal Render Pipeline/Unlit shader를 찾을 수 없습니다.");
-            }
-
-            Material safeMaterial = new Material(urpLitShader);
+            Material safeMaterial = new Material(safeShader);
             synchronizeSafeMaterial(safeMaterial, sourceMaterial);
             AssetDatabase.CreateAsset(safeMaterial, sanitizedMaterialAssetPath);
             return safeMaterial;
@@ -508,9 +557,9 @@ namespace MouthOfTruth.Editor
 
             Texture baseTexture = getFirstAvailableTexture(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
 
-            if (baseTexture != null)
+            if (baseTexture != null && safeMaterial.HasProperty("_MainTex"))
             {
-                safeMaterial.SetTexture("_BaseMap", baseTexture);
+                safeMaterial.SetTexture("_MainTex", baseTexture);
             }
 
             Color baseColor = getFirstAvailableColor(
@@ -518,7 +567,11 @@ namespace MouthOfTruth.Editor
                 Color.white,
                 "_BaseColor",
                 "_Color");
-            safeMaterial.SetColor("_BaseColor", baseColor);
+
+            if (safeMaterial.HasProperty("_Color"))
+            {
+                safeMaterial.SetColor("_Color", baseColor);
+            }
 
             EditorUtility.SetDirty(safeMaterial);
         }

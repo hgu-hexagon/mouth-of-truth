@@ -283,8 +283,7 @@ namespace MouthOfTruth.Editor
         private static void validatePythonBridgeRoundTrip()
         {
             if (File.Exists(PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath()) == false
-                || Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath()) == false
-                || File.Exists(PythonAnalysisBridgePaths.GetShellPath()) == false)
+                || Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath()) == false)
             {
                 throw new InvalidOperationException("Python bridge runtime prerequisites are missing.");
             }

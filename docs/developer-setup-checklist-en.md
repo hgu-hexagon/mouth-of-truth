@@ -14,8 +14,8 @@ After completing this guide, you should be able to:
 - create the Python runtime environment
 - open the Unity project from the correct path
 - run the main scene
-- verify the baseline game flow in deterministic mode without local analysis models
-- run the Python analysis path when local models are available
+- verify the baseline game flow in deterministic mode
+- verify the Python bridge and analysis path
 
 ## Prerequisites
 
@@ -33,8 +33,8 @@ The current project has been validated primarily on macOS.
 Clone the repository into your preferred workspace.
 
 ```bash
-git clone <repository-url>
-cd new-mouth-of-truth
+git clone https://github.com/hgu-hexagon/mouth-of-truth.git
+cd mouth-of-truth
 ```
 
 In this guide, the current working directory is called `<repo-root>`.
@@ -44,9 +44,9 @@ In this guide, the current working directory is called `<repo-root>`.
 The two important roots in this repository are:
 
 - Unity app:
-  - `unity-app/`
+  - `<repo-root>/unity-app`
 - Python engine:
-  - `python-engine/`
+  - `<repo-root>/python-engine`
 
 Important:
 
@@ -103,7 +103,7 @@ Open this scene in Unity:
 
 - `Assets/Scenes/Main.unity`
 
-## Local analysis models
+## Prepare the local analysis models
 
 ### Overview
 
@@ -124,16 +124,11 @@ The full analysis path requires these locations:
 - Whisper cache:
   - `python-engine/models/whisper/models--openai--whisper-tiny/`
 
-### Important
-
-- Runtime code no longer falls back to the old project directory.
-- The current project resolves models only from `python-engine/models/`.
-
 ## Execution modes
 
 The project supports two execution modes.
 
-### 1. Deterministic mode
+### Deterministic mode
 
 This mode verifies the baseline game flow without requiring local analysis
 models.
@@ -144,13 +139,12 @@ Use this mode to verify:
 - card selection
 - question reveal
 - TTS
-- hand interaction flow
-- answer collection flow
+- answer collection
 - result presentation
 
-This mode generates analysis results from a deterministic fallback client.
+This mode generates analysis results from deterministic rules.
 
-### 2. Python analysis mode
+### Python analysis mode
 
 This mode uses the real Python analysis pipeline, including microphone input,
 face frame capture, Whisper transcription, and face/voice analysis.
@@ -164,7 +158,7 @@ This mode requires:
 
 ## Run the project in deterministic mode
 
-### 1. Launch Unity with the deterministic analysis flag
+### 1. Launch Unity with the deterministic flag
 
 Start Unity with this environment variable:
 
@@ -180,12 +174,12 @@ variable is the safest option.
 
 The baseline run is successful when the following flow works:
 
-- title screen appears
+- the title screen appears
 - three question cards appear
 - hover and dwell card selection works
 - the selected question is revealed
 - TTS reads the question
-- the hand insertion flow continues
+- answer collection starts
 - a result screen appears
 
 ## Run the project in Python analysis mode
@@ -203,18 +197,31 @@ Make sure these paths exist:
 Run this command from the repository root:
 
 ```bash
-conda activate mouth-of-truth
 cd <repo-root>
+conda activate mouth-of-truth
 python -m compileall python-engine/src
 ```
 
-### 3. Press Play in Unity
+### 3. Verify the bridge runtime
+
+Run this command from the repository root:
+
+```bash
+cd <repo-root>
+python-engine/scripts/validate_bridge_runtime.sh
+```
+
+This validation checks:
+
+- request JSON generation
+- Python runner execution
+- Whisper transcription
+- result JSON generation
+
+### 4. Press Play in Unity
 
 Without the deterministic override, the project will prefer the Python analysis
 path.
-
-If Python analysis fails at runtime, the app falls back to deterministic
-analysis.
 
 ## Verification checklist
 
@@ -237,7 +244,7 @@ The Python analysis path is ready when all of the following are true.
 - The face model path exists.
 - The voice model path exists.
 - The Whisper cache path exists.
-- A result file is produced after analysis.
+- `python-engine/scripts/validate_bridge_runtime.sh` passes.
 
 ## Troubleshooting
 
@@ -278,18 +285,19 @@ Action:
 
 Cause:
 
-- The Python launcher may not be able to find the conda environment.
+- The Python launcher cannot find a usable runtime.
 
 Action:
 
 - Verify that `conda env create -f python-engine/environment.yml` completed successfully.
 - Verify that `conda activate mouth-of-truth` works.
 - If needed, set `MOUTH_OF_TRUTH_PYTHON` to the exact Python executable path.
-- If you created the conda environment with a different name, set `MOUTH_OF_TRUTH_CONDA_ENV` explicitly.
+- For release packages, verify that the `python-runtime/` folder is included.
 
 ## Related documents
 
 - `README.md`
+- `docs/build-and-distribution-guide-en.md`
 - `python-engine/environment.yml`
 - `python-engine/requirements.txt`
 - `python-engine/models/README.md`

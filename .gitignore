@@ -11,6 +11,8 @@ __pycache__/
 docs/*.md
 !docs/developer-setup-checklist-ko.md
 !docs/developer-setup-checklist-en.md
+!docs/build-and-distribution-guide-ko.md
+!docs/build-and-distribution-guide-en.md
 
 # Bridge runtime outputs
 bridge/*.json
@@ -44,6 +46,7 @@ unity-app/[Rr]ecordings/
 /[Uu]ser[Ss]ettings/
 /[Mm]emoryCaptures/
 /[Rr]ecordings/
+/dist/
 /assets/**/*.meta
 
 # Unity generated project files
@@ -85,3 +88,7 @@ unity-app/.idea/
 
 unity-app/ProjectSettings/PackageManagerSettings.asset
 unity-app/mono_crash.*.json
+unity-app/Assets/Resources/PerformanceTestRunInfo.json
+unity-app/Assets/Resources/PerformanceTestRunInfo.json.meta
+unity-app/Assets/Resources/PerformanceTestRunSettings.json
+unity-app/Assets/Resources/PerformanceTestRunSettings.json.meta

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using MouthOfTruth.Game.App;
 using UnityEngine;
 
 namespace MouthOfTruth.Game.Face
@@ -11,11 +12,10 @@ namespace MouthOfTruth.Game.Face
 
         public static string GetWorkspaceDirectoryPath()
         {
-            string projectRootPath =
-                Directory.GetParent(Application.dataPath)?.Parent?.FullName
-                ?? Directory.GetParent(Application.dataPath)?.FullName
-                ?? Application.dataPath;
-            return Path.Combine(projectRootPath, "python-engine", "data", WORKSPACE_DIRECTORY_NAME);
+            return Path.Combine(
+                MouthOfTruthRuntimePaths.GetPythonEngineRootPath(),
+                "data",
+                WORKSPACE_DIRECTORY_NAME);
         }
 
         public static string GetFaceFramesDirectoryPath()

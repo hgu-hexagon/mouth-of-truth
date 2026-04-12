@@ -122,14 +122,8 @@ namespace MouthOfTruth.Editor
         private static void validatePythonBridge(List<string> errors)
         {
             string pythonInterpreterPath = PythonAnalysisBridgePaths.GetPythonInterpreterPath();
-            string shellPath = PythonAnalysisBridgePaths.GetShellPath();
             string bridgeLauncherScriptPath = PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath();
             string pythonModuleRootPath = PythonAnalysisBridgePaths.GetPythonModuleRootPath();
-
-            if (File.Exists(shellPath) == false)
-            {
-                errors.Add($"Shell path is missing: {shellPath}");
-            }
 
             if (File.Exists(bridgeLauncherScriptPath) == false)
             {

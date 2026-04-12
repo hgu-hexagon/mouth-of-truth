@@ -101,9 +101,8 @@ namespace MouthOfTruth.Game.Analysis
             using Process process = new Process();
             process.StartInfo = new ProcessStartInfo
             {
-                FileName = PythonAnalysisBridgePaths.GetShellPath(),
+                FileName = bridgeLauncherScriptPath,
                 Arguments =
-                    $"\"{bridgeLauncherScriptPath}\" " +
                     $"\"{PythonAnalysisBridgePaths.GetRequestFilePath()}\" " +
                     $"\"{PythonAnalysisBridgePaths.GetResultFilePath()}\"",
                 WorkingDirectory = PythonAnalysisBridgePaths.GetProjectRootPath(),

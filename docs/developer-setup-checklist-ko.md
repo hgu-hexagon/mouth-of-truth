@@ -2,19 +2,19 @@
 
 ## 개요
 
-이 문서는 GitHub에서 저장소를 처음 내려받은 개발자가 Mouth of Truth 프로젝트를
-로컬 환경에서 실행 가능한 상태로 만드는 방법을 설명한다.
+이 문서는 GitHub에서 `mouth-of-truth` 저장소를 처음 내려받은 개발자가
+로컬 환경에서 프로젝트를 실행하는 방법을 설명한다.
 
 이 문서의 대상 독자는 Unity와 Python 환경을 함께 다루는 개발자다.
 
 이 문서를 완료하면 아래 작업을 수행할 수 있어야 한다.
 
-- 저장소를 내려받는다.
+- 저장소를 클론한다.
 - Python 분석 환경을 만든다.
 - Unity 프로젝트를 올바른 경로로 연다.
 - 메인 씬을 실행한다.
-- 로컬 분석 모델이 없는 경우 deterministic 모드로 기본 플레이 흐름을 확인한다.
-- 로컬 분석 모델이 있는 경우 Python 분석 경로까지 함께 실행한다.
+- deterministic 모드로 기본 흐름을 검증한다.
+- Python 분석 모드로 브리지와 분석 경로를 검증한다.
 
 ## 사전 조건
 
@@ -32,8 +32,8 @@
 원하는 작업 디렉토리에서 저장소를 클론한다.
 
 ```bash
-git clone <repository-url>
-cd new-mouth-of-truth
+git clone https://github.com/hgu-hexagon/mouth-of-truth.git
+cd mouth-of-truth
 ```
 
 이 문서에서는 현재 작업 디렉토리를 `<repo-root>` 라고 부른다.
@@ -102,7 +102,7 @@ Unity에서 아래 씬을 연다.
 
 - `Assets/Scenes/Main.unity`
 
-## 로컬 분석 모델
+## 로컬 분석 모델 준비
 
 ### 개요
 
@@ -122,16 +122,11 @@ Unity에서 아래 씬을 연다.
 - Whisper 캐시:
   - `python-engine/models/whisper/models--openai--whisper-tiny/`
 
-### 중요
-
-- 런타임 코드는 더 이상 옛 프로젝트 경로를 fallback 하지 않는다.
-- 현재 프로젝트는 `python-engine/models/` 아래만 사용한다.
-
 ## 실행 모드
 
 프로젝트는 두 가지 실행 모드를 지원한다.
 
-### 1. deterministic 모드
+### deterministic 모드
 
 이 모드는 로컬 분석 모델 없이도 기본 게임 흐름을 검증할 수 있는 모드다.
 
@@ -140,14 +135,13 @@ Unity에서 아래 씬을 연다.
 - 시작 화면
 - 카드 선택
 - 질문 공개
-- TTS
-- 손 입력 흐름
+- 질문 TTS
 - 답변 수집 흐름
 - 결과 화면
 
-이 모드는 분석 결과를 결정론적 규칙으로 생성한다.
+이 모드는 결정론적 규칙으로 분석 결과를 생성한다.
 
-### 2. Python 분석 모드
+### Python 분석 모드
 
 이 모드는 실제 마이크 입력, 얼굴 프레임 캡처, Whisper 전사, 얼굴/음성 분석까지 포함한다.
 
@@ -160,9 +154,9 @@ Unity에서 아래 씬을 연다.
 
 ## deterministic 모드로 실행하기
 
-### 1. Unity를 환경 변수와 함께 실행
+### 1. Unity 실행 환경 변수 설정
 
-아래처럼 `MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic` 를 설정하고 Unity를 실행한다.
+아래 명령으로 deterministic 모드를 강제할 수 있다.
 
 ```bash
 cd <repo-root>
@@ -180,7 +174,7 @@ MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic open -a "Unity" unity-app
 - 카드 hover / dwell 선택
 - 질문 공개
 - 질문 TTS
-- 손 삽입 흐름
+- 답변 시작
 - 결과 화면
 
 ## Python 분석 모드로 실행하기
@@ -198,16 +192,30 @@ MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic open -a "Unity" unity-app
 프로젝트 루트에서 아래 명령을 실행한다.
 
 ```bash
-conda activate mouth-of-truth
 cd <repo-root>
+conda activate mouth-of-truth
 python -m compileall python-engine/src
 ```
 
-### 3. Unity에서 그대로 Play
+### 3. 브리지 런타임 검증
+
+프로젝트 루트에서 아래 명령을 실행한다.
+
+```bash
+cd <repo-root>
+python-engine/scripts/validate_bridge_runtime.sh
+```
+
+이 검증은 아래를 확인한다.
+
+- 브리지 요청 파일 생성
+- Python 분석 러너 실행
+- Whisper 전사 실행
+- 결과 JSON 생성
+
+### 4. Unity에서 Play
 
 추가 환경 변수를 주지 않으면 프로젝트는 Python 분석 경로를 우선 사용한다.
-
-분석이 실패하면 런타임은 deterministic 모드로 fallback 한다.
 
 ## 확인 방법
 
@@ -230,7 +238,7 @@ python -m compileall python-engine/src
 - 얼굴 모델 경로가 존재한다.
 - 음성 모델 경로가 존재한다.
 - Whisper 캐시 경로가 존재한다.
-- 분석 후 결과 파일이 생성된다.
+- `python-engine/scripts/validate_bridge_runtime.sh` 가 통과한다.
 
 ## 문제 해결
 
@@ -271,18 +279,19 @@ python -m compileall python-engine/src
 
 원인:
 
-- Python 런처가 conda 환경을 찾지 못했을 수 있다.
+- Python 런처가 사용할 실행기를 찾지 못했을 수 있다.
 
 조치:
 
 - `conda env create -f python-engine/environment.yml` 가 끝났는지 확인한다.
 - `conda activate mouth-of-truth` 가 가능한지 확인한다.
 - 필요하면 `MOUTH_OF_TRUTH_PYTHON` 환경 변수로 Python 실행 파일을 직접 지정한다.
-- conda 환경 이름을 다르게 만들었다면 `MOUTH_OF_TRUTH_CONDA_ENV` 로 환경 이름을 직접 지정한다.
+- 최종 배포 패키지에서는 `python-runtime/` 폴더가 포함되어 있는지 확인한다.
 
 ## 관련 문서
 
 - `README.md`
+- `docs/build-and-distribution-guide-ko.md`
 - `python-engine/environment.yml`
 - `python-engine/requirements.txt`
 - `python-engine/models/README.md`

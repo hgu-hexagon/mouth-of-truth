@@ -1,4 +1,5 @@
 using System.IO;
+using MouthOfTruth.Game.App;
 using UnityEngine;
 
 namespace MouthOfTruth.Game.Analysis
@@ -10,13 +11,10 @@ namespace MouthOfTruth.Game.Analysis
         private const string RESULT_FILE_NAME = "analysis_result.json";
         private const string PYTHON_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON";
         private const string PYTHON_MODULE_NAME = "mouth_of_truth.runners.bridge_analysis_runner";
-        private const string DEFAULT_SHELL_PATH = "/bin/zsh";
 
         public static string GetProjectRootPath()
         {
-            return Directory.GetParent(Application.dataPath)?.Parent?.FullName
-                ?? Directory.GetParent(Application.dataPath)?.FullName
-                ?? Application.dataPath;
+            return MouthOfTruthRuntimePaths.GetRuntimeRootPath();
         }
 
         public static string GetBridgeDirectoryPath()
@@ -47,19 +45,17 @@ namespace MouthOfTruth.Game.Analysis
             return string.Empty;
         }
 
-        public static string GetShellPath()
-        {
-            return DEFAULT_SHELL_PATH;
-        }
-
         public static string GetBridgeLauncherScriptPath()
         {
-            return Path.Combine(GetProjectRootPath(), "python-engine", "scripts", "run_bridge_analysis.sh");
+            return Path.Combine(
+                MouthOfTruthRuntimePaths.GetPythonEngineRootPath(),
+                "scripts",
+                "run_bridge_analysis.sh");
         }
 
         public static string GetPythonModuleRootPath()
         {
-            return Path.Combine(GetProjectRootPath(), "python-engine", "src");
+            return Path.Combine(MouthOfTruthRuntimePaths.GetPythonEngineRootPath(), "src");
         }
 
         public static string GetBridgeRunnerModuleName()

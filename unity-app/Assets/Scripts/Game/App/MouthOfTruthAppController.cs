@@ -471,8 +471,7 @@ namespace MouthOfTruth.Game.App
             }
 
             if (File.Exists(PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath())
-                && Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath())
-                && File.Exists(PythonAnalysisBridgePaths.GetShellPath()))
+                && Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath()))
             {
                 return new PythonBridgeAnalysisClient();
             }

@@ -35,3 +35,5 @@ Committed setup guides are available here:
 
 - `docs/developer-setup-checklist-ko.md`
 - `docs/developer-setup-checklist-en.md`
+- `docs/build-and-distribution-guide-ko.md`
+- `docs/build-and-distribution-guide-en.md`

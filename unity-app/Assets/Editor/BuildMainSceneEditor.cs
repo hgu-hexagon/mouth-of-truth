@@ -19,6 +19,8 @@ namespace MouthOfTruth.Editor
             "Assets/ThirdParty/Environment/DungeonModularPack/Scenes/DemoScene.unity";
         private const string DUNGEON_WALL_MATERIAL_PATH =
             "Assets/ThirdParty/Environment/DungeonModularPack/Materials/M_Wall.mat";
+        private const string GENERATED_MATERIAL_DIRECTORY_PATH =
+            "Assets/Materials/GeneratedEnvironment";
         private const string TORCH_PREFAB_PATH =
             "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Torch_B.prefab";
         private const string ARCH_PREFAB_PATH =
@@ -52,6 +54,7 @@ namespace MouthOfTruth.Editor
         public static void Run()
         {
             Scene scene = EditorSceneManager.OpenScene(DUNGEON_DEMO_SCENE_PATH, OpenSceneMode.Single);
+            unpackScenePrefabInstances(scene);
             Transform environmentRoot = findRequiredRoot(scene, "Models");
             Bounds environmentBounds = calculateCombinedBounds(environmentRoot);
             CorridorAxes corridorAxes = determineCorridorAxes(environmentBounds);
@@ -60,6 +63,15 @@ namespace MouthOfTruth.Editor
             ensureEventSystem(scene);
             ensureApplicationRoot(scene);
             buildPresentationStage(scene, environmentBounds, corridorAxes);
+            sanitizeRendererMaterials(environmentRoot);
+
+            GameObject stageRoot = scene.GetRootGameObjects()
+                .FirstOrDefault(candidate => candidate.name == "MouthOfTruthStage");
+
+            if (stageRoot != null)
+            {
+                sanitizeRendererMaterials(stageRoot.transform);
+            }
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, MAIN_SCENE_PATH);
@@ -70,6 +82,39 @@ namespace MouthOfTruth.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        private static void unpackScenePrefabInstances(Scene scene)
+        {
+            HashSet<GameObject> outermostPrefabRoots = new HashSet<GameObject>();
+
+            foreach (GameObject rootGameObject in scene.GetRootGameObjects())
+            {
+                foreach (Transform childTransform in rootGameObject.GetComponentsInChildren<Transform>(true))
+                {
+                    GameObject candidate = childTransform.gameObject;
+
+                    if (PrefabUtility.IsPartOfPrefabInstance(candidate) == false)
+                    {
+                        continue;
+                    }
+
+                    GameObject outermostRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(candidate);
+
+                    if (outermostRoot != null)
+                    {
+                        outermostPrefabRoots.Add(outermostRoot);
+                    }
+                }
+            }
+
+            foreach (GameObject outermostPrefabRoot in outermostPrefabRoots)
+            {
+                PrefabUtility.UnpackPrefabInstance(
+                    outermostPrefabRoot,
+                    PrefabUnpackMode.Completely,
+                    InteractionMode.AutomatedAction);
+            }
         }
 
         private static void ensureApplicationRoot(Scene scene)
@@ -193,7 +238,7 @@ namespace MouthOfTruth.Editor
             if (wallMaterial != null)
             {
                 Renderer podiumRenderer = podiumObject.GetComponent<Renderer>();
-                podiumRenderer.sharedMaterial = wallMaterial;
+                podiumRenderer.sharedMaterial = getOrCreateSafeMaterial(wallMaterial);
             }
         }
 
@@ -370,6 +415,164 @@ namespace MouthOfTruth.Editor
             }
 
             return bounds;
+        }
+
+        private static void sanitizeRendererMaterials(Transform rootTransform)
+        {
+            Dictionary<Material, Material> sanitizedMaterialsBySource =
+                new Dictionary<Material, Material>();
+            Renderer[] renderers = rootTransform.GetComponentsInChildren<Renderer>(true);
+
+            foreach (Renderer renderer in renderers)
+            {
+                Material[] sourceSharedMaterials = renderer.sharedMaterials;
+                bool wasUpdated = false;
+                Material[] sanitizedSharedMaterials = new Material[sourceSharedMaterials.Length];
+
+                for (int materialIndex = 0; materialIndex < sourceSharedMaterials.Length; materialIndex += 1)
+                {
+                    Material sourceMaterial = sourceSharedMaterials[materialIndex];
+
+                    if (sourceMaterial == null || shouldSanitizeMaterial(sourceMaterial) == false)
+                    {
+                        sanitizedSharedMaterials[materialIndex] = sourceMaterial;
+                        continue;
+                    }
+
+                    if (sanitizedMaterialsBySource.TryGetValue(sourceMaterial, out Material sanitizedMaterial)
+                        == false)
+                    {
+                        sanitizedMaterial = getOrCreateSafeMaterial(sourceMaterial);
+                        sanitizedMaterialsBySource[sourceMaterial] = sanitizedMaterial;
+                    }
+
+                    sanitizedSharedMaterials[materialIndex] = sanitizedMaterial;
+                    wasUpdated = true;
+                }
+
+                if (wasUpdated)
+                {
+                    renderer.sharedMaterials = sanitizedSharedMaterials;
+                    EditorUtility.SetDirty(renderer);
+                }
+            }
+        }
+
+        private static bool shouldSanitizeMaterial(Material material)
+        {
+            Shader shader = material.shader;
+            string shaderName = shader != null ? shader.name : string.Empty;
+
+            return shaderName.Contains("DungeonKitShader", StringComparison.OrdinalIgnoreCase)
+                || shaderName.StartsWith("LB Shader/", StringComparison.OrdinalIgnoreCase)
+                || shaderName.Equals("Universal Render Pipeline/Lit", StringComparison.Ordinal)
+                || shaderName.Equals("Universal Render Pipeline/Simple Lit", StringComparison.Ordinal);
+        }
+
+        private static Material getOrCreateSafeMaterial(Material sourceMaterial)
+        {
+            ensureFolderHierarchy(GENERATED_MATERIAL_DIRECTORY_PATH);
+
+            string sanitizedMaterialAssetPath =
+                $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
+            string existingMaterialAssetPath =
+                $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
+
+            Material existingMaterial = AssetDatabase.LoadAssetAtPath<Material>(existingMaterialAssetPath);
+
+            if (existingMaterial != null)
+            {
+                synchronizeSafeMaterial(existingMaterial, sourceMaterial);
+                return existingMaterial;
+            }
+
+            Shader urpLitShader = Shader.Find("Universal Render Pipeline/Unlit");
+
+            if (urpLitShader == null)
+            {
+                throw new InvalidOperationException("Universal Render Pipeline/Unlit shader를 찾을 수 없습니다.");
+            }
+
+            Material safeMaterial = new Material(urpLitShader);
+            synchronizeSafeMaterial(safeMaterial, sourceMaterial);
+            AssetDatabase.CreateAsset(safeMaterial, sanitizedMaterialAssetPath);
+            return safeMaterial;
+        }
+
+        private static void synchronizeSafeMaterial(Material safeMaterial, Material sourceMaterial)
+        {
+            if (safeMaterial == null || sourceMaterial == null)
+            {
+                return;
+            }
+
+            Texture baseTexture = getFirstAvailableTexture(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
+
+            if (baseTexture != null)
+            {
+                safeMaterial.SetTexture("_BaseMap", baseTexture);
+            }
+
+            Color baseColor = getFirstAvailableColor(
+                sourceMaterial,
+                Color.white,
+                "_BaseColor",
+                "_Color");
+            safeMaterial.SetColor("_BaseColor", baseColor);
+
+            EditorUtility.SetDirty(safeMaterial);
+        }
+
+        private static Texture getFirstAvailableTexture(Material material, params string[] propertyNames)
+        {
+            foreach (string propertyName in propertyNames)
+            {
+                if (material.HasProperty(propertyName))
+                {
+                    Texture texture = material.GetTexture(propertyName);
+
+                    if (texture != null)
+                    {
+                        return texture;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static Color getFirstAvailableColor(
+            Material material,
+            Color fallbackColor,
+            params string[] propertyNames)
+        {
+            foreach (string propertyName in propertyNames)
+            {
+                if (material.HasProperty(propertyName))
+                {
+                    return material.GetColor(propertyName);
+                }
+            }
+
+            return fallbackColor;
+        }
+
+        private static void ensureFolderHierarchy(string folderPath)
+        {
+            string[] folderSegments = folderPath.Split('/');
+            string currentPath = folderSegments[0];
+
+            for (int folderIndex = 1; folderIndex < folderSegments.Length; folderIndex += 1)
+            {
+                string nextPath = $"{currentPath}/{folderSegments[folderIndex]}";
+
+                if (AssetDatabase.IsValidFolder(nextPath) == false)
+                {
+                    AssetDatabase.CreateFolder(currentPath, folderSegments[folderIndex]);
+                }
+
+                currentPath = nextPath;
+            }
         }
 
         private static CorridorAxes determineCorridorAxes(Bounds environmentBounds)

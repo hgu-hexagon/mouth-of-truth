@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using MouthOfTruth.Game.App;
@@ -13,6 +14,17 @@ namespace MouthOfTruth.Editor
         private const string DISTRIBUTION_ROOT_RELATIVE_PATH = "dist/macos/MouthOfTruth";
         private const string APPLICATION_NAME = "MouthOfTruth.app";
         private const string PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON_RUNTIME_ROOT";
+        private static readonly string[] DISTRIBUTION_FILE_NAMES_TO_REMOVE =
+        {
+            ".DS_Store",
+            ".gitignore",
+            ".gitkeep",
+        };
+
+        private static readonly string[] DISTRIBUTION_DIRECTORY_NAMES_TO_REMOVE =
+        {
+            "__pycache__",
+        };
 
         [MenuItem("Mouth Of Truth/Build Mac Release")]
         public static void Run()
@@ -39,6 +51,7 @@ namespace MouthOfTruth.Editor
             }
 
             stageRuntimeSupport(runtimeRootPath, distributionRootPath);
+            pruneDistributionArtifacts(distributionRootPath);
             writeLauncherScript(distributionRootPath);
             AssetDatabase.Refresh();
         }
@@ -132,6 +145,67 @@ namespace MouthOfTruth.Editor
             }
 
             Directory.CreateDirectory(directoryPath);
+        }
+
+        private static void pruneDistributionArtifacts(string distributionRootPath)
+        {
+            foreach (string directoryPath in Directory.GetDirectories(
+                         distributionRootPath,
+                         "*",
+                         SearchOption.AllDirectories))
+            {
+                string directoryName = Path.GetFileName(directoryPath);
+
+                if (shouldRemoveDistributionDirectory(directoryName))
+                {
+                    FileUtil.DeleteFileOrDirectory(directoryPath);
+                }
+            }
+
+            foreach (string filePath in Directory.GetFiles(
+                         distributionRootPath,
+                         "*",
+                         SearchOption.AllDirectories))
+            {
+                string fileName = Path.GetFileName(filePath);
+
+                if (shouldRemoveDistributionFile(fileName))
+                {
+                    FileUtil.DeleteFileOrDirectory(filePath);
+                    continue;
+                }
+
+                if (fileName.EndsWith(".pyc", StringComparison.OrdinalIgnoreCase))
+                {
+                    FileUtil.DeleteFileOrDirectory(filePath);
+                }
+            }
+        }
+
+        private static bool shouldRemoveDistributionDirectory(string directoryName)
+        {
+            foreach (string candidateName in DISTRIBUTION_DIRECTORY_NAMES_TO_REMOVE)
+            {
+                if (string.Equals(directoryName, candidateName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool shouldRemoveDistributionFile(string fileName)
+        {
+            foreach (string candidateName in DISTRIBUTION_FILE_NAMES_TO_REMOVE)
+            {
+                if (string.Equals(fileName, candidateName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void writeLauncherScript(string distributionRootPath)

@@ -12,8 +12,8 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
-  productName: unity-app
+  companyName: HGU Hexagon
+  productName: MouthOfTruth
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.12156863, g: 0.12156863, b: 0.1254902, a: 1}
@@ -323,9 +323,9 @@ PlayerSettings:
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 0
-  cameraUsageDescription: 
+  cameraUsageDescription: Mouth of Truth uses the camera to analyze facial expressions during the truth evaluation ritual.
   locationUsageDescription: 
-  microphoneUsageDescription: 
+  microphoneUsageDescription: Mouth of Truth uses the microphone to capture spoken answers for voice analysis.
   bluetoothUsageDescription: 
   macOSTargetOSVersion: 12.0
   switchNMETAOverride: 

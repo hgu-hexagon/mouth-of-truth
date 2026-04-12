@@ -16,20 +16,20 @@ MonoBehaviour:
   - UseBuiltInRenderPipelineShaderName: 1
     BuiltInRenderPipelineShaderName: Standard
     BuiltInRenderPipelineShader: {fileID: 0}
-    UseUniversalRenderPipelineShaderName: 1
-    UniversalRenderPipelineShaderName: Universal Render Pipeline/Lit
+    UseUniversalRenderPipelineShaderName: 0
+    UniversalRenderPipelineShaderName: 
     UniversalRenderPipelineShader: {fileID: 0}
   - UseBuiltInRenderPipelineShaderName: 1
     BuiltInRenderPipelineShaderName: Legacy Shaders/Diffuse
     BuiltInRenderPipelineShader: {fileID: 0}
-    UseUniversalRenderPipelineShaderName: 1
-    UniversalRenderPipelineShaderName: Universal Render Pipeline/Simple Lit
+    UseUniversalRenderPipelineShaderName: 0
+    UniversalRenderPipelineShaderName: 
     UniversalRenderPipelineShader: {fileID: 0}
   - UseBuiltInRenderPipelineShaderName: 1
     BuiltInRenderPipelineShaderName: Unlit/Color
     BuiltInRenderPipelineShader: {fileID: 0}
-    UseUniversalRenderPipelineShaderName: 1
-    UniversalRenderPipelineShaderName: Universal Render Pipeline/Particles/Unlit
+    UseUniversalRenderPipelineShaderName: 0
+    UniversalRenderPipelineShaderName: 
     UniversalRenderPipelineShader: {fileID: 0}
   ShadersToIgnore:
   - GUI/Text Shader

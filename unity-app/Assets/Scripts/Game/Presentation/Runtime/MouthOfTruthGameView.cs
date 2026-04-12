@@ -243,7 +243,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.text = string.Empty;
             mAnswerInputField.interactable = false;
             mPromptText.text = "손을 입 안에 넣으세요";
-            mStatusText.text = "손을 입 안으로 넣으면 답변이 시작됩니다.";
+            mStatusText.text = "손이나 포인터를 입 쪽으로 가져가면 자동으로 들어가고 답변이 시작됩니다.";
             applyMouthAnchoredLayout();
             setHandVisual(0.0f);
         }
@@ -278,7 +278,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mAnswerInputField.interactable = false;
             mPromptText.text = "답변 일시정지";
-            mStatusText.text = "손을 다시 입 안으로 넣으면 답변이 이어집니다.";
+            mStatusText.text = "손이나 포인터를 다시 입 쪽으로 가져가면 답변이 이어집니다.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
         }

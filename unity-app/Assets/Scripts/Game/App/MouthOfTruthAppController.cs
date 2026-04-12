@@ -189,8 +189,11 @@ namespace MouthOfTruth.Game.App
         {
             EHandAnchorState handAnchorState = mGameView.GetHandAnchorState(pointerScreenPosition);
 
-            if (mLastObservedHandAnchorState == EHandAnchorState.AtInnerAnchor
-                || handAnchorState != EHandAnchorState.AtInnerAnchor)
+            bool canStartInsertion =
+                mLastObservedHandAnchorState == EHandAnchorState.OutsideMouth
+                && handAnchorState != EHandAnchorState.OutsideMouth;
+
+            if (canStartInsertion == false)
             {
                 mLastObservedHandAnchorState = handAnchorState;
                 return;

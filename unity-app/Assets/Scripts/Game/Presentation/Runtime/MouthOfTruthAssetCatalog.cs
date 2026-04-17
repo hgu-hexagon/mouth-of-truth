@@ -40,7 +40,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingArtPath("environment/floor_red_carpet_runner.jpeg");
 
         public static string QuestionCardBackPath =>
-            GetStreamingArtPath("cards/question_card_back.jpeg");
+            GetStreamingArtPath("cards/question_card_back.png");
+
+        public static string QuestionCardFrontPath =>
+            GetStreamingArtPath("cards/question_card_front.png");
 
         public static string TruthMouthFacePath =>
             GetStreamingArtPath("mouth/truth_mouth_face.png");

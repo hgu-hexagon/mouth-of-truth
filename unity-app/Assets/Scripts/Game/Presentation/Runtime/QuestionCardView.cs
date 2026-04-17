@@ -87,9 +87,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
             mQuestionText.verticalOverflow = VerticalWrapMode.Overflow;
             mQuestionText.color = new Color(0.14f, 0.09f, 0.04f, 1.0f);
-            mQuestionText.fontSize = 26;
+            mQuestionText.fontSize = 28;
             mQuestionText.raycastTarget = false;
             mQuestionText.text = string.Empty;
+            Shadow questionTextShadow = textObject.AddComponent<Shadow>();
+            questionTextShadow.effectColor = new Color(0.98f, 0.95f, 0.89f, 0.38f);
+            questionTextShadow.effectDistance = new Vector2(1.0f, -1.0f);
         }
 
         public void SetBack(Sprite cardBackSprite)
@@ -108,8 +111,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mProgressImage.type = Image.Type.Sliced;
         }
 
-        public void SetFront(string questionText)
+        public void SetFront(Sprite cardFrontSprite, string questionText)
         {
+            if (cardFrontSprite != null)
+            {
+                mCardImage.sprite = cardFrontSprite;
+            }
+
             mCardImage.color = new Color(0.96f, 0.93f, 0.88f, 1.0f);
             mQuestionText.enabled = true;
             mQuestionText.text = questionText;

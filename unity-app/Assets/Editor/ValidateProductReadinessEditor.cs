@@ -67,6 +67,7 @@ namespace MouthOfTruth.Editor
                 MouthOfTruthAssetCatalog.StatusPanelFramePath,
                 MouthOfTruthAssetCatalog.ResultPanelFramePath,
                 MouthOfTruthAssetCatalog.QuestionCardBackPath,
+                MouthOfTruthAssetCatalog.QuestionCardFrontPath,
                 MouthOfTruthAssetCatalog.TruthMouthFacePath,
                 MouthOfTruthAssetCatalog.TrueVerdictPath,
                 MouthOfTruthAssetCatalog.FalseVerdictPath,

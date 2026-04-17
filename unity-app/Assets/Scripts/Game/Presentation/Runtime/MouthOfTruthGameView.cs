@@ -48,6 +48,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Button mTryAgainButton;
         private Button mBackToTitleButton;
         private Sprite mCardBackSprite;
+        private Sprite mCardFrontSprite;
         private Sprite mButtonFrameSprite;
         private Sprite mHandCursorSprite;
         private Sprite mVerdictTrueSprite;
@@ -116,7 +117,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mBackToTitleButton, false);
             setCardsVisible(false);
-            mPromptText.text = "START GAME";
+            mPromptText.text = string.Empty;
             mStatusText.text = "손으로 START GAME을 선택하거나 마우스로 클릭하세요.";
             mAnswerTimerText.text = string.Empty;
             mLastAudibleHoveredCardSlot = null;
@@ -210,7 +211,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         Vector3.one * Mathf.Lerp(1.0f, 1.22f, easedProgress);
                 });
 
-            selectedCardView.SetFront(questionDefinition.Text);
+            selectedCardView.SetFront(mCardFrontSprite, questionDefinition.Text);
             mQuestionText.text = questionDefinition.Text;
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
@@ -546,6 +547,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCardBackSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.QuestionCardBackPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.43f, 0.63f, 0.95f, 1.0f));
+            mCardFrontSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.QuestionCardFrontPath)
+                ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.96f, 0.93f, 0.88f, 1.0f));
             mButtonFrameSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.PrimaryButtonFramePath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.38f, 0.21f, 0.11f, 1.0f));
@@ -638,10 +642,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mStatusPanelImage.type = Image.Type.Sliced;
             mResultPanelImage.sprite = mResultPanelSprite;
             mResultPanelImage.type = Image.Type.Sliced;
+            if (mAnswerInputField?.image != null)
+            {
+                mAnswerInputField.image.sprite = mStatusPanelSprite;
+                mAnswerInputField.image.type = Image.Type.Sliced;
+                mAnswerInputField.image.color = new Color(1.0f, 1.0f, 1.0f, 0.96f);
+            }
 
             mStartButton.image.sprite = mButtonFrameSprite;
             mTryAgainButton.image.sprite = mButtonFrameSprite;
             mBackToTitleButton.image.sprite = mButtonFrameSprite;
+            mStartButton.image.type = Image.Type.Sliced;
+            mTryAgainButton.image.type = Image.Type.Sliced;
+            mBackToTitleButton.image.type = Image.Type.Sliced;
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -1048,6 +1061,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             text.fontStyle = fontStyle;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
+            addTextShadow(textObject);
             return text;
         }
 
@@ -1062,9 +1076,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             rectTransform.sizeDelta = new Vector2(920.0f, 96.0f);
 
             Image backgroundImage = inputFieldObject.AddComponent<Image>();
-            backgroundImage.color = new Color(0.07f, 0.05f, 0.04f, 0.78f);
+            backgroundImage.color = Color.white;
 
             InputField inputField = inputFieldObject.AddComponent<InputField>();
+            inputField.transition = Selectable.Transition.None;
 
             Text placeholderText = createText(
                 "Placeholder",
@@ -1116,9 +1131,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             rectTransform.sizeDelta = sizeDelta;
 
             Image buttonImage = buttonObject.AddComponent<Image>();
-            buttonImage.color = new Color(0.42f, 0.18f, 0.10f, 0.95f);
+            buttonImage.color = Color.white;
 
             Button button = buttonObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
             button.onClick.AddListener(
                 () =>
                 {
@@ -1174,8 +1190,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (button.image != null)
             {
                 button.image.color = Color.Lerp(
-                    new Color(0.42f, 0.18f, 0.10f, 0.95f),
-                    new Color(0.74f, 0.54f, 0.26f, 1.0f),
+                    new Color(0.88f, 0.80f, 0.66f, 0.94f),
+                    new Color(1.0f, 0.92f, 0.72f, 1.0f),
+                    effectiveHoverProgress);
+            }
+
+            Text label = button.GetComponentInChildren<Text>();
+
+            if (label != null)
+            {
+                label.color = Color.Lerp(
+                    new Color(0.88f, 0.84f, 0.76f, 1.0f),
+                    new Color(1.0f, 0.97f, 0.84f, 1.0f),
                     effectiveHoverProgress);
             }
         }
@@ -1270,6 +1296,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             };
 
             playInterfaceCue(verdictClip, 0.95f);
+        }
+
+        private void addTextShadow(GameObject textObject)
+        {
+            Shadow shadow = textObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0.05f, 0.03f, 0.02f, 0.92f);
+            shadow.effectDistance = new Vector2(2.0f, -2.0f);
         }
     }
 }

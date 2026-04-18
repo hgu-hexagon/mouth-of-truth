@@ -20,7 +20,7 @@ namespace MouthOfTruth.Game.App
     [DisallowMultipleComponent]
     public class MouthOfTruthAppController : MonoBehaviour
     {
-        private const float ANSWER_HOLD_LOSS_GRACE_SECONDS = 0.20f;
+        private const float ANSWER_HOLD_LOSS_GRACE_SECONDS = 0.35f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME =
             "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME =

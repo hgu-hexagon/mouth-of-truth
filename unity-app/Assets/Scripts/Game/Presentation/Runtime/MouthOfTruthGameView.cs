@@ -28,8 +28,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.15f;
         private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.07f;
         private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.09f;
-        private const float ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR = 0.10f;
-        private const float ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR = 0.04f;
+        private const float ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR = 0.12f;
+        private const float ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR = 0.05f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -409,7 +409,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            mQuestionText.text = "질문에 답하는 동안 손을 유지하세요.";
+            mQuestionText.text = "천천히 답해주세요. 손은 입 안에 그대로 두면 됩니다.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             enableHeldHandPresentation(baseProgress: 0.78f, pulseAmplitude: 0.007f, pulseSpeed: 1.3f);
@@ -455,7 +455,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            mQuestionText.text = "진실의 입이 대답을 가늠하고 있습니다.";
+            mQuestionText.text = "진실의 입이 답을 살피고 있습니다.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             enableHeldHandPresentation(baseProgress: 0.82f, pulseAmplitude: 0.004f, pulseSpeed: 1.0f);

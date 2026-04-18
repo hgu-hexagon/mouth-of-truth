@@ -163,7 +163,7 @@ namespace MouthOfTruth.Editor
             gameStateMachine.NotifyHandReachedInnerAnchor();
             assertState(gameStateMachine, EGameFlowState.Answering, "answer resume");
 
-            shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(1.5f, isSpeechDetected: false);
+            shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(1.9f, isSpeechDetected: false);
 
             if (shouldFinishAnswer == false)
             {
@@ -198,11 +198,11 @@ namespace MouthOfTruth.Editor
             gameStateMachine.NotifyHandReachedFrontAnchor();
             gameStateMachine.NotifyHandReachedInnerAnchor();
 
-            bool timedOut = gameStateMachine.AdvanceAnswerCollection(6.1f, isSpeechDetected: true);
+            bool timedOut = gameStateMachine.AdvanceAnswerCollection(8.1f, isSpeechDetected: true);
 
             if (timedOut == false)
             {
-                throw new InvalidOperationException("Answer timeout did not trigger after 6 seconds.");
+                throw new InvalidOperationException("Answer timeout did not trigger after 8 seconds.");
             }
 
             assertState(gameStateMachine, EGameFlowState.AnalyzingAnswer, "timeout analysis");

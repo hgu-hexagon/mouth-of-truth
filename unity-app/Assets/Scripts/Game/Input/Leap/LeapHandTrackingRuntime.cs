@@ -23,7 +23,7 @@ namespace MouthOfTruth.Game.Input.Leap
         private const float DEFAULT_POINTER_MIN_Y = 50.0f;
         private const float DEFAULT_POINTER_MAX_Y = 340.0f;
         private const float DEFAULT_POINTER_SMOOTHING = 18.0f;
-        private const float DEFAULT_POINTER_LOSS_GRACE_SECONDS = 0.18f;
+        private const float DEFAULT_POINTER_LOSS_GRACE_SECONDS = 0.35f;
 
         [SerializeField]
         private string mServerNamespace = DEFAULT_SERVER_NAMESPACE;

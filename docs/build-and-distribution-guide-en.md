@@ -3,12 +3,13 @@
 ## Overview
 
 This document explains how to build and distribute Mouth of Truth as a macOS
-product package.
+and Windows product package.
 
 After completing this guide, you should be able to:
 
 - prepare the distributable Python runtime
 - run the macOS release build
+- run the Windows release build
 - identify the files that must be delivered to users
 - tell users which file they must launch
 
@@ -25,19 +26,21 @@ Verify the following first.
 
 ## Build the distributable Python runtime
 
-Do not ship the Unity `.app` bundle alone.
+Do not ship the Unity player alone.
 The release package must include the Python runtime.
+
+### macOS Python runtime
 
 Run this command from the repository root.
 
 ```bash
-conda activate mouth-of-truth
+conda activate mouth-truth
 python-engine/scripts/package_python_runtime.sh
 ```
 
 The script performs the following actions.
 
-- Packages the `mouth-of-truth` conda environment
+- Packages the `mouth-truth` or `mouth-of-truth` conda environment
 - Creates `python-runtime/` at the repository root
 - Expands the distributable Python executable and packages into that directory
 
@@ -46,6 +49,30 @@ If you use a different environment name, set it first.
 ```bash
 MOUTH_OF_TRUTH_CONDA_ENV=<conda-env-name> \
 python-engine/scripts/package_python_runtime.sh
+```
+
+### Windows Python runtime
+
+The Windows release package needs a Windows-packaged Python runtime.
+
+Open Windows PowerShell at the repository root and run:
+
+```powershell
+conda activate mouth-truth
+.\python-engine\scripts\package_python_runtime.ps1
+```
+
+The script performs the following actions.
+
+- Packages the `mouth-truth` or `mouth-of-truth` conda environment
+- Creates `python-runtime-windows/` at the repository root
+- Expands the distributable Windows Python executable and packages into that directory
+
+If you use a different environment name, set it first.
+
+```powershell
+$env:MOUTH_OF_TRUTH_CONDA_ENV = "<conda-env-name>"
+.\python-engine\scripts\package_python_runtime.ps1
 ```
 
 ## Build the macOS release
@@ -65,6 +92,12 @@ Run this Unity menu item.
 
 - `Mouth Of Truth > Build Mac Release`
 
+You can also run the repository script from the repository root.
+
+```bash
+./tools/build-macos-release.sh
+```
+
 The build creates the following output.
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
@@ -72,6 +105,44 @@ The build creates the following output.
 - `dist/macos/MouthOfTruth/python-engine/`
 - `dist/macos/MouthOfTruth/python-runtime/`
 - `dist/macos/MouthOfTruth/bridge/`
+
+## Build the Windows release
+
+Run the Windows release from a Unity editor that has Windows Build Support
+installed.
+
+### 1. Refresh the main scene
+
+Run this Unity menu item.
+
+- `Mouth Of Truth > Build Main Scene`
+
+### 2. Run the Windows release build
+
+Run this Unity menu item.
+
+- `Mouth Of Truth > Build Windows Release`
+
+You can also run the repository PowerShell script.
+
+```powershell
+.\tools\build-windows-release.ps1
+```
+
+If Unity is installed in a different path, pass it explicitly.
+
+```powershell
+.\tools\build-windows-release.ps1 -UnityEditorPath "C:\Path\To\Unity.exe"
+```
+
+The build creates the following output.
+
+- `dist/windows/MouthOfTruth/MouthOfTruth.exe`
+- `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
+- `dist/windows/MouthOfTruth/MouthOfTruth_Data/`
+- `dist/windows/MouthOfTruth/python-engine/`
+- `dist/windows/MouthOfTruth/python-runtime/`
+- `dist/windows/MouthOfTruth/bridge/`
 
 ## Files that must exist after the build
 
@@ -85,19 +156,30 @@ Verify that all of the following exist.
 
 Do not ship the build if any of these items are missing.
 
+For the Windows release, verify that all of the following exist.
+
+- `dist/windows/MouthOfTruth/MouthOfTruth.exe`
+- `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
+- `dist/windows/MouthOfTruth/MouthOfTruth_Data/`
+- `dist/windows/MouthOfTruth/python-engine/`
+- `dist/windows/MouthOfTruth/python-runtime/`
+- `dist/windows/MouthOfTruth/bridge/`
+
 ## Files to deliver to users
 
 Deliver the entire directory below.
 
 - `dist/macos/MouthOfTruth/`
+- `dist/windows/MouthOfTruth/`
 
 Recommended delivery method:
 
-- compress `MouthOfTruth/` as a ZIP file
+- compress each platform-specific `MouthOfTruth/` directory as a ZIP file
 
 Important:
 
-- Do not ship `MouthOfTruth.app` by itself.
+- Do not ship `MouthOfTruth.app` by itself on macOS.
+- Do not ship `MouthOfTruth.exe` by itself on Windows.
 - Always ship the full `MouthOfTruth/` directory.
 
 ## File the user should launch
@@ -105,15 +187,17 @@ Important:
 After extracting the package, the user should launch:
 
 - `Run Mouth of Truth.command`
+- `Run Mouth of Truth.bat`
 
-The launcher sets the runtime root correctly and then opens
-`MouthOfTruth.app`.
+The launcher sets the runtime root correctly and then opens the correct player
+for the platform.
 
 As a secondary option, the user can launch:
 
 - `MouthOfTruth.app`
+- `MouthOfTruth.exe`
 
-For support and operation, the `.command` launcher should be the default
+For support and operation, the platform-specific launcher should be the default
 instruction.
 
 ## First-launch instructions for users
@@ -183,3 +267,6 @@ Action:
 - `python-engine/environment.yml`
 - `python-engine/requirements.txt`
 - `python-engine/scripts/package_python_runtime.sh`
+- `python-engine/scripts/package_python_runtime.ps1`
+- `tools/build-macos-release.sh`
+- `tools/build-windows-release.ps1`

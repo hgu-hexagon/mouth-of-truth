@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MouthOfTruth.Game.App;
+using UnityEngine;
 
 namespace MouthOfTruth.Game.Analysis
 {
@@ -102,12 +103,16 @@ namespace MouthOfTruth.Game.Analysis
             }
 
             using Process process = new Process();
+            bool useWindowsCommandShell =
+                Application.platform == RuntimePlatform.WindowsEditor
+                || Application.platform == RuntimePlatform.WindowsPlayer;
             process.StartInfo = new ProcessStartInfo
             {
-                FileName = bridgeLauncherScriptPath,
-                Arguments =
-                    $"\"{PythonAnalysisBridgePaths.GetRequestFilePath()}\" " +
-                    $"\"{PythonAnalysisBridgePaths.GetResultFilePath()}\"",
+                FileName = useWindowsCommandShell ? "cmd.exe" : bridgeLauncherScriptPath,
+                Arguments = useWindowsCommandShell
+                    ? $"/c \"\"{bridgeLauncherScriptPath}\" \"{PythonAnalysisBridgePaths.GetRequestFilePath()}\" \"{PythonAnalysisBridgePaths.GetResultFilePath()}\"\""
+                    : $"\"{PythonAnalysisBridgePaths.GetRequestFilePath()}\" " +
+                      $"\"{PythonAnalysisBridgePaths.GetResultFilePath()}\"",
                 WorkingDirectory = PythonAnalysisBridgePaths.GetProjectRootPath(),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

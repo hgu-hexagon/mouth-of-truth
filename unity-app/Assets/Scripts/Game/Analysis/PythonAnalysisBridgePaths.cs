@@ -47,10 +47,16 @@ namespace MouthOfTruth.Game.Analysis
 
         public static string GetBridgeLauncherScriptPath()
         {
+            string launcherFileName =
+                Application.platform == RuntimePlatform.WindowsEditor
+                || Application.platform == RuntimePlatform.WindowsPlayer
+                    ? "run_bridge_analysis.bat"
+                    : "run_bridge_analysis.sh";
+
             return Path.Combine(
                 MouthOfTruthRuntimePaths.GetPythonEngineRootPath(),
                 "scripts",
-                "run_bridge_analysis.sh");
+                launcherFileName);
         }
 
         public static string GetPythonModuleRootPath()

@@ -10,7 +10,11 @@ namespace MouthOfTruth.Game.App
         private const string RUNTIME_ROOT_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_RUNTIME_ROOT";
         private const string PYTHON_ENGINE_DIRECTORY_NAME = "python-engine";
         private const string BRIDGE_DIRECTORY_NAME = "bridge";
-        private const string BRIDGE_LAUNCHER_RELATIVE_PATH = "python-engine/scripts/run_bridge_analysis.sh";
+        private static readonly string[] BRIDGE_LAUNCHER_RELATIVE_PATHS =
+        {
+            "python-engine/scripts/run_bridge_analysis.sh",
+            "python-engine/scripts/run_bridge_analysis.bat",
+        };
 
         public static string GetRuntimeRootPath()
         {
@@ -73,11 +77,24 @@ namespace MouthOfTruth.Game.App
             }
 
             string bridgeDirectoryPath = Path.Combine(candidateRuntimeRootPath, BRIDGE_DIRECTORY_NAME);
-            string bridgeLauncherScriptPath =
-                Path.Combine(candidateRuntimeRootPath, BRIDGE_LAUNCHER_RELATIVE_PATH);
 
-            return Directory.Exists(bridgeDirectoryPath)
-                && File.Exists(bridgeLauncherScriptPath);
+            if (Directory.Exists(bridgeDirectoryPath) == false)
+            {
+                return false;
+            }
+
+            foreach (string bridgeLauncherRelativePath in BRIDGE_LAUNCHER_RELATIVE_PATHS)
+            {
+                string bridgeLauncherScriptPath =
+                    Path.Combine(candidateRuntimeRootPath, bridgeLauncherRelativePath);
+
+                if (File.Exists(bridgeLauncherScriptPath))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

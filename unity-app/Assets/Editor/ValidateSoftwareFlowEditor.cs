@@ -247,6 +247,52 @@ namespace MouthOfTruth.Editor
                 throw new InvalidOperationException("Insufficient data reason codes were incomplete.");
             }
 
+            AnswerAnalysisResult voiceOnlyResult = deterministicAnswerAnalysisClient.AnalyzeAsync(
+                new AnswerAnalysisRequest(
+                    questionDefinition,
+                    "voice only answer",
+                    string.Empty,
+                    string.Empty,
+                    faceFrameCount: 0,
+                    voiceSegmentCount: 2),
+                CancellationToken.None).GetAwaiter().GetResult();
+
+            if (voiceOnlyResult.VerdictKind == EVerdictKind.Uncertain)
+            {
+                throw new InvalidOperationException(
+                    "Voice-only data should still resolve to a deterministic verdict.");
+            }
+
+            if (voiceOnlyResult.ReasonCodes.Contains("insufficient_face_data") == false
+                || voiceOnlyResult.ReasonCodes.Contains("voice_only_judgment") == false)
+            {
+                throw new InvalidOperationException(
+                    "Voice-only deterministic verdict did not preserve the expected reason codes.");
+            }
+
+            AnswerAnalysisResult transcriptFreeVoiceOnlyResult =
+                deterministicAnswerAnalysisClient.AnalyzeAsync(
+                    new AnswerAnalysisRequest(
+                        questionDefinition,
+                        string.Empty,
+                        string.Empty,
+                        string.Empty,
+                        faceFrameCount: 0,
+                        voiceSegmentCount: 2),
+                    CancellationToken.None).GetAwaiter().GetResult();
+
+            if (transcriptFreeVoiceOnlyResult.VerdictKind == EVerdictKind.Uncertain)
+            {
+                throw new InvalidOperationException(
+                    "Voice segments alone should still resolve to a deterministic verdict.");
+            }
+
+            if (transcriptFreeVoiceOnlyResult.ReasonCodes.Contains("voice_only_judgment") == false)
+            {
+                throw new InvalidOperationException(
+                    "Transcript-free voice verdict did not preserve the voice_only_judgment reason code.");
+            }
+
             AnswerAnalysisResult firstStableResult = deterministicAnswerAnalysisClient.AnalyzeAsync(
                 new AnswerAnalysisRequest(
                     questionDefinition,
@@ -301,10 +347,10 @@ namespace MouthOfTruth.Editor
                     voiceSegmentCount: 1),
                 CancellationToken.None).GetAwaiter().GetResult();
 
-            if (bridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
+            if (bridgeAnalysisResult.VerdictKind == EVerdictKind.Uncertain)
             {
                 throw new InvalidOperationException(
-                    $"Expected UNCERTAIN bridge verdict, but received {bridgeAnalysisResult.VerdictKind}.");
+                    "Expected the Python bridge to resolve a voice-only verdict.");
             }
 
             if (bridgeAnalysisResult.AnswerTranscript != "Bridge validation transcript")
@@ -316,6 +362,12 @@ namespace MouthOfTruth.Editor
             {
                 throw new InvalidOperationException(
                     "Python bridge did not surface the insufficient_face_data reason code.");
+            }
+
+            if (bridgeAnalysisResult.ReasonCodes.Contains("voice_only_judgment") == false)
+            {
+                throw new InvalidOperationException(
+                    "Python bridge did not surface the voice_only_judgment reason code.");
             }
         }
 

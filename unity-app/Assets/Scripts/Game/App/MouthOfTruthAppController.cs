@@ -20,6 +20,7 @@ namespace MouthOfTruth.Game.App
     [DisallowMultipleComponent]
     public class MouthOfTruthAppController : MonoBehaviour
     {
+        private const float ANSWER_HOLD_LOSS_GRACE_SECONDS = 0.20f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME =
             "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME =
@@ -38,6 +39,7 @@ namespace MouthOfTruth.Game.App
         private bool mIsInitialized;
         private bool mIsTransitionBusy;
         private bool mIsPresentationCaptureRunning;
+        private float mAnswerHoldLossElapsedSeconds;
         private string mLastObservedTranscript = string.Empty;
         private EHandAnchorState mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
 
@@ -228,16 +230,27 @@ namespace MouthOfTruth.Game.App
         private void updateAnswering(Vector2? pointerScreenPosition)
         {
             EHandAnchorState handAnchorState = mGameView.GetHandAnchorState(pointerScreenPosition);
+            bool isAnswerHoldMaintained = mGameView.IsAnswerHoldMaintained(pointerScreenPosition);
 
-            if (mLastObservedHandAnchorState != EHandAnchorState.OutsideMouth
-                && handAnchorState == EHandAnchorState.OutsideMouth)
+            if (isAnswerHoldMaintained == false)
             {
-                mLastObservedHandAnchorState = handAnchorState;
-                _ = pauseAnswerAsync();
-                return;
+                mAnswerHoldLossElapsedSeconds += Time.deltaTime;
+
+                if (mAnswerHoldLossElapsedSeconds >= ANSWER_HOLD_LOSS_GRACE_SECONDS)
+                {
+                    mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
+                    _ = pauseAnswerAsync();
+                    return;
+                }
+            }
+            else
+            {
+                mAnswerHoldLossElapsedSeconds = 0.0f;
             }
 
-            mLastObservedHandAnchorState = handAnchorState;
+            mLastObservedHandAnchorState = handAnchorState == EHandAnchorState.OutsideMouth
+                ? EHandAnchorState.AtFrontAnchor
+                : handAnchorState;
 
             AnswerCaptureFrameSnapshot frameSnapshot = mAnswerCaptureInputAdapter.Update(Time.deltaTime);
             mFaceCaptureInputAdapter.Update(Time.deltaTime);
@@ -392,6 +405,7 @@ namespace MouthOfTruth.Game.App
             mGameView.ShowAnswering();
             mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
             mLastObservedHandAnchorState = EHandAnchorState.AtInnerAnchor;
+            mAnswerHoldLossElapsedSeconds = 0.0f;
             mIsTransitionBusy = false;
         }
 
@@ -405,6 +419,7 @@ namespace MouthOfTruth.Game.App
             mGameView.ShowAnswerPaused();
             mGameView.SetAnswerTranscriptEditable(false);
             mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
+            mAnswerHoldLossElapsedSeconds = 0.0f;
             mIsTransitionBusy = false;
         }
 
@@ -480,12 +495,14 @@ namespace MouthOfTruth.Game.App
             mAnswerCaptureInputAdapter.Reset();
             mFaceCaptureInputAdapter?.Reset();
             mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
+            mAnswerHoldLossElapsedSeconds = 0.0f;
         }
 
         private void resetInteractionSelectionState()
         {
             mUiActionDwellSelectionTracker?.Reset();
             mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
+            mAnswerHoldLossElapsedSeconds = 0.0f;
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
         }
 

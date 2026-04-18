@@ -354,6 +354,16 @@ namespace MouthOfTruth.Editor
                 handFrontPosition,
                 handInnerPosition,
                 mouthDiameterPixels);
+            bool answerHoldState = MouthOfTruthGameView.EvaluateAnswerHoldState(
+                new Vector2(0.0f, 84.0f),
+                handFrontPosition,
+                handInnerPosition,
+                mouthDiameterPixels);
+            bool wideAnswerHoldState = MouthOfTruthGameView.EvaluateAnswerHoldState(
+                new Vector2(92.0f, 86.0f),
+                handFrontPosition,
+                handInnerPosition,
+                mouthDiameterPixels);
 
             if (exactFrontState != EHandAnchorState.AtFrontAnchor)
             {
@@ -374,6 +384,18 @@ namespace MouthOfTruth.Editor
             {
                 throw new InvalidOperationException(
                     "The corridor between the front and inner anchors is too wide for reliable targeting.");
+            }
+
+            if (answerHoldState == false)
+            {
+                throw new InvalidOperationException(
+                    "Answer hold sustain no longer accepts a centered mouth-hold position.");
+            }
+
+            if (wideAnswerHoldState)
+            {
+                throw new InvalidOperationException(
+                    "Answer hold sustain accepted a pointer that is too far off-center.");
             }
         }
 

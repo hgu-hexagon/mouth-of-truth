@@ -28,6 +28,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.15f;
         private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.07f;
         private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.09f;
+        private const float ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR = 0.10f;
+        private const float ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR = 0.04f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -617,6 +619,30 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mouthDiameterPixels);
         }
 
+        public bool IsAnswerHoldMaintained(Vector2? pointerScreenPosition)
+        {
+            if (pointerScreenPosition.HasValue == false)
+            {
+                return false;
+            }
+
+            if (tryConvertScreenPointToCanvasPosition(
+                    pointerScreenPosition.Value,
+                    out Vector2 pointerCanvasPosition) == false)
+            {
+                return false;
+            }
+
+            float mouthDiameterPixels = Mathf.Max(
+                1.0f,
+                Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
+            return EvaluateAnswerHoldState(
+                pointerCanvasPosition,
+                getHandFrontPosition(),
+                getHandInnerPosition(),
+                mouthDiameterPixels);
+        }
+
         public static EHandAnchorState EvaluateHandAnchorState(
             Vector2 pointerCanvasPosition,
             Vector2 handFrontPosition,
@@ -651,6 +677,32 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             return EHandAnchorState.OutsideMouth;
+        }
+
+        public static bool EvaluateAnswerHoldState(
+            Vector2 pointerCanvasPosition,
+            Vector2 handFrontPosition,
+            Vector2 handInnerPosition,
+            float mouthDiameterPixels)
+        {
+            if (EvaluateHandAnchorState(
+                    pointerCanvasPosition,
+                    handFrontPosition,
+                    handInnerPosition,
+                    mouthDiameterPixels) != EHandAnchorState.OutsideMouth)
+            {
+                return true;
+            }
+
+            float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
+            float corridorHalfWidth = clampedMouthDiameterPixels * ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR;
+            float corridorMargin = clampedMouthDiameterPixels * ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR;
+            float minimumY = Mathf.Min(handFrontPosition.y, handInnerPosition.y) - corridorMargin;
+            float maximumY = Mathf.Max(handFrontPosition.y, handInnerPosition.y) + corridorMargin;
+
+            return Mathf.Abs(pointerCanvasPosition.x - handFrontPosition.x) <= corridorHalfWidth
+                && pointerCanvasPosition.y >= minimumY
+                && pointerCanvasPosition.y <= maximumY;
         }
 
         public void UpdatePointerVisual(bool isVisible, Vector2? pointerScreenPosition)

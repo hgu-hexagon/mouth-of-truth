@@ -6,6 +6,7 @@ using System.Threading;
 using MouthOfTruth.Game.Analysis;
 using MouthOfTruth.Game.Data;
 using MouthOfTruth.Game.Input;
+using MouthOfTruth.Game.Presentation.Runtime;
 using MouthOfTruth.Game.Session;
 using UnityEditor;
 using UnityEditor.Build;
@@ -25,6 +26,7 @@ namespace MouthOfTruth.Editor
             validateStep("question deck cycling", validateQuestionDeckCycle, errors);
             validateStep("state machine flow", validateStateMachineFlow, errors);
             validateStep("answer timeout behavior", validateAnswerTimeoutFlow, errors);
+            validateStep("mouth hand anchor targeting", validateHandAnchorTargeting, errors);
             validateStep("deterministic analysis", validateDeterministicAnalysis, errors);
             validateStep("unity python bridge round trip", validatePythonBridgeRoundTrip, errors);
 
@@ -323,6 +325,55 @@ namespace MouthOfTruth.Editor
             {
                 throw new InvalidOperationException(
                     "Deterministic verdicts should differ for stable parity-changing transcripts.");
+            }
+        }
+
+        private static void validateHandAnchorTargeting()
+        {
+            Vector2 handFrontPosition = new Vector2(0.0f, 0.0f);
+            Vector2 handInnerPosition = new Vector2(0.0f, 180.0f);
+            const float mouthDiameterPixels = 420.0f;
+
+            EHandAnchorState exactFrontState = MouthOfTruthGameView.EvaluateHandAnchorState(
+                handFrontPosition,
+                handFrontPosition,
+                handInnerPosition,
+                mouthDiameterPixels);
+            EHandAnchorState exactInnerState = MouthOfTruthGameView.EvaluateHandAnchorState(
+                handInnerPosition,
+                handFrontPosition,
+                handInnerPosition,
+                mouthDiameterPixels);
+            EHandAnchorState outsideState = MouthOfTruthGameView.EvaluateHandAnchorState(
+                new Vector2(92.0f, 86.0f),
+                handFrontPosition,
+                handInnerPosition,
+                mouthDiameterPixels);
+            EHandAnchorState betweenAnchorsState = MouthOfTruthGameView.EvaluateHandAnchorState(
+                new Vector2(0.0f, 84.0f),
+                handFrontPosition,
+                handInnerPosition,
+                mouthDiameterPixels);
+
+            if (exactFrontState != EHandAnchorState.AtFrontAnchor)
+            {
+                throw new InvalidOperationException("Front anchor targeting no longer resolves to AtFrontAnchor.");
+            }
+
+            if (exactInnerState != EHandAnchorState.AtInnerAnchor)
+            {
+                throw new InvalidOperationException("Inner anchor targeting no longer resolves to AtInnerAnchor.");
+            }
+
+            if (outsideState != EHandAnchorState.OutsideMouth)
+            {
+                throw new InvalidOperationException("Wide off-center pointer input is still accepted as a mouth hit.");
+            }
+
+            if (betweenAnchorsState != EHandAnchorState.OutsideMouth)
+            {
+                throw new InvalidOperationException(
+                    "The corridor between the front and inner anchors is too wide for reliable targeting.");
             }
         }
 

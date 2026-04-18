@@ -20,6 +20,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 FALLBACK_MOUTH_POSITION = new Vector2(0.0f, 60.0f);
         private static readonly Vector2 FALLBACK_HAND_FRONT_POSITION = new Vector2(0.0f, -20.0f);
         private static readonly Vector2 FALLBACK_HAND_INNER_POSITION = new Vector2(0.0f, 230.0f);
+        private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.17f;
+        private const float INNER_ANCHOR_RADIUS_FACTOR = 0.085f;
+        private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.12f;
+        private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.15f;
+        private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.07f;
+        private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.09f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -82,6 +88,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private MouthAnchorSet mMouthAnchorSet;
         private bool mUseWorldEnvironmentLayout;
         private EUiActionTarget? mLastHoveredUiActionTarget;
+        private bool mUseHeldHandPresentation;
+        private float mHeldHandBaseProgress;
+        private float mHeldHandPulseAmplitude;
+        private float mHeldHandPulseSpeed;
 
         private bool mStartRequested;
         private bool mTryAgainRequested;
@@ -100,8 +110,24 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             ShowStartScreen();
         }
 
+        private void LateUpdate()
+        {
+            if (mUseHeldHandPresentation == false
+                || mHandImage == null
+                || mHandImage.gameObject.activeSelf == false)
+            {
+                return;
+            }
+
+            float insertionProgress = Mathf.Clamp01(
+                mHeldHandBaseProgress
+                + (Mathf.Sin(Time.unscaledTime * mHeldHandPulseSpeed) * mHeldHandPulseAmplitude));
+            setHandVisual(insertionProgress);
+        }
+
         public void ShowStartScreen()
         {
+            disableHeldHandPresentation();
             applyStartScreenLayout();
             mBackgroundImage.sprite = mTitleBackgroundSprite;
             setBackgroundTint(Color.white);
@@ -138,6 +164,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
         {
+            disableHeldHandPresentation();
             applyCardSelectionLayout();
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
             setBackgroundTint(new Color(0.82f, 0.80f, 0.78f, 1.0f));
@@ -281,6 +308,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowNarratingQuestion(string questionText)
         {
+            disableHeldHandPresentation();
             applyNarrationLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(new Color(0.76f, 0.74f, 0.72f, 1.0f));
@@ -303,6 +331,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAwaitingHandInsertion()
         {
+            disableHeldHandPresentation();
             applyAwaitingHandInsertionLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(new Color(0.76f, 0.74f, 0.72f, 1.0f));
@@ -330,6 +359,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task AnimateHandInsertionAsync()
         {
+            disableHeldHandPresentation();
             applyAnswerStageLayout();
             setObjectActive(mHandImage, true);
             playInterfaceCue(mHandInsertClip, 0.9f);
@@ -347,6 +377,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task AnimateHandRemovalAsync()
         {
+            disableHeldHandPresentation();
             playInterfaceCue(mHandPauseClip, 0.9f);
             await animateOverTimeAsync(
                 0.35f,
@@ -371,6 +402,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.text = "질문에 답하는 동안 손을 유지하세요.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
+            enableHeldHandPresentation(baseProgress: 0.78f, pulseAmplitude: 0.007f, pulseSpeed: 1.3f);
         }
 
         public void ShowAnswerPaused()
@@ -392,6 +424,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.text = "손을 다시 올리면 답변이 이어집니다.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
+            enableHeldHandPresentation(baseProgress: 0.28f, pulseAmplitude: 0.003f, pulseSpeed: 0.9f);
         }
 
         public void ShowAnalyzing()
@@ -413,10 +446,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.text = "진실의 입이 대답을 가늠하고 있습니다.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
+            enableHeldHandPresentation(baseProgress: 0.82f, pulseAmplitude: 0.004f, pulseSpeed: 1.0f);
         }
 
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
+            disableHeldHandPresentation();
             applyResultLayout(verdictKind);
             setCardsVisible(false);
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
@@ -558,23 +593,42 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthDiameterPixels = Mathf.Max(
                 1.0f,
                 Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
-            float frontAnchorRadiusPixels = mouthDiameterPixels * 0.42f;
-            float innerAnchorRadiusPixels = mouthDiameterPixels * 0.24f;
-            float distanceToInnerAnchor = Vector2.Distance(pointerCanvasPosition, getHandInnerPosition());
+            return EvaluateHandAnchorState(
+                pointerCanvasPosition,
+                getHandFrontPosition(),
+                getHandInnerPosition(),
+                mouthDiameterPixels);
+        }
 
-            if (distanceToInnerAnchor <= innerAnchorRadiusPixels)
+        public static EHandAnchorState EvaluateHandAnchorState(
+            Vector2 pointerCanvasPosition,
+            Vector2 handFrontPosition,
+            Vector2 handInnerPosition,
+            float mouthDiameterPixels)
+        {
+            float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
+            float frontAnchorRadiusPixels = clampedMouthDiameterPixels * FRONT_ANCHOR_RADIUS_FACTOR;
+            float innerAnchorRadiusPixels = clampedMouthDiameterPixels * INNER_ANCHOR_RADIUS_FACTOR;
+            float distanceToInnerAnchor = Vector2.Distance(pointerCanvasPosition, handInnerPosition);
+            Vector2 innerAnchorOffset = pointerCanvasPosition - handInnerPosition;
+
+            if (distanceToInnerAnchor <= innerAnchorRadiusPixels
+                || isInsideAnchorWindow(
+                    innerAnchorOffset,
+                    clampedMouthDiameterPixels * INNER_ENTRY_HALF_WIDTH_FACTOR,
+                    clampedMouthDiameterPixels * INNER_ENTRY_HALF_HEIGHT_FACTOR))
             {
                 return EHandAnchorState.AtInnerAnchor;
             }
 
-            float distanceToFrontAnchor = Vector2.Distance(pointerCanvasPosition, getHandFrontPosition());
-            bool isInsideMouthBounds = isScreenPointOverRectTransform(
-                mMouthImage != null ? mMouthImage.rectTransform : null,
-                pointerScreenPosition.Value);
+            float distanceToFrontAnchor = Vector2.Distance(pointerCanvasPosition, handFrontPosition);
+            Vector2 frontAnchorOffset = pointerCanvasPosition - handFrontPosition;
 
-            if (isInsideMouthBounds
-                || distanceToFrontAnchor <= frontAnchorRadiusPixels
-                || distanceToInnerAnchor <= frontAnchorRadiusPixels)
+            if (distanceToFrontAnchor <= frontAnchorRadiusPixels
+                || isInsideAnchorWindow(
+                    frontAnchorOffset,
+                    clampedMouthDiameterPixels * FRONT_ENTRY_HALF_WIDTH_FACTOR,
+                    clampedMouthDiameterPixels * FRONT_ENTRY_HALF_HEIGHT_FACTOR))
             {
                 return EHandAnchorState.AtFrontAnchor;
             }
@@ -1040,7 +1094,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.21f),
-                new Vector2(260.0f, 340.0f));
+                new Vector2(220.0f, 300.0f));
             mQuestionText.fontSize = 32;
         }
 
@@ -1568,14 +1622,50 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void setHandVisual(float insertionProgress)
         {
             RectTransform handRectTransform = mHandImage.rectTransform;
+            float easedProgress = easeOut(Mathf.Clamp01(insertionProgress));
+            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -10.0f);
+            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, 10.0f);
+            float lateralArcOffset = Mathf.Sin(easedProgress * Mathf.PI) * 4.0f;
             handRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             handRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             handRectTransform.anchoredPosition = Vector2.Lerp(
-                getHandFrontPosition(),
-                getHandInnerPosition(),
-                insertionProgress);
-            handRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 0.80f, insertionProgress);
-            mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.92f, 0.78f, insertionProgress));
+                frontPosition,
+                innerPosition,
+                easedProgress)
+                + new Vector2(lateralArcOffset, 0.0f);
+            handRectTransform.localRotation =
+                Quaternion.Euler(0.0f, 0.0f, Mathf.Lerp(-3.0f, 1.5f, easedProgress));
+            handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.98f, 0.74f, easedProgress);
+            mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.98f, 0.90f, easedProgress));
+        }
+
+        private void enableHeldHandPresentation(
+            float baseProgress,
+            float pulseAmplitude,
+            float pulseSpeed)
+        {
+            mUseHeldHandPresentation = true;
+            mHeldHandBaseProgress = Mathf.Clamp01(baseProgress);
+            mHeldHandPulseAmplitude = Mathf.Max(0.0f, pulseAmplitude);
+            mHeldHandPulseSpeed = Mathf.Max(0.0f, pulseSpeed);
+            setHandVisual(mHeldHandBaseProgress);
+        }
+
+        private void disableHeldHandPresentation()
+        {
+            mUseHeldHandPresentation = false;
+            mHeldHandBaseProgress = 0.0f;
+            mHeldHandPulseAmplitude = 0.0f;
+            mHeldHandPulseSpeed = 0.0f;
+        }
+
+        private static bool isInsideAnchorWindow(
+            Vector2 offsetFromAnchor,
+            float halfWidth,
+            float halfHeight)
+        {
+            return Mathf.Abs(offsetFromAnchor.x) <= halfWidth
+                && Mathf.Abs(offsetFromAnchor.y) <= halfHeight;
         }
 
         private void ensureAmbiencePlayback()

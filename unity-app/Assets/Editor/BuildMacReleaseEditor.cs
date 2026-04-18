@@ -14,6 +14,8 @@ namespace MouthOfTruth.Editor
         private const string DISTRIBUTION_ROOT_RELATIVE_PATH = "dist/macos/MouthOfTruth";
         private const string APPLICATION_NAME = "MouthOfTruth.app";
         private const string PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON_RUNTIME_ROOT";
+        private const string PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH =
+            "python-engine/scripts/package_python_runtime.sh";
         private static readonly string[] DISTRIBUTION_FILE_NAMES_TO_REMOVE =
         {
             ".DS_Store",
@@ -84,15 +86,90 @@ namespace MouthOfTruth.Editor
 
             string configuredPythonRuntimeRootPath =
                 System.Environment.GetEnvironmentVariable(PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME);
-            string bundledPythonRuntimeRootPath = string.IsNullOrWhiteSpace(configuredPythonRuntimeRootPath)
-                ? Path.Combine(runtimeRootPath, "python-runtime")
-                : configuredPythonRuntimeRootPath;
+            string bundledPythonRuntimeRootPath = resolveBundledPythonRuntimeRootPath(
+                runtimeRootPath,
+                configuredPythonRuntimeRootPath);
 
             if (Directory.Exists(bundledPythonRuntimeRootPath))
             {
                 copyPath(
                     bundledPythonRuntimeRootPath,
                     Path.Combine(distributionRootPath, "python-runtime"));
+            }
+        }
+
+        private static string resolveBundledPythonRuntimeRootPath(
+            string runtimeRootPath,
+            string configuredPythonRuntimeRootPath)
+        {
+            if (string.IsNullOrWhiteSpace(configuredPythonRuntimeRootPath) == false)
+            {
+                if (Directory.Exists(configuredPythonRuntimeRootPath) == false)
+                {
+                    throw new BuildFailedException(
+                        $"Configured python runtime root does not exist: {configuredPythonRuntimeRootPath}");
+                }
+
+                return configuredPythonRuntimeRootPath;
+            }
+
+            string bundledPythonRuntimeRootPath = Path.Combine(runtimeRootPath, "python-runtime");
+
+            if (Directory.Exists(bundledPythonRuntimeRootPath))
+            {
+                return bundledPythonRuntimeRootPath;
+            }
+
+            packageBundledPythonRuntime(runtimeRootPath);
+
+            if (Directory.Exists(bundledPythonRuntimeRootPath) == false)
+            {
+                throw new BuildFailedException(
+                    "Bundled python runtime could not be prepared for the release build.");
+            }
+
+            return bundledPythonRuntimeRootPath;
+        }
+
+        private static void packageBundledPythonRuntime(string runtimeRootPath)
+        {
+            string packageScriptPath = Path.Combine(
+                runtimeRootPath,
+                PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH);
+
+            if (File.Exists(packageScriptPath) == false)
+            {
+                throw new BuildFailedException(
+                    $"Python runtime packaging script is missing: {packageScriptPath}");
+            }
+
+            using Process packageProcess = new Process();
+            packageProcess.StartInfo = new ProcessStartInfo
+            {
+                FileName = "/bin/zsh",
+                Arguments = $"\"{packageScriptPath}\"",
+                WorkingDirectory = runtimeRootPath,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            if (packageProcess.Start() == false)
+            {
+                throw new BuildFailedException("Failed to start the python runtime packaging process.");
+            }
+
+            string standardOutput = packageProcess.StandardOutput.ReadToEnd();
+            string standardError = packageProcess.StandardError.ReadToEnd();
+            packageProcess.WaitForExit();
+
+            if (packageProcess.ExitCode != 0)
+            {
+                throw new BuildFailedException(
+                    "Python runtime packaging failed.\n"
+                    + $"stdout:\n{standardOutput}\n"
+                    + $"stderr:\n{standardError}");
             }
         }
 

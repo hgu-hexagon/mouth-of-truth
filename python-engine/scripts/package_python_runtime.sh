@@ -5,7 +5,6 @@ set -euo pipefail
 SCRIPT_DIRECTORY_PATH="$(cd "$(dirname "$0")" && pwd)"
 PYTHON_ENGINE_ROOT_PATH="$(cd "${SCRIPT_DIRECTORY_PATH}/.." && pwd)"
 PROJECT_ROOT_PATH="$(cd "${PYTHON_ENGINE_ROOT_PATH}/.." && pwd)"
-CONDA_ENVIRONMENT_NAME="${MOUTH_OF_TRUTH_CONDA_ENV:-mouth-of-truth}"
 PYTHON_RUNTIME_ROOT_PATH="${PROJECT_ROOT_PATH}/python-runtime"
 ARCHIVE_FILE_PATH="${PROJECT_ROOT_PATH}/python-runtime.tar.gz"
 
@@ -14,8 +13,31 @@ if ! command -v conda >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! conda env list --json | grep -F "\"${CONDA_ENVIRONMENT_NAME}\"" >/dev/null 2>&1; then
-  echo "Conda environment '${CONDA_ENVIRONMENT_NAME}' was not found." >&2
+buildCondaEnvironmentCandidates() {
+  if [[ -n "${MOUTH_OF_TRUTH_CONDA_ENV:-}" ]]; then
+    printf '%s\n' "${MOUTH_OF_TRUTH_CONDA_ENV}"
+    return
+  fi
+
+  printf '%s\n' "mouth-truth"
+  printf '%s\n' "mouth-of-truth"
+}
+
+resolveCondaEnvironmentName() {
+  local candidateEnvironmentName
+
+  while IFS= read -r candidateEnvironmentName; do
+    if conda env list --json | grep -F "\"${candidateEnvironmentName}\"" >/dev/null 2>&1; then
+      printf '%s\n' "${candidateEnvironmentName}"
+      return 0
+    fi
+  done < <(buildCondaEnvironmentCandidates)
+
+  return 1
+}
+
+if ! CONDA_ENVIRONMENT_NAME="$(resolveCondaEnvironmentName)"; then
+  echo "No supported conda environment was found. Expected one of: mouth-truth, mouth-of-truth." >&2
   exit 1
 fi
 

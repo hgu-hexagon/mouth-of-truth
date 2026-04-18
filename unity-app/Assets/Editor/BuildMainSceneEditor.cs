@@ -26,6 +26,8 @@ namespace MouthOfTruth.Editor
             "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Torch_B.prefab";
         private const string ARCH_PREFAB_PATH =
             "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Arch_A.prefab";
+        private const string RED_RUNNER_TEXTURE_PATH =
+            "Assets/StreamingAssets/art/environment/floor_red_carpet_runner.png";
         private const string RED_RUNNER_MATERIAL_PATH =
             "Assets/Materials/GeneratedEnvironment/M_FloorRedRunner.mat";
         private static readonly string[] THIRD_PARTY_MODEL_DIRECTORIES =
@@ -448,11 +450,9 @@ namespace MouthOfTruth.Editor
             GameObject runnerObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
             runnerObject.name = "StageRunner";
             runnerObject.transform.SetParent(parentTransform, false);
-            runnerObject.transform.position = new Vector3(
-                    environmentBounds.center.x,
-                    floorY + 0.02f,
-                    environmentBounds.center.z)
-                + (corridorAxes.Forward * runnerMidpointOffset);
+            runnerObject.transform.position = environmentBounds.center
+                + (corridorAxes.Forward * runnerMidpointOffset)
+                + (Vector3.up * (floorY + 0.02f));
             runnerObject.transform.rotation =
                 Quaternion.FromToRotation(Vector3.forward, corridorAxes.Forward.normalized);
             runnerObject.transform.localScale = new Vector3(3.25f, 0.035f, runnerLength);
@@ -463,11 +463,12 @@ namespace MouthOfTruth.Editor
         {
             ensureFolderHierarchy(GENERATED_MATERIAL_DIRECTORY_PATH);
             Material material = AssetDatabase.LoadAssetAtPath<Material>(RED_RUNNER_MATERIAL_PATH);
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(RED_RUNNER_TEXTURE_PATH);
             Shader shader = Shader.Find("Universal Render Pipeline/Lit")
                 ?? Shader.Find("Universal Render Pipeline/Simple Lit")
                 ?? Shader.Find("Standard");
 
-            if (shader == null)
+            if (texture == null || shader == null)
             {
                 return null;
             }
@@ -482,27 +483,27 @@ namespace MouthOfTruth.Editor
 
             if (material.HasProperty("_BaseMap"))
             {
-                material.SetTexture("_BaseMap", null);
+                material.SetTexture("_BaseMap", texture);
             }
 
             if (material.HasProperty("_MainTex"))
             {
-                material.SetTexture("_MainTex", null);
+                material.SetTexture("_MainTex", texture);
             }
 
             if (material.HasProperty("_BaseColor"))
             {
-                material.SetColor("_BaseColor", new Color(0.32f, 0.03f, 0.05f, 1.0f));
+                material.SetColor("_BaseColor", new Color(0.78f, 0.72f, 0.72f, 1.0f));
             }
 
             if (material.HasProperty("_Color"))
             {
-                material.SetColor("_Color", new Color(0.32f, 0.03f, 0.05f, 1.0f));
+                material.SetColor("_Color", Color.white);
             }
 
             if (material.HasProperty("_Smoothness"))
             {
-                material.SetFloat("_Smoothness", 0.18f);
+                material.SetFloat("_Smoothness", 0.1f);
             }
 
             if (material.HasProperty("_Metallic"))
@@ -510,6 +511,7 @@ namespace MouthOfTruth.Editor
                 material.SetFloat("_Metallic", 0.0f);
             }
 
+            material.mainTextureScale = new Vector2(1.0f, 6.0f);
             EditorUtility.SetDirty(material);
             return material;
         }
@@ -517,11 +519,11 @@ namespace MouthOfTruth.Editor
         private static void configureEnvironmentLighting(Scene scene)
         {
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.038f, 0.036f, 0.042f, 1.0f);
+            RenderSettings.ambientLight = new Color(0.22f, 0.22f, 0.25f, 1.0f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(0.030f, 0.028f, 0.034f, 1.0f);
-            RenderSettings.fogDensity = 0.024f;
+            RenderSettings.fogColor = new Color(0.15f, 0.15f, 0.17f, 1.0f);
+            RenderSettings.fogDensity = 0.012f;
 
             foreach (Light light in Resources.FindObjectsOfTypeAll<Light>())
             {
@@ -533,19 +535,19 @@ namespace MouthOfTruth.Editor
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        light.color = new Color(0.42f, 0.44f, 0.50f, 1.0f);
-                        light.intensity = 0.06f;
+                        light.color = new Color(0.86f, 0.88f, 0.93f, 1.0f);
+                        light.intensity = 0.26f;
                         light.shadows = LightShadows.Soft;
-                        light.shadowStrength = 0.42f;
+                        light.shadowStrength = 0.40f;
                         break;
 
                     case LightType.Point:
                     case LightType.Spot:
-                        light.color = new Color(1.0f, 0.62f, 0.30f, 1.0f);
-                        light.intensity = Mathf.Clamp(light.intensity * 0.34f, 1.2f, 1.75f);
-                        light.range = Mathf.Clamp(light.range * 0.82f, 4.4f, 5.2f);
+                        light.color = new Color(1.0f, 0.78f, 0.48f, 1.0f);
+                        light.intensity = Mathf.Max(4.0f, light.intensity);
+                        light.range = Mathf.Max(7.0f, light.range);
                         light.shadows = LightShadows.Soft;
-                        light.shadowStrength = 0.42f;
+                        light.shadowStrength = 0.45f;
                         break;
                 }
 

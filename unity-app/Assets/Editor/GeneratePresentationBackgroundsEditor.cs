@@ -22,7 +22,6 @@ namespace MouthOfTruth.Editor
             CardPresentationAnchorSet cardPresentationAnchorSet =
                 Object.FindAnyObjectByType<CardPresentationAnchorSet>();
             MouthAnchorSet mouthAnchorSet = Object.FindAnyObjectByType<MouthAnchorSet>();
-            GameObject stageRootObject = GameObject.Find("MouthOfTruthStage");
 
             if (mainCamera == null)
             {
@@ -40,46 +39,29 @@ namespace MouthOfTruth.Editor
             }
 
             Directory.CreateDirectory(OUTPUT_DIRECTORY_PATH);
-            bool originalStageRootActiveState = stageRootObject == null || stageRootObject.activeSelf;
+            renderCameraToPng(
+                mainCamera,
+                Path.Combine(OUTPUT_DIRECTORY_PATH, CARD_SELECTION_BACKGROUND_FILE_NAME),
+                mainCamera.transform.position,
+                mainCamera.transform.rotation,
+                mainCamera.fieldOfView);
 
-            try
-            {
-                if (stageRootObject != null)
-                {
-                    stageRootObject.SetActive(false);
-                }
+            Vector3 stageForward =
+                (mouthAnchorSet.TruthMouth.position - cardPresentationAnchorSet.CenterCard.position).normalized;
+            Vector3 mouthChamberLookTarget = mouthAnchorSet.TruthMouth.position + (Vector3.up * 0.15f);
+            Vector3 mouthChamberCameraPosition =
+                mouthChamberLookTarget
+                - (stageForward * 4.6f)
+                + (Vector3.up * 0.15f);
+            Quaternion mouthChamberRotation =
+                Quaternion.LookRotation((mouthChamberLookTarget - mouthChamberCameraPosition).normalized);
 
-                renderCameraToPng(
-                    mainCamera,
-                    Path.Combine(OUTPUT_DIRECTORY_PATH, CARD_SELECTION_BACKGROUND_FILE_NAME),
-                    mainCamera.transform.position,
-                    mainCamera.transform.rotation,
-                    mainCamera.fieldOfView);
-
-                Vector3 stageForward =
-                    (mouthAnchorSet.TruthMouth.position - cardPresentationAnchorSet.CenterCard.position).normalized;
-                Vector3 mouthChamberLookTarget = mouthAnchorSet.TruthMouth.position + (Vector3.up * 0.35f);
-                Vector3 mouthChamberCameraPosition =
-                    mouthChamberLookTarget
-                    - (stageForward * 6.0f)
-                    + (Vector3.up * 0.05f);
-                Quaternion mouthChamberRotation =
-                    Quaternion.LookRotation((mouthChamberLookTarget - mouthChamberCameraPosition).normalized);
-
-                renderCameraToPng(
-                    mainCamera,
-                    Path.Combine(OUTPUT_DIRECTORY_PATH, MOUTH_CHAMBER_BACKGROUND_FILE_NAME),
-                    mouthChamberCameraPosition,
-                    mouthChamberRotation,
-                    28.0f);
-            }
-            finally
-            {
-                if (stageRootObject != null)
-                {
-                    stageRootObject.SetActive(originalStageRootActiveState);
-                }
-            }
+            renderCameraToPng(
+                mainCamera,
+                Path.Combine(OUTPUT_DIRECTORY_PATH, MOUTH_CHAMBER_BACKGROUND_FILE_NAME),
+                mouthChamberCameraPosition,
+                mouthChamberRotation,
+                30.0f);
 
             AssetDatabase.Refresh();
             Debug.Log(

@@ -5,6 +5,8 @@ using MouthOfTruth.Game.App;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MouthOfTruth.Editor
 {
@@ -32,7 +34,11 @@ namespace MouthOfTruth.Editor
         public static void Run()
         {
             BuildMainSceneEditor.Run();
-            GeneratePresentationBackgroundsEditor.Run();
+
+            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null)
+            {
+                GeneratePresentationBackgroundsEditor.Run();
+            }
 
             string runtimeRootPath = MouthOfTruthRuntimePaths.GetRuntimeRootPath();
             string distributionRootPath = Path.Combine(runtimeRootPath, DISTRIBUTION_ROOT_RELATIVE_PATH);

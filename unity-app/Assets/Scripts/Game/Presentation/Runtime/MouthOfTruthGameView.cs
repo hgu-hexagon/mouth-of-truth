@@ -20,6 +20,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 FALLBACK_MOUTH_POSITION = new Vector2(0.0f, 60.0f);
         private static readonly Vector2 FALLBACK_HAND_FRONT_POSITION = new Vector2(0.0f, -20.0f);
         private static readonly Vector2 FALLBACK_HAND_INNER_POSITION = new Vector2(0.0f, 230.0f);
+        private static readonly Color TITLE_BACKGROUND_TINT = new Color(0.95f, 0.95f, 0.97f, 1.0f);
+        private static readonly Color STAGE_BACKGROUND_TINT = new Color(0.82f, 0.82f, 0.86f, 1.0f);
         private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.17f;
         private const float INNER_ANCHOR_RADIUS_FACTOR = 0.085f;
         private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.12f;
@@ -54,6 +56,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Button mStartButton;
         private Button mTryAgainButton;
         private Button mBackToTitleButton;
+        private Button mExitButton;
         private Sprite mCardBackSprite;
         private Sprite mCardFrontSprite;
         private Sprite mButtonFrameSprite;
@@ -96,6 +99,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mStartRequested;
         private bool mTryAgainRequested;
         private bool mBackToTitleRequested;
+        private bool mExitRequested;
 
         public async Task InitializeAsync()
         {
@@ -130,11 +134,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableHeldHandPresentation();
             applyStartScreenLayout();
             mBackgroundImage.sprite = mTitleBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(TITLE_BACKGROUND_TINT);
             setObjectActive(mLogoImage, true);
             setObjectActive(mTitleVignetteImage, true);
             setObjectActive(mSceneOverlayImage, false);
             setObjectActive(mStartButton, true);
+            setObjectActive(mExitButton, true);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, true);
             setObjectActive(mQuestionText, false);
@@ -167,13 +172,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableHeldHandPresentation();
             applyCardSelectionLayout();
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, false);
             setObjectActive(mStartButton, false);
+            setObjectActive(mExitButton, false);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mStatusPanelImage, false);
@@ -310,11 +316,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableHeldHandPresentation();
             applyNarrationLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.24f);
+            setObjectActive(mExitButton, false);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -333,11 +340,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableHeldHandPresentation();
             applyAwaitingHandInsertionLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.26f);
+            setObjectActive(mExitButton, false);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
             setObjectActive(mPointerImage, false);
@@ -387,11 +395,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.28f);
+            setObjectActive(mExitButton, false);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -408,12 +417,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.30f);
+            setObjectActive(mExitButton, false);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -430,12 +440,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.34f);
+            setObjectActive(mExitButton, false);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -454,7 +465,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyResultLayout(verdictKind);
             setCardsVisible(false);
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(Color.white);
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mTitleVignetteImage, false);
@@ -474,6 +485,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerTimerText, false);
             setObjectActive(mTryAgainButton, true);
             setObjectActive(mBackToTitleButton, false);
+            setObjectActive(mExitButton, true);
             setObjectActive(mAnswerInputField, false);
             mAnswerInputField.interactable = false;
 
@@ -550,6 +562,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return EUiActionTarget.TryAgain;
             }
 
+            if (isScreenPointOverButton(mExitButton, screenPosition))
+            {
+                return EUiActionTarget.ExitGame;
+            }
+
             if (isScreenPointOverButton(mBackToTitleButton, screenPosition))
             {
                 return EUiActionTarget.BackToTitle;
@@ -569,6 +586,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             updateButtonVisual(mStartButton, hoveredUiActionTarget == EUiActionTarget.StartGame, hoverProgress);
             updateButtonVisual(mTryAgainButton, hoveredUiActionTarget == EUiActionTarget.TryAgain, hoverProgress);
+            updateButtonVisual(mExitButton, hoveredUiActionTarget == EUiActionTarget.ExitGame, hoverProgress);
             updateButtonVisual(
                 mBackToTitleButton,
                 hoveredUiActionTarget == EUiActionTarget.BackToTitle,
@@ -728,6 +746,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return wasRequested;
         }
 
+        public bool ConsumeExitRequested()
+        {
+            bool wasRequested = mExitRequested;
+            mExitRequested = false;
+            return wasRequested;
+        }
+
         private async Task loadSpritesAsync()
         {
             mCardBackSprite =
@@ -857,9 +882,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mStartButton.image.sprite = mButtonFrameSprite;
             mTryAgainButton.image.sprite = mButtonFrameSprite;
             mBackToTitleButton.image.sprite = mButtonFrameSprite;
+            mExitButton.image.sprite = mButtonFrameSprite;
             mStartButton.image.type = Image.Type.Sliced;
             mTryAgainButton.image.type = Image.Type.Sliced;
             mBackToTitleButton.image.type = Image.Type.Sliced;
+            mExitButton.image.type = Image.Type.Sliced;
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -1023,6 +1050,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mStartButton.GetComponent<RectTransform>(),
                 new Vector2(0.5f, 0.14f),
                 new Vector2(430.0f, 112.0f));
+            setRectTransformLayout(
+                mExitButton.GetComponent<RectTransform>(),
+                new Vector2(0.86f, 0.09f),
+                new Vector2(300.0f, 78.0f));
         }
 
         private void applyCardSelectionLayout()
@@ -1118,6 +1149,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mTryAgainButton.GetComponent<RectTransform>(),
                 new Vector2(0.5f, 0.12f),
                 new Vector2(420.0f, 112.0f));
+            setRectTransformLayout(
+                mExitButton.GetComponent<RectTransform>(),
+                new Vector2(0.84f, 0.11f),
+                new Vector2(320.0f, 84.0f));
         }
 
         private void setOverlayAlpha(float alpha)
@@ -1322,6 +1357,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.5f, 0.18f),
                 new Vector2(340.0f, 72.0f),
                 () => mBackToTitleRequested = true);
+            mExitButton = createButton(
+                "ExitButton",
+                "EXIT GAME",
+                new Vector2(0.5f, 0.12f),
+                new Vector2(320.0f, 72.0f),
+                () => mExitRequested = true);
 
             mTitleVignetteImage.transform.SetSiblingIndex(mLogoImage.transform.GetSiblingIndex());
             mQuestionPanelImage.transform.SetSiblingIndex(mQuestionText.transform.GetSiblingIndex());

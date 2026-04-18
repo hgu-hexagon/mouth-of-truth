@@ -88,6 +88,12 @@ namespace MouthOfTruth.Game.App
                 return;
             }
 
+            if (mGameView.ConsumeExitRequested())
+            {
+                requestApplicationExit();
+                return;
+            }
+
             if (mGameView.ConsumeBackToTitleRequested()
                 || (
                     mGameStateMachine.CurrentState == EGameFlowState.ShowingResult
@@ -290,9 +296,25 @@ namespace MouthOfTruth.Game.App
                     resetInteractionSelectionState();
                     return true;
 
+                case EUiActionTarget.ExitGame:
+                    requestApplicationExit();
+                    return true;
+
                 default:
                     return false;
             }
+        }
+
+        private void requestApplicationExit()
+        {
+            mAnswerCaptureInputAdapter?.CancelCollection();
+            mFaceCaptureInputAdapter?.CancelCollection();
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         private Vector2? tryGetPointerScreenPosition()

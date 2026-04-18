@@ -5,5 +5,6 @@ namespace MouthOfTruth.Game.Input
         StartGame = 0,
         TryAgain = 1,
         BackToTitle = 2,
+        ExitGame = 3,
     }
 }

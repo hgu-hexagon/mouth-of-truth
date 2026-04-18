@@ -519,11 +519,11 @@ namespace MouthOfTruth.Editor
         private static void configureEnvironmentLighting(Scene scene)
         {
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.22f, 0.22f, 0.25f, 1.0f);
+            RenderSettings.ambientLight = new Color(0.17f, 0.17f, 0.20f, 1.0f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(0.15f, 0.15f, 0.17f, 1.0f);
-            RenderSettings.fogDensity = 0.012f;
+            RenderSettings.fogColor = new Color(0.10f, 0.10f, 0.12f, 1.0f);
+            RenderSettings.fogDensity = 0.015f;
 
             foreach (Light light in Resources.FindObjectsOfTypeAll<Light>())
             {
@@ -535,19 +535,19 @@ namespace MouthOfTruth.Editor
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        light.color = new Color(0.86f, 0.88f, 0.93f, 1.0f);
-                        light.intensity = 0.26f;
+                        light.color = new Color(0.78f, 0.81f, 0.88f, 1.0f);
+                        light.intensity = 0.16f;
                         light.shadows = LightShadows.Soft;
-                        light.shadowStrength = 0.40f;
+                        light.shadowStrength = 0.48f;
                         break;
 
                     case LightType.Point:
                     case LightType.Spot:
-                        light.color = new Color(1.0f, 0.78f, 0.48f, 1.0f);
-                        light.intensity = Mathf.Max(4.0f, light.intensity);
-                        light.range = Mathf.Max(7.0f, light.range);
+                        light.color = new Color(0.92f, 0.68f, 0.40f, 1.0f);
+                        light.intensity = Mathf.Max(3.0f, light.intensity);
+                        light.range = Mathf.Max(6.0f, light.range);
                         light.shadows = LightShadows.Soft;
-                        light.shadowStrength = 0.45f;
+                        light.shadowStrength = 0.50f;
                         break;
                 }
 

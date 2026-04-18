@@ -21,6 +21,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public static string TitleBackgroundPath =>
             GetStreamingArtPath("backgrounds/title_background_stone_wall.jpeg");
 
+        public static string CardSelectionBackgroundPath =>
+            GetStreamingArtPath("backgrounds/stage_card_selection_generated.png");
+
+        public static string MouthChamberBackgroundPath =>
+            GetStreamingArtPath("backgrounds/stage_mouth_chamber_generated.png");
+
         public static string TitleLogoPath =>
             GetStreamingArtPath("ui/logo_title_main.png");
 

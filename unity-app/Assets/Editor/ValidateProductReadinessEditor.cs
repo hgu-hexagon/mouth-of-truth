@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MouthOfTruth.Editor
 {
@@ -23,6 +24,9 @@ namespace MouthOfTruth.Editor
         [MenuItem("Mouth Of Truth/Validate Product Readiness")]
         public static void Run()
         {
+            BuildMainSceneEditor.Run();
+            GeneratePresentationBackgroundsEditor.Run();
+
             List<string> errors = new List<string>();
 
             validateAssetPath(MAIN_SCENE_PATH, errors);
@@ -31,6 +35,7 @@ namespace MouthOfTruth.Editor
             validateStreamingAssets(errors);
             validateQuestionPool(errors);
             validatePythonBridge(errors);
+            validateRenderPipeline(errors);
             validateMainScene(errors);
 
             if (errors.Count > 0)
@@ -61,6 +66,8 @@ namespace MouthOfTruth.Editor
             List<string> requiredStreamingAssetPaths = new List<string>
             {
                 MouthOfTruthAssetCatalog.TitleBackgroundPath,
+                MouthOfTruthAssetCatalog.CardSelectionBackgroundPath,
+                MouthOfTruthAssetCatalog.MouthChamberBackgroundPath,
                 MouthOfTruthAssetCatalog.TitleLogoPath,
                 MouthOfTruthAssetCatalog.TitleVignettePath,
                 MouthOfTruthAssetCatalog.QuestionPanelFramePath,
@@ -140,6 +147,19 @@ namespace MouthOfTruth.Editor
             if (Directory.Exists(pythonModuleRootPath) == false)
             {
                 errors.Add($"Python module root path is missing: {pythonModuleRootPath}");
+            }
+        }
+
+        private static void validateRenderPipeline(List<string> errors)
+        {
+            if (GraphicsSettings.defaultRenderPipeline == null)
+            {
+                errors.Add("Project Graphics settings are missing a default render pipeline asset.");
+            }
+
+            if (QualitySettings.renderPipeline == null)
+            {
+                errors.Add("Current quality level is missing a render pipeline asset.");
             }
         }
 

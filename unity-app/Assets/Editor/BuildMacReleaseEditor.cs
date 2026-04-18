@@ -29,6 +29,9 @@ namespace MouthOfTruth.Editor
         [MenuItem("Mouth Of Truth/Build Mac Release")]
         public static void Run()
         {
+            BuildMainSceneEditor.Run();
+            GeneratePresentationBackgroundsEditor.Run();
+
             string runtimeRootPath = MouthOfTruthRuntimePaths.GetRuntimeRootPath();
             string distributionRootPath = Path.Combine(runtimeRootPath, DISTRIBUTION_ROOT_RELATIVE_PATH);
             string applicationPath = Path.Combine(distributionRootPath, APPLICATION_NAME);

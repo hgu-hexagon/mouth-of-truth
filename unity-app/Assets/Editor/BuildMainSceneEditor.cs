@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 namespace MouthOfTruth.Editor
@@ -25,8 +26,10 @@ namespace MouthOfTruth.Editor
             "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Torch_B.prefab";
         private const string ARCH_PREFAB_PATH =
             "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Arch_A.prefab";
-        private const string CARPET_PREFAB_DIRECTORY_PATH =
-            "Assets/ThirdParty/Environment/PersianCarpetUrp/Prefab";
+        private const string RED_RUNNER_TEXTURE_PATH =
+            "Assets/StreamingAssets/art/environment/floor_red_carpet_runner.jpeg";
+        private const string RED_RUNNER_MATERIAL_PATH =
+            "Assets/Materials/GeneratedEnvironment/M_FloorRedRunner.mat";
         private static readonly string[] THIRD_PARTY_MODEL_DIRECTORIES =
         {
             "Assets/ThirdParty/Environment/DungeonModularPack/Meshes",
@@ -39,57 +42,43 @@ namespace MouthOfTruth.Editor
         private const float CAMERA_HEIGHT_OFFSET = 4.4f;
         private const float STAGE_FORWARD_MARGIN = 4.2f;
 
-        private readonly struct CarpetPrefabCandidate
-        {
-            public CarpetPrefabCandidate(GameObject prefab, bool isLongAxisX, float areaScore)
-            {
-                Prefab = prefab;
-                IsLongAxisX = isLongAxisX;
-                AreaScore = areaScore;
-            }
-
-            public GameObject Prefab { get; }
-
-            public bool IsLongAxisX { get; }
-
-            public float AreaScore { get; }
-        }
-
         [MenuItem("Mouth Of Truth/Build Main Scene")]
         public static void Run()
         {
+            ConfigureUniversalRenderPipelineEditor.Run();
             normalizeThirdPartyModelImports();
             Scene sourceScene = EditorSceneManager.OpenScene(DUNGEON_DEMO_SCENE_PATH, OpenSceneMode.Single);
             Transform sourceEnvironmentRoot = findRequiredRoot(sourceScene, "Models");
-            GameObject environmentClone = UnityEngine.Object.Instantiate(sourceEnvironmentRoot.gameObject);
-            environmentClone.name = "Models";
+            Bounds sourceEnvironmentBounds = calculateCombinedBounds(sourceEnvironmentRoot);
+            Camera sourceSceneCamera = findSourceSceneCamera(sourceScene);
+            SourceSceneCameraLayout sourceSceneCameraLayout = captureSourceSceneCameraLayout(sourceSceneCamera);
+            Vector3 sourceSceneForward = getProjectedHorizontalForward(
+                sourceSceneCamera,
+                sourceEnvironmentBounds.center);
+            List<GameObject> sourceSceneRootClones = cloneSourceSceneRoots(sourceScene);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             SceneManager.SetActiveScene(scene);
-            SceneManager.MoveGameObjectToScene(environmentClone, scene);
+
+            foreach (GameObject sourceSceneRootClone in sourceSceneRootClones)
+            {
+                SceneManager.MoveGameObjectToScene(sourceSceneRootClone, scene);
+            }
+
             EditorSceneManager.CloseScene(sourceScene, true);
 
             unpackScenePrefabInstances(scene);
 
             Transform environmentRoot = findRequiredRoot(scene, "Models");
             Bounds environmentBounds = calculateCombinedBounds(environmentRoot);
-            CorridorAxes corridorAxes = determineCorridorAxes(environmentBounds);
+            CorridorAxes corridorAxes = determineCorridorAxes(environmentBounds, sourceSceneForward);
 
-            configureMainCamera(scene, environmentBounds, corridorAxes);
+            configureMainCamera(scene, environmentBounds, corridorAxes, sourceSceneCameraLayout);
             ensureEventSystem(scene);
             ensureApplicationRoot(scene);
             buildPresentationStage(scene, environmentBounds, corridorAxes);
+            configureEnvironmentLighting(scene);
             unpackScenePrefabInstances(scene);
-            sanitizeRendererMaterials(environmentRoot);
-
-            GameObject stageRoot = scene.GetRootGameObjects()
-                .FirstOrDefault(candidate => candidate.name == "MouthOfTruthStage");
-
-            if (stageRoot != null)
-            {
-                sanitizeRendererMaterials(stageRoot.transform);
-            }
-
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, MAIN_SCENE_PATH);
             EditorBuildSettings.scenes = new[]
@@ -126,6 +115,91 @@ namespace MouthOfTruth.Editor
                     modelImporter.SaveAndReimport();
                 }
             }
+        }
+
+        private static Camera findSourceSceneCamera(Scene sourceScene)
+        {
+            foreach (GameObject rootGameObject in sourceScene.GetRootGameObjects())
+            {
+                Camera rootCamera = rootGameObject.GetComponent<Camera>();
+
+                if (rootCamera != null)
+                {
+                    return rootCamera;
+                }
+
+                Camera childCamera = rootGameObject.GetComponentInChildren<Camera>(true);
+
+                if (childCamera != null)
+                {
+                    return childCamera;
+                }
+            }
+
+            return null;
+        }
+
+        private static List<GameObject> cloneSourceSceneRoots(Scene sourceScene)
+        {
+            List<GameObject> rootClones = new List<GameObject>();
+
+            foreach (GameObject rootGameObject in sourceScene.GetRootGameObjects())
+            {
+                if (rootGameObject.name == "Main Camera")
+                {
+                    continue;
+                }
+
+                GameObject rootClone = UnityEngine.Object.Instantiate(rootGameObject);
+                rootClone.name = rootGameObject.name;
+                rootClones.Add(rootClone);
+            }
+
+            return rootClones;
+        }
+
+        private static Vector3 getProjectedHorizontalForward(
+            Camera sourceSceneCamera,
+            Vector3 environmentCenter)
+        {
+            if (sourceSceneCamera == null)
+            {
+                return Vector3.zero;
+            }
+
+            Vector3 projectedCameraForward =
+                Vector3.ProjectOnPlane(sourceSceneCamera.transform.forward, Vector3.up);
+
+            if (projectedCameraForward.sqrMagnitude <= 0.0001f)
+            {
+                return Vector3.zero;
+            }
+
+            Vector3 normalizedForward = projectedCameraForward.normalized;
+            Vector3 directionToEnvironmentCenter =
+                Vector3.ProjectOnPlane(environmentCenter - sourceSceneCamera.transform.position, Vector3.up);
+
+            if (directionToEnvironmentCenter.sqrMagnitude > 0.0001f
+                && Vector3.Dot(normalizedForward, directionToEnvironmentCenter.normalized) < 0.0f)
+            {
+                normalizedForward = -normalizedForward;
+            }
+
+            return normalizedForward;
+        }
+
+        private static SourceSceneCameraLayout captureSourceSceneCameraLayout(Camera sourceSceneCamera)
+        {
+            if (sourceSceneCamera == null)
+            {
+                return SourceSceneCameraLayout.Invalid;
+            }
+
+            return new SourceSceneCameraLayout(
+                sourceSceneCamera.transform.position,
+                sourceSceneCamera.transform.rotation,
+                sourceSceneCamera.fieldOfView,
+                sourceSceneCamera.backgroundColor);
         }
 
         private static void unpackScenePrefabInstances(Scene scene)
@@ -187,7 +261,8 @@ namespace MouthOfTruth.Editor
         private static void configureMainCamera(
             Scene scene,
             Bounds environmentBounds,
-            CorridorAxes corridorAxes)
+            CorridorAxes corridorAxes,
+            SourceSceneCameraLayout sourceSceneCameraLayout)
         {
             Camera mainCamera = Camera.main;
 
@@ -210,10 +285,20 @@ namespace MouthOfTruth.Editor
             cameraObject.name = "Main Camera";
             cameraObject.tag = "MainCamera";
             mainCamera.clearFlags = CameraClearFlags.SolidColor;
-            mainCamera.backgroundColor = new Color(0.04f, 0.03f, 0.03f, 1.0f);
-            mainCamera.fieldOfView = 42.0f;
             mainCamera.nearClipPlane = 0.01f;
             mainCamera.farClipPlane = 200.0f;
+
+            if (sourceSceneCameraLayout.IsValid)
+            {
+                mainCamera.backgroundColor = sourceSceneCameraLayout.BackgroundColor;
+                mainCamera.fieldOfView = sourceSceneCameraLayout.FieldOfView;
+                cameraObject.transform.position = sourceSceneCameraLayout.Position;
+                cameraObject.transform.rotation = sourceSceneCameraLayout.Rotation;
+                return;
+            }
+
+            mainCamera.backgroundColor = new Color(0.04f, 0.03f, 0.03f, 1.0f);
+            mainCamera.fieldOfView = 42.0f;
 
             Vector3 stageLookTarget = calculateStageBasePosition(environmentBounds, corridorAxes)
                 + Vector3.up * 2.2f;
@@ -239,7 +324,7 @@ namespace MouthOfTruth.Editor
             Transform scenicRoot = createChild(stageRoot.transform, "ScenicStage");
             createPodium(scenicRoot, stageBasePosition, floorY);
             createStageAccents(scenicRoot, stageBasePosition, corridorAxes, floorY);
-            createRunnerCarpets(scenicRoot, environmentBounds, corridorAxes, floorY);
+            createStageRunner(scenicRoot, environmentBounds, corridorAxes, floorY, stageBasePosition);
 
             Transform cardAnchorRoot = createChild(stageRoot.transform, "CardPresentationAnchors");
             Transform leftCardAnchor = createChild(cardAnchorRoot, "LeftCard");
@@ -282,7 +367,7 @@ namespace MouthOfTruth.Editor
             if (wallMaterial != null)
             {
                 Renderer podiumRenderer = podiumObject.GetComponent<Renderer>();
-                podiumRenderer.sharedMaterial = getOrCreateSafeMaterial(wallMaterial);
+                podiumRenderer.sharedMaterial = wallMaterial;
             }
         }
 
@@ -339,107 +424,135 @@ namespace MouthOfTruth.Editor
             alignLongAxisToForward(rightTorch.transform, corridorAxes.Forward, isLongAxisX: false);
         }
 
-        private static void createRunnerCarpets(
+        private static void createStageRunner(
             Transform parentTransform,
             Bounds environmentBounds,
             CorridorAxes corridorAxes,
-            float floorY)
+            float floorY,
+            Vector3 stageBasePosition)
         {
-            List<CarpetPrefabCandidate> candidates = loadRunnerCarpetCandidates();
+            Material runnerMaterial = getOrCreateRunnerMaterial();
 
-            if (candidates.Count == 0)
+            if (runnerMaterial == null)
             {
                 return;
             }
 
-            float corridorLength = corridorAxes.GetExtent(environmentBounds) * 2.0f;
-            int runnerCount = Mathf.Clamp(Mathf.RoundToInt(corridorLength / 5.5f), 4, 6);
-            float startOffset = 3.0f;
-            float endOffset = STAGE_FORWARD_MARGIN + 2.8f;
-            float usableLength = Mathf.Max(4.0f, corridorLength - startOffset - endOffset);
+            float corridorExtent = corridorAxes.GetExtent(environmentBounds);
+            float startOffset = -corridorExtent + 2.0f;
+            float endOffset = Vector3.Dot(
+                    stageBasePosition - environmentBounds.center,
+                    corridorAxes.Forward.normalized)
+                + 0.75f;
+            float runnerLength = Mathf.Max(8.0f, endOffset - startOffset);
+            float runnerMidpointOffset = (startOffset + endOffset) * 0.5f;
 
-            for (int index = 0; index < runnerCount; index++)
-            {
-                CarpetPrefabCandidate candidate = candidates[index % candidates.Count];
-                float normalizedProgress = runnerCount == 1
-                    ? 0.5f
-                    : index / (runnerCount - 1.0f);
-                float offset = -corridorAxes.GetExtent(environmentBounds)
-                    + startOffset
-                    + (usableLength * normalizedProgress);
-                Vector3 worldPosition = environmentBounds.center
-                    + (corridorAxes.Forward * offset)
-                    + (Vector3.up * (floorY + 0.03f));
-                worldPosition.y = floorY + 0.03f;
-
-                GameObject carpetInstance = instantiatePrefab(
-                    candidate.Prefab,
-                    parentTransform,
-                    $"RunnerCarpet_{index + 1:00}");
-                carpetInstance.transform.position = worldPosition;
-                alignLongAxisToForward(
-                    carpetInstance.transform,
-                    corridorAxes.Forward,
-                    candidate.IsLongAxisX);
-            }
+            GameObject runnerObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            runnerObject.name = "StageRunner";
+            runnerObject.transform.SetParent(parentTransform, false);
+            runnerObject.transform.position = environmentBounds.center
+                + (corridorAxes.Forward * runnerMidpointOffset)
+                + (Vector3.up * (floorY + 0.02f));
+            runnerObject.transform.rotation =
+                Quaternion.FromToRotation(Vector3.forward, corridorAxes.Forward.normalized);
+            runnerObject.transform.localScale = new Vector3(3.25f, 0.035f, runnerLength);
+            runnerObject.GetComponent<Renderer>().sharedMaterial = runnerMaterial;
         }
 
-        private static List<CarpetPrefabCandidate> loadRunnerCarpetCandidates()
+        private static Material getOrCreateRunnerMaterial()
         {
-            List<CarpetPrefabCandidate> candidates = new List<CarpetPrefabCandidate>();
-            string[] prefabGuids = AssetDatabase.FindAssets("t:Prefab", new[] { CARPET_PREFAB_DIRECTORY_PATH });
+            ensureFolderHierarchy(GENERATED_MATERIAL_DIRECTORY_PATH);
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(RED_RUNNER_MATERIAL_PATH);
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(RED_RUNNER_TEXTURE_PATH);
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit")
+                ?? Shader.Find("Universal Render Pipeline/Simple Lit")
+                ?? Shader.Find("Standard");
 
-            foreach (string prefabGuid in prefabGuids)
+            if (texture == null || shader == null)
             {
-                string prefabPath = AssetDatabase.GUIDToAssetPath(prefabGuid);
-                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                return null;
+            }
 
-                if (prefab == null)
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, RED_RUNNER_MATERIAL_PATH);
+            }
+
+            material.shader = shader;
+
+            if (material.HasProperty("_BaseMap"))
+            {
+                material.SetTexture("_BaseMap", texture);
+            }
+
+            if (material.HasProperty("_MainTex"))
+            {
+                material.SetTexture("_MainTex", texture);
+            }
+
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", new Color(0.78f, 0.72f, 0.72f, 1.0f));
+            }
+
+            if (material.HasProperty("_Color"))
+            {
+                material.SetColor("_Color", Color.white);
+            }
+
+            if (material.HasProperty("_Smoothness"))
+            {
+                material.SetFloat("_Smoothness", 0.1f);
+            }
+
+            if (material.HasProperty("_Metallic"))
+            {
+                material.SetFloat("_Metallic", 0.0f);
+            }
+
+            material.mainTextureScale = new Vector2(1.0f, 6.0f);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static void configureEnvironmentLighting(Scene scene)
+        {
+            RenderSettings.ambientMode = AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(0.22f, 0.22f, 0.25f, 1.0f);
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.ExponentialSquared;
+            RenderSettings.fogColor = new Color(0.15f, 0.15f, 0.17f, 1.0f);
+            RenderSettings.fogDensity = 0.012f;
+
+            foreach (Light light in Resources.FindObjectsOfTypeAll<Light>())
+            {
+                if (light == null || light.gameObject.scene != scene)
                 {
                     continue;
                 }
 
-                GameObject prefabContents = PrefabUtility.LoadPrefabContents(prefabPath);
-
-                try
+                switch (light.type)
                 {
-                    Renderer[] renderers = prefabContents.GetComponentsInChildren<Renderer>(true);
+                    case LightType.Directional:
+                        light.color = new Color(0.86f, 0.88f, 0.93f, 1.0f);
+                        light.intensity = 0.26f;
+                        light.shadows = LightShadows.Soft;
+                        light.shadowStrength = 0.40f;
+                        break;
 
-                    if (renderers.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    Bounds bounds = renderers[0].bounds;
-
-                    foreach (Renderer renderer in renderers.Skip(1))
-                    {
-                        bounds.Encapsulate(renderer.bounds);
-                    }
-
-                    float longAxis = Mathf.Max(bounds.size.x, bounds.size.z);
-                    float shortAxis = Mathf.Max(0.001f, Mathf.Min(bounds.size.x, bounds.size.z));
-                    float aspectRatio = longAxis / shortAxis;
-
-                    if (aspectRatio < 1.9f)
-                    {
-                        continue;
-                    }
-
-                    float areaScore = bounds.size.x * bounds.size.z;
-                    bool isLongAxisX = bounds.size.x >= bounds.size.z;
-                    candidates.Add(new CarpetPrefabCandidate(prefab, isLongAxisX, areaScore * aspectRatio));
+                    case LightType.Point:
+                    case LightType.Spot:
+                        light.color = new Color(1.0f, 0.78f, 0.48f, 1.0f);
+                        light.intensity = Mathf.Max(4.0f, light.intensity);
+                        light.range = Mathf.Max(7.0f, light.range);
+                        light.shadows = LightShadows.Soft;
+                        light.shadowStrength = 0.45f;
+                        break;
                 }
-                finally
-                {
-                    PrefabUtility.UnloadPrefabContents(prefabContents);
-                }
+
+                EditorUtility.SetDirty(light);
             }
-
-            return candidates
-                .OrderByDescending(candidate => candidate.AreaScore)
-                .Take(4)
-                .ToList();
         }
 
         private static Bounds calculateCombinedBounds(Transform rootTransform)
@@ -466,10 +579,25 @@ namespace MouthOfTruth.Editor
             Dictionary<Material, Material> sanitizedMaterialsBySource =
                 new Dictionary<Material, Material>();
             Renderer[] renderers = rootTransform.GetComponentsInChildren<Renderer>(true);
+            Material defaultSourceMaterial = AssetDatabase.LoadAssetAtPath<Material>(DUNGEON_WALL_MATERIAL_PATH);
+            Material fallbackSafeMaterial =
+                defaultSourceMaterial != null ? getOrCreateSafeMaterial(defaultSourceMaterial) : null;
 
             foreach (Renderer renderer in renderers)
             {
                 Material[] sourceSharedMaterials = renderer.sharedMaterials;
+
+                if (sourceSharedMaterials == null || sourceSharedMaterials.Length == 0)
+                {
+                    if (fallbackSafeMaterial != null)
+                    {
+                        renderer.sharedMaterials = new[] { fallbackSafeMaterial };
+                        EditorUtility.SetDirty(renderer);
+                    }
+
+                    continue;
+                }
+
                 bool wasUpdated = false;
                 Material[] sanitizedSharedMaterials = new Material[sourceSharedMaterials.Length];
 
@@ -477,7 +605,14 @@ namespace MouthOfTruth.Editor
                 {
                     Material sourceMaterial = sourceSharedMaterials[materialIndex];
 
-                    if (sourceMaterial == null || shouldSanitizeMaterial(sourceMaterial) == false)
+                    if (sourceMaterial == null)
+                    {
+                        sanitizedSharedMaterials[materialIndex] = fallbackSafeMaterial;
+                        wasUpdated = fallbackSafeMaterial != null;
+                        continue;
+                    }
+
+                    if (shouldSanitizeMaterial(sourceMaterial) == false)
                     {
                         sanitizedSharedMaterials[materialIndex] = sourceMaterial;
                         continue;
@@ -521,8 +656,10 @@ namespace MouthOfTruth.Editor
                 $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
             string existingMaterialAssetPath =
                 $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
-            Texture baseTexture = getFirstAvailableTexture(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
-            Shader safeShader = Shader.Find(baseTexture != null ? "Unlit/Texture" : "Unlit/Color");
+            Shader safeShader = Shader.Find("Universal Render Pipeline/Unlit")
+                ?? Shader.Find("Universal Render Pipeline/Lit")
+                ?? Shader.Find("Unlit/Texture")
+                ?? Shader.Find("Unlit/Color");
 
             if (safeShader == null)
             {
@@ -557,6 +694,11 @@ namespace MouthOfTruth.Editor
 
             Texture baseTexture = getFirstAvailableTexture(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
 
+            if (baseTexture != null && safeMaterial.HasProperty("_BaseMap"))
+            {
+                safeMaterial.SetTexture("_BaseMap", baseTexture);
+            }
+
             if (baseTexture != null && safeMaterial.HasProperty("_MainTex"))
             {
                 safeMaterial.SetTexture("_MainTex", baseTexture);
@@ -567,6 +709,11 @@ namespace MouthOfTruth.Editor
                 Color.white,
                 "_BaseColor",
                 "_Color");
+
+            if (safeMaterial.HasProperty("_BaseColor"))
+            {
+                safeMaterial.SetColor("_BaseColor", baseColor);
+            }
 
             if (safeMaterial.HasProperty("_Color"))
             {
@@ -628,12 +775,18 @@ namespace MouthOfTruth.Editor
             }
         }
 
-        private static CorridorAxes determineCorridorAxes(Bounds environmentBounds)
+        private static CorridorAxes determineCorridorAxes(Bounds environmentBounds, Vector3 sourceSceneForward)
         {
+            if (sourceSceneForward.sqrMagnitude > 0.0001f)
+            {
+                Vector3 sourceSceneLateral = Vector3.Cross(Vector3.up, sourceSceneForward).normalized;
+                return new CorridorAxes(sourceSceneForward, sourceSceneLateral);
+            }
+
             bool isForwardAlongZ = environmentBounds.size.z >= environmentBounds.size.x;
             Vector3 forward = isForwardAlongZ ? Vector3.forward : Vector3.right;
             Vector3 lateral = isForwardAlongZ ? Vector3.right : Vector3.forward;
-            return new CorridorAxes(forward, lateral, isForwardAlongZ);
+            return new CorridorAxes(forward, lateral);
         }
 
         private static Vector3 calculateStageBasePosition(Bounds environmentBounds, CorridorAxes corridorAxes)
@@ -649,18 +802,15 @@ namespace MouthOfTruth.Editor
             Vector3 forwardAxis,
             bool isLongAxisX)
         {
-            float yRotationDegrees;
+            Vector3 projectedForward = Vector3.ProjectOnPlane(forwardAxis, Vector3.up).normalized;
 
-            if (forwardAxis == Vector3.forward)
+            if (projectedForward.sqrMagnitude <= 0.0001f)
             {
-                yRotationDegrees = isLongAxisX ? 90.0f : 0.0f;
-            }
-            else
-            {
-                yRotationDegrees = isLongAxisX ? 0.0f : 90.0f;
+                return;
             }
 
-            targetTransform.rotation = Quaternion.Euler(0.0f, yRotationDegrees, 0.0f);
+            Vector3 sourceLongAxis = isLongAxisX ? Vector3.right : Vector3.forward;
+            targetTransform.rotation = Quaternion.FromToRotation(sourceLongAxis, projectedForward);
         }
 
         private static Transform findRequiredRoot(Scene scene, string rootObjectName)
@@ -739,23 +889,53 @@ namespace MouthOfTruth.Editor
 
         private readonly struct CorridorAxes
         {
-            public CorridorAxes(Vector3 forward, Vector3 lateral, bool isForwardAlongZ)
+            public CorridorAxes(Vector3 forward, Vector3 lateral)
             {
                 Forward = forward;
                 Lateral = lateral;
-                IsForwardAlongZ = isForwardAlongZ;
             }
 
             public Vector3 Forward { get; }
 
             public Vector3 Lateral { get; }
 
-            public bool IsForwardAlongZ { get; }
-
             public float GetExtent(Bounds bounds)
             {
-                return IsForwardAlongZ ? bounds.extents.z : bounds.extents.x;
+                Vector3 normalizedForward = Forward.normalized;
+
+                return
+                    (Mathf.Abs(normalizedForward.x) * bounds.extents.x)
+                    + (Mathf.Abs(normalizedForward.y) * bounds.extents.y)
+                    + (Mathf.Abs(normalizedForward.z) * bounds.extents.z);
             }
+        }
+
+        private readonly struct SourceSceneCameraLayout
+        {
+            public static SourceSceneCameraLayout Invalid =>
+                new SourceSceneCameraLayout(Vector3.zero, Quaternion.identity, 0.0f, Color.black);
+
+            public SourceSceneCameraLayout(
+                Vector3 position,
+                Quaternion rotation,
+                float fieldOfView,
+                Color backgroundColor)
+            {
+                Position = position;
+                Rotation = rotation;
+                FieldOfView = fieldOfView;
+                BackgroundColor = backgroundColor;
+            }
+
+            public Vector3 Position { get; }
+
+            public Quaternion Rotation { get; }
+
+            public float FieldOfView { get; }
+
+            public Color BackgroundColor { get; }
+
+            public bool IsValid => FieldOfView > 0.0f;
         }
     }
 }

@@ -38,4 +38,4 @@ MonoBehaviour:
   - Hidden/InternalErrorShader
   PromptUserToConfirmConversion: 0
   NumberOfTimesUserRejectedPrompt: 0
-  AutomaticConversionIsOffForPluginInProject: 0
+  AutomaticConversionIsOffForPluginInProject: 1

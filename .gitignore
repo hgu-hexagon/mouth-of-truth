@@ -17,6 +17,7 @@ docs/*.md
 # Bridge runtime outputs
 bridge/*.json
 !bridge/.gitkeep
+presentation-captures/
 
 # Python runtime outputs
 python-runtime/

@@ -8,7 +8,7 @@ namespace MouthOfTruth.Game.Face
 {
     public class WebcamFaceCaptureInputAdapter : IFaceCaptureInputAdapter
     {
-        private const float CAPTURE_INTERVAL_SECONDS = 0.20f;
+        private const float CAPTURE_INTERVAL_SECONDS = 0.15f;
         private const int JPEG_QUALITY = 80;
         private const int MINIMUM_READY_DIMENSION = 16;
 

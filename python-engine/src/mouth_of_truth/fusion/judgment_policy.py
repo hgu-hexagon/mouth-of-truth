@@ -5,7 +5,7 @@ from mouth_of_truth.contracts.verdict_kind import VerdictKind
 from mouth_of_truth.fusion.multimodal_fusion import fuse_face_and_voice
 
 
-MIN_FACE_RECOGNITIONS_FOR_JUDGMENT = 5
+MIN_FACE_RECOGNITIONS_FOR_JUDGMENT = 4
 MIN_VOICE_SEGMENTS_FOR_JUDGMENT = 1
 INSUFFICIENT_FACE_DATA_REASON_CODE = "insufficient_face_data"
 INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data"

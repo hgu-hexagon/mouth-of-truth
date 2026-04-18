@@ -28,6 +28,7 @@ buildCondaEnvironmentCandidates() {
     return
   fi
 
+  printf '%s\n' "mouth-truth"
   printf '%s\n' "mouth-of-truth"
 }
 

@@ -7,7 +7,7 @@ namespace MouthOfTruth.Game.Analysis
 {
     public class DeterministicAnswerAnalysisClient : IAnswerAnalysisClient
     {
-        private const int MINIMUM_FACE_RECOGNITION_COUNT = 5;
+        private const int MINIMUM_FACE_RECOGNITION_COUNT = 4;
         private const int MINIMUM_VOICE_SEGMENT_COUNT = 1;
 
         public Task<AnswerAnalysisResult> AnalyzeAsync(

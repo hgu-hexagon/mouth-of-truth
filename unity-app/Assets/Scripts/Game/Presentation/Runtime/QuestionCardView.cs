@@ -33,7 +33,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             gameObject.name = questionCardSlot.ToString();
 
             mRectTransform = gameObject.AddComponent<RectTransform>();
-            mRectTransform.sizeDelta = new Vector2(280.0f, 420.0f);
+            mRectTransform.sizeDelta = new Vector2(320.0f, 480.0f);
 
             mCanvasGroup = gameObject.AddComponent<CanvasGroup>();
             mCardImage = gameObject.AddComponent<Image>();
@@ -155,6 +155,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mRectTransform.anchoredPosition = mDefaultAnchoredPosition;
             mRectTransform.localScale = Vector3.one;
+            mCanvasGroup.alpha = 1.0f;
+        }
+
+        public void SetAlpha(float alpha)
+        {
+            mCanvasGroup.alpha = Mathf.Clamp01(alpha);
+        }
+
+        public void SetScale(float scale)
+        {
+            mRectTransform.localScale = Vector3.one * Mathf.Max(0.01f, scale);
         }
 
         public void OnPointerEnter(PointerEventData eventData)

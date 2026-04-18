@@ -28,6 +28,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private RectTransform mCanvasRootRectTransform;
         private Transform mCanvasRootTransform;
         private Image mBackgroundImage;
+        private Image mSceneOverlayImage;
         private Image mCarpetImage;
         private Image mTitleVignetteImage;
         private Image mLogoImage;
@@ -60,6 +61,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mResultPanelSprite;
         private Sprite mCardGlowSprite;
         private Sprite mDwellFillSprite;
+        private Sprite mTitleBackgroundSprite;
+        private Sprite mCardSelectionBackgroundSprite;
+        private Sprite mMouthChamberBackgroundSprite;
         private AudioSource mAmbienceAudioSource;
         private AudioSource mInterfaceAudioSource;
         private AudioClip mTitleAmbienceClip;
@@ -98,16 +102,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowStartScreen()
         {
+            applyStartScreenLayout();
+            mBackgroundImage.sprite = mTitleBackgroundSprite;
             setObjectActive(mLogoImage, true);
             setObjectActive(mTitleVignetteImage, true);
+            setObjectActive(mSceneOverlayImage, false);
             setObjectActive(mStartButton, true);
-            setObjectActive(mBackgroundImage, mUseWorldEnvironmentLayout == false);
-            setObjectActive(mCarpetImage, mUseWorldEnvironmentLayout == false);
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, true);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
-            setObjectActive(mStatusPanelImage, true);
+            setObjectActive(mStatusPanelImage, false);
             setObjectActive(mResultPanelImage, false);
-            setObjectActive(mStatusText, true);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
             setObjectActive(mAnswerInputField, false);
             setObjectActive(mMouthImage, false);
             setObjectActive(mHandImage, false);
@@ -118,7 +127,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mBackToTitleButton, false);
             setCardsVisible(false);
             mPromptText.text = string.Empty;
-            mStatusText.text = "손으로 START GAME을 선택하거나 마우스로 클릭하세요.";
+            mStatusText.text = string.Empty;
             mAnswerTimerText.text = string.Empty;
             mLastAudibleHoveredCardSlot = null;
             mLastHoveredUiActionTarget = null;
@@ -128,15 +137,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
         {
-            setObjectActive(mBackgroundImage, mUseWorldEnvironmentLayout == false);
-            setObjectActive(mCarpetImage, mUseWorldEnvironmentLayout == false);
+            applyCardSelectionLayout();
+            mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
+            setObjectActive(mSceneOverlayImage, false);
             setObjectActive(mStartButton, false);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
-            setObjectActive(mStatusPanelImage, true);
+            setObjectActive(mStatusPanelImage, false);
             setObjectActive(mResultPanelImage, false);
+            setObjectActive(mPromptText, true);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
             setObjectActive(mAnswerInputField, false);
             setObjectActive(mMouthImage, false);
             setObjectActive(mHandImage, false);
@@ -156,9 +171,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             applyCardAnchorPositions();
-            mPromptText.text = "질문 카드를 선택하세요";
-            mStatusText.text = "카드 위에 포인터를 올리고 0.7초 유지하면 선택됩니다.";
-            mAnswerTimerText.text = "시연 시간 15초";
+            mPromptText.text = "원하는 질문을 손가락으로 선택하세요.";
+            mStatusText.text = string.Empty;
+            mAnswerTimerText.text = string.Empty;
             mLastAudibleHoveredCardSlot = null;
             mLastHoveredUiActionTarget = null;
         }
@@ -182,12 +197,27 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
         }
 
+        public void PreviewCardSelectionFocus(EQuestionCardSlot selectedQuestionCardSlot)
+        {
+            foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
+            {
+                bool isSelected = pair.Key == selectedQuestionCardSlot;
+                pair.Value.SetVisualState(isDimmed: isSelected == false, isSelected, 0.0f);
+            }
+
+            mPromptText.text = string.Empty;
+        }
+
         public async Task PlayQuestionRevealAsync(
             EQuestionCardSlot selectedQuestionCardSlot,
             QuestionDefinition questionDefinition)
         {
-            mPromptText.text = "진실의 입이 질문을 받아들이고 있습니다.";
-            mStatusText.text = "선택된 카드가 중앙으로 이동합니다.";
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mQuestionText, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.12f);
             playInterfaceCue(mCardSelectClip, 0.90f);
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
@@ -212,51 +242,102 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 });
 
             selectedCardView.SetFront(mCardFrontSprite, questionDefinition.Text);
-            mQuestionText.text = questionDefinition.Text;
-            setObjectActive(mQuestionPanelImage, true);
-            setObjectActive(mQuestionText, true);
             playInterfaceCue(mCardRevealClip, 0.85f);
+
+            await animateOverTimeAsync(
+                0.16f,
+                progress =>
+                {
+                    float easedProgress = easeOut(progress);
+                    selectedCardView.SetScale(Mathf.Lerp(1.22f, 1.26f, easedProgress));
+                });
+
+            Vector2 launchStartPosition = selectedCardView.RectTransform.anchoredPosition;
+            Vector2 launchTargetPosition = getMouthAnchorPosition() + new Vector2(0.0f, -24.0f);
+
+            await animateOverTimeAsync(
+                0.78f,
+                progress =>
+                {
+                    float easedProgress = easeOut(progress);
+                    Vector2 basePosition = Vector2.Lerp(
+                        launchStartPosition,
+                        launchTargetPosition,
+                        easedProgress);
+                    float arcLift = Mathf.Sin(easedProgress * Mathf.PI) * 56.0f;
+                    selectedCardView.RectTransform.anchoredPosition =
+                        basePosition + new Vector2(0.0f, arcLift);
+                    selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.82f, easedProgress));
+                    selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
+                });
+
+            setCardsVisible(false);
+            selectedCardView.SetAlpha(1.0f);
+            selectedCardView.ResetTransformState();
         }
 
         public void ShowNarratingQuestion(string questionText)
         {
+            applyNarrationLayout();
+            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.24f);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
+            setObjectActive(mStatusPanelImage, false);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
             setObjectActive(mPointerImage, false);
             mQuestionText.text = questionText;
-            mPromptText.text = "질문 낭독 중";
-            mStatusText.text = "진실의 입이 질문을 읽고 있습니다.";
             applyMouthAnchoredLayout();
         }
 
         public void ShowAwaitingHandInsertion()
         {
+            applyAwaitingHandInsertionLayout();
+            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.26f);
             setObjectActive(mMouthImage, true);
-            setObjectActive(mHandImage, true);
+            setObjectActive(mHandImage, false);
             setObjectActive(mPointerImage, false);
-            setObjectActive(mAnswerInputField, true);
-            setObjectActive(mAnswerTimerText, true);
+            setObjectActive(mAnswerInputField, false);
+            setObjectActive(mAnswerTimerText, false);
             setObjectActive(mQuestionPanelImage, true);
-            setObjectActive(mStatusPanelImage, true);
+            setObjectActive(mQuestionText, true);
+            setObjectActive(mStatusPanelImage, false);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
             setObjectActive(mResultPanelImage, false);
             mAnswerInputField.text = string.Empty;
             mAnswerInputField.interactable = false;
-            mPromptText.text = "손을 입 안에 넣으세요";
-            mStatusText.text = "손이나 포인터를 입 쪽으로 가져가면 자동으로 들어가고 답변이 시작됩니다.";
+            mQuestionText.text = "“손을 내밀고, 진실을 담하라.”";
             applyMouthAnchoredLayout();
             setHandVisual(0.0f);
         }
 
         public async Task AnimateHandInsertionAsync()
         {
+            applyAnswerStageLayout();
             setObjectActive(mHandImage, true);
             playInterfaceCue(mHandInsertClip, 0.9f);
 
             await animateOverTimeAsync(
                 0.45f,
-                progress => setHandVisual(Mathf.Lerp(0.0f, 1.0f, easeOut(progress))));
+                progress =>
+                {
+                    float easedProgress = easeOut(progress);
+                    setHandVisual(Mathf.Lerp(0.0f, 1.0f, easedProgress));
+                    mMouthImage.rectTransform.localScale =
+                        Vector3.one * Mathf.Lerp(1.0f, 1.08f, easedProgress);
+                });
         }
 
         public async Task AnimateHandRemovalAsync()
@@ -269,47 +350,87 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnswering()
         {
-            mPromptText.text = "답변 중";
-            mStatusText.text = "답변을 진행하세요. 손이 입 밖으로 나오면 일시정지됩니다.";
+            applyAnswerStageLayout();
+            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.28f);
+            setObjectActive(mQuestionPanelImage, true);
+            setObjectActive(mQuestionText, true);
+            setObjectActive(mStatusPanelImage, false);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
+            mQuestionText.text = "질문에 답하는 동안 손을 유지하세요.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
         }
 
         public void ShowAnswerPaused()
         {
+            applyAnswerStageLayout();
+            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
             mAnswerInputField.interactable = false;
-            mPromptText.text = "답변 일시정지";
-            mStatusText.text = "손이나 포인터를 다시 입 쪽으로 가져가면 답변이 이어집니다.";
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.30f);
+            setObjectActive(mQuestionPanelImage, true);
+            setObjectActive(mQuestionText, true);
+            setObjectActive(mStatusPanelImage, false);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
+            mQuestionText.text = "손을 다시 올리면 답변이 이어집니다.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
         }
 
         public void ShowAnalyzing()
         {
+            applyAnswerStageLayout();
+            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
             mAnswerInputField.interactable = false;
-            mPromptText.text = "분석 중";
-            mStatusText.text = "진실의 입이 답변을 분석하고 있습니다.";
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.34f);
+            setObjectActive(mQuestionPanelImage, true);
+            setObjectActive(mQuestionText, true);
+            setObjectActive(mStatusPanelImage, false);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
+            mQuestionText.text = "진실의 입이 대답을 가늠하고 있습니다.";
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
         }
 
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
+            applyResultLayout(verdictKind);
             setCardsVisible(false);
-            setObjectActive(mBackgroundImage, mUseWorldEnvironmentLayout == false);
-            setObjectActive(mCarpetImage, mUseWorldEnvironmentLayout == false);
+            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
             setObjectActive(mTitleVignetteImage, false);
-            setObjectActive(mQuestionText, true);
-            setObjectActive(mQuestionPanelImage, true);
-            setObjectActive(mStatusPanelImage, true);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.38f);
+            setObjectActive(mQuestionText, false);
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mStatusPanelImage, false);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, true);
             setObjectActive(mPointerImage, false);
             setObjectActive(mVerdictImage, true);
-            setObjectActive(mVerdictText, true);
-            setObjectActive(mResultPanelImage, true);
+            setObjectActive(mVerdictText, false);
+            setObjectActive(mResultPanelImage, false);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
             setObjectActive(mTryAgainButton, true);
-            setObjectActive(mBackToTitleButton, true);
+            setObjectActive(mBackToTitleButton, false);
             setObjectActive(mAnswerInputField, false);
             mAnswerInputField.interactable = false;
 
@@ -325,13 +446,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 EVerdictKind.False => "FALSE",
                 _ => "UNCERTAIN",
             };
-            mPromptText.text = "결과";
-            mStatusText.text = verdictKind switch
-            {
-                EVerdictKind.True => "진실의 입이 답변을 진실로 판정했습니다.",
-                EVerdictKind.False => "진실의 입이 답변을 거짓으로 판정했습니다.",
-                _ => "진실의 입이 답변을 확정적으로 판정하지 못했습니다.",
-            };
+            setHandVisual(verdictKind == EVerdictKind.True ? 0.48f : 0.82f);
             applyMouthAnchoredLayout();
             playVerdictCue(verdictKind);
         }
@@ -424,22 +539,32 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return EHandAnchorState.OutsideMouth;
             }
 
+            if (tryConvertScreenPointToCanvasPosition(
+                    pointerScreenPosition.Value,
+                    out Vector2 pointerCanvasPosition) == false)
+            {
+                return EHandAnchorState.OutsideMouth;
+            }
+
             float mouthDiameterPixels = Mathf.Max(
                 1.0f,
                 Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
-            float frontAnchorRadiusPixels = mouthDiameterPixels * 0.34f;
-            float innerAnchorRadiusPixels = mouthDiameterPixels * 0.18f;
-            Vector2 screenPosition = pointerScreenPosition.Value;
-            float distanceToInnerAnchor = Vector2.Distance(screenPosition, getHandInnerPosition());
+            float frontAnchorRadiusPixels = mouthDiameterPixels * 0.42f;
+            float innerAnchorRadiusPixels = mouthDiameterPixels * 0.24f;
+            float distanceToInnerAnchor = Vector2.Distance(pointerCanvasPosition, getHandInnerPosition());
 
             if (distanceToInnerAnchor <= innerAnchorRadiusPixels)
             {
                 return EHandAnchorState.AtInnerAnchor;
             }
 
-            float distanceToFrontAnchor = Vector2.Distance(screenPosition, getHandFrontPosition());
+            float distanceToFrontAnchor = Vector2.Distance(pointerCanvasPosition, getHandFrontPosition());
+            bool isInsideMouthBounds = isScreenPointOverRectTransform(
+                mMouthImage != null ? mMouthImage.rectTransform : null,
+                pointerScreenPosition.Value);
 
-            if (distanceToFrontAnchor <= frontAnchorRadiusPixels
+            if (isInsideMouthBounds
+                || distanceToFrontAnchor <= frontAnchorRadiusPixels
                 || distanceToInnerAnchor <= frontAnchorRadiusPixels)
             {
                 return EHandAnchorState.AtFrontAnchor;
@@ -461,10 +586,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    mCanvasRootRectTransform,
+            if (tryConvertScreenPointToCanvasPosition(
                     pointerScreenPosition.Value,
-                    null,
                     out Vector2 anchoredPosition) == false)
             {
                 setObjectActive(mPointerImage, false);
@@ -475,7 +598,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             RectTransform pointerRectTransform = mPointerImage.rectTransform;
             pointerRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             pointerRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            pointerRectTransform.anchoredPosition = anchoredPosition;
+            pointerRectTransform.anchoredPosition = anchoredPosition + new Vector2(0.0f, -58.0f);
         }
 
         public string GetAnswerTranscript()
@@ -513,6 +636,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
+            setObjectActive(mAnswerInputField, isEditable);
             mAnswerInputField.interactable = isEditable;
 
             if (isEditable)
@@ -584,9 +708,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.CardSelectionProgressFillPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.95f, 0.82f, 0.33f, 0.95f));
 
-            mBackgroundImage.sprite =
+            mTitleBackgroundSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TitleBackgroundPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.12f, 0.09f, 0.07f, 1.0f));
+            mCardSelectionBackgroundSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.CardSelectionBackgroundPath)
+                ?? mTitleBackgroundSprite;
+            mMouthChamberBackgroundSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.MouthChamberBackgroundPath)
+                ?? mCardSelectionBackgroundSprite
+                ?? mTitleBackgroundSprite;
             mCarpetImage.sprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.FloorRunnerPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.44f, 0.03f, 0.05f, 1.0f));
@@ -596,6 +727,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.sprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TruthMouthFacePath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.85f, 0.83f, 0.78f, 1.0f));
+            mBackgroundImage.sprite = mTitleBackgroundSprite;
         }
 
         private async Task loadAudioClipsAsync()
@@ -626,22 +758,33 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mBackgroundImage.type = Image.Type.Sliced;
             mBackgroundImage.preserveAspect = true;
+            mSceneOverlayImage.color = new Color(0.03f, 0.02f, 0.02f, 0.0f);
+            mSceneOverlayImage.raycastTarget = false;
             mCarpetImage.preserveAspect = true;
+            mCarpetImage.raycastTarget = false;
             mTitleVignetteImage.sprite = mTitleVignetteSprite;
             mTitleVignetteImage.type = Image.Type.Sliced;
+            mTitleVignetteImage.raycastTarget = false;
             mLogoImage.preserveAspect = true;
+            mLogoImage.raycastTarget = false;
             mMouthImage.preserveAspect = true;
+            mMouthImage.raycastTarget = false;
             mHandImage.sprite = mHandCursorSprite;
             mHandImage.preserveAspect = true;
+            mHandImage.raycastTarget = false;
             mPointerImage.sprite = mHandCursorSprite;
             mPointerImage.preserveAspect = true;
             mVerdictImage.preserveAspect = true;
+            mVerdictImage.raycastTarget = false;
             mQuestionPanelImage.sprite = mQuestionPanelSprite;
             mQuestionPanelImage.type = Image.Type.Sliced;
+            mQuestionPanelImage.raycastTarget = false;
             mStatusPanelImage.sprite = mStatusPanelSprite;
             mStatusPanelImage.type = Image.Type.Sliced;
+            mStatusPanelImage.raycastTarget = false;
             mResultPanelImage.sprite = mResultPanelSprite;
             mResultPanelImage.type = Image.Type.Sliced;
+            mResultPanelImage.raycastTarget = false;
             if (mAnswerInputField?.image != null)
             {
                 mAnswerInputField.image.sprite = mStatusPanelSprite;
@@ -794,6 +937,155 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 out anchoredPosition);
         }
 
+        private bool tryConvertScreenPointToCanvasPosition(
+            Vector2 screenPosition,
+            out Vector2 anchoredPosition)
+        {
+            anchoredPosition = default;
+
+            return mCanvasRootRectTransform != null
+                && RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    mCanvasRootRectTransform,
+                    screenPosition,
+                    null,
+                    out anchoredPosition);
+        }
+
+        private void applyStartScreenLayout()
+        {
+            setRectTransformLayout(
+                mLogoImage.rectTransform,
+                new Vector2(0.5f, 0.55f),
+                new Vector2(1000.0f, 560.0f));
+            setRectTransformLayout(
+                mStartButton.GetComponent<RectTransform>(),
+                new Vector2(0.5f, 0.14f),
+                new Vector2(430.0f, 112.0f));
+        }
+
+        private void applyCardSelectionLayout()
+        {
+            setRectTransformLayout(
+                mPromptText.rectTransform,
+                new Vector2(0.5f, 0.07f),
+                new Vector2(1080.0f, 64.0f));
+            mPromptText.fontSize = 30;
+        }
+
+        private void applyNarrationLayout()
+        {
+            setRectTransformLayout(
+                mMouthImage.rectTransform,
+                new Vector2(0.5f, 0.54f),
+                new Vector2(560.0f, 560.0f));
+            mMouthImage.rectTransform.localScale = Vector3.one;
+            setRectTransformLayout(
+                mQuestionPanelImage.rectTransform,
+                new Vector2(0.5f, 0.11f),
+                new Vector2(1460.0f, 136.0f));
+            setRectTransformLayout(
+                mQuestionText.rectTransform,
+                new Vector2(0.5f, 0.11f),
+                new Vector2(1310.0f, 92.0f));
+            mQuestionText.fontSize = 32;
+            mQuestionText.alignment = TextAnchor.MiddleCenter;
+        }
+
+        private void applyAwaitingHandInsertionLayout()
+        {
+            setRectTransformLayout(
+                mMouthImage.rectTransform,
+                new Vector2(0.5f, 0.57f),
+                new Vector2(660.0f, 660.0f));
+            mMouthImage.rectTransform.localScale = Vector3.one;
+            setRectTransformLayout(
+                mQuestionPanelImage.rectTransform,
+                new Vector2(0.5f, 0.11f),
+                new Vector2(1460.0f, 136.0f));
+            setRectTransformLayout(
+                mQuestionText.rectTransform,
+                new Vector2(0.5f, 0.11f),
+                new Vector2(1280.0f, 88.0f));
+            setRectTransformLayout(
+                mHandImage.rectTransform,
+                new Vector2(0.5f, 0.22f),
+                new Vector2(250.0f, 320.0f));
+            mQuestionText.fontSize = 34;
+        }
+
+        private void applyAnswerStageLayout()
+        {
+            setRectTransformLayout(
+                mMouthImage.rectTransform,
+                new Vector2(0.5f, 0.60f),
+                new Vector2(760.0f, 760.0f));
+            mMouthImage.rectTransform.localScale = Vector3.one;
+            setRectTransformLayout(
+                mQuestionPanelImage.rectTransform,
+                new Vector2(0.5f, 0.11f),
+                new Vector2(1460.0f, 136.0f));
+            setRectTransformLayout(
+                mQuestionText.rectTransform,
+                new Vector2(0.5f, 0.11f),
+                new Vector2(1280.0f, 88.0f));
+            setRectTransformLayout(
+                mHandImage.rectTransform,
+                new Vector2(0.5f, 0.21f),
+                new Vector2(260.0f, 340.0f));
+            mQuestionText.fontSize = 32;
+        }
+
+        private void applyResultLayout(EVerdictKind verdictKind)
+        {
+            setRectTransformLayout(
+                mMouthImage.rectTransform,
+                new Vector2(0.5f, 0.52f),
+                new Vector2(1680.0f, 1680.0f));
+            mMouthImage.rectTransform.localScale = Vector3.one;
+            setRectTransformLayout(
+                mVerdictImage.rectTransform,
+                new Vector2(0.5f, 0.64f),
+                verdictKind == EVerdictKind.Uncertain
+                    ? new Vector2(1420.0f, 330.0f)
+                    : new Vector2(1120.0f, 290.0f));
+            setRectTransformLayout(
+                mHandImage.rectTransform,
+                new Vector2(0.5f, 0.21f),
+                new Vector2(320.0f, 420.0f));
+            setRectTransformLayout(
+                mTryAgainButton.GetComponent<RectTransform>(),
+                new Vector2(0.5f, 0.12f),
+                new Vector2(420.0f, 112.0f));
+        }
+
+        private void setOverlayAlpha(float alpha)
+        {
+            if (mSceneOverlayImage == null)
+            {
+                return;
+            }
+
+            Color overlayColor = mSceneOverlayImage.color;
+            overlayColor.a = Mathf.Clamp01(alpha);
+            mSceneOverlayImage.color = overlayColor;
+        }
+
+        private void setRectTransformLayout(
+            RectTransform rectTransform,
+            Vector2 anchor,
+            Vector2 sizeDelta)
+        {
+            if (rectTransform == null)
+            {
+                return;
+            }
+
+            rectTransform.anchorMin = anchor;
+            rectTransform.anchorMax = anchor;
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.sizeDelta = sizeDelta;
+        }
+
         private void buildCanvas()
         {
             mCanvas = gameObject.AddComponent<Canvas>();
@@ -814,6 +1106,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCanvasRootRectTransform.offsetMax = Vector2.zero;
 
             mBackgroundImage = createFullScreenImage("Background", mCanvasRootTransform, Color.white);
+            mSceneOverlayImage = createFullScreenImage(
+                "SceneOverlay",
+                mCanvasRootTransform,
+                new Color(0.03f, 0.02f, 0.02f, 0.0f));
             mCarpetImage = createImage(
                 "RedCarpet",
                 mCanvasRootTransform,
@@ -1149,7 +1445,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Vector2.one,
                 Vector2.zero,
                 new Vector2(-20.0f, -20.0f),
-                24,
+                34,
                 FontStyle.Bold);
             label.text = labelText;
             return button;

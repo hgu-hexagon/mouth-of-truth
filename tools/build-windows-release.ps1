@@ -1,5 +1,5 @@
 param(
-    [string]$UnityEditorPath = "C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Unity.exe"
+    [string]$UnityEditorPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -7,6 +7,16 @@ $ErrorActionPreference = "Stop"
 $scriptDirectoryPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repositoryRootPath = Resolve-Path (Join-Path $scriptDirectoryPath "..")
 $projectPath = Join-Path $repositoryRootPath "unity-app"
+
+if ([string]::IsNullOrWhiteSpace($UnityEditorPath))
+{
+    $UnityEditorPath = $env:UNITY_EDITOR_PATH
+}
+
+if ([string]::IsNullOrWhiteSpace($UnityEditorPath))
+{
+    throw "Set -UnityEditorPath or UNITY_EDITOR_PATH to the Unity 6000.4.1f1 editor executable."
+}
 
 if ((Test-Path $UnityEditorPath) -eq $false)
 {

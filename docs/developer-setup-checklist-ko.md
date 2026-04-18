@@ -159,7 +159,8 @@ Windows에서는 PowerShell에서 아래처럼 Unity를 연다.
 
 ```powershell
 $env:MOUTH_OF_TRUTH_ANALYSIS_MODE = "deterministic"
-Start-Process "C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Unity.exe" -ArgumentList "-projectPath `"<repo-root>\unity-app`""
+$unityEditorPath = "<path-to-unity-editor>"
+Start-Process $unityEditorPath -ArgumentList "-projectPath `"<repo-root>\unity-app`""
 ```
 
 ## Python bridge 모드 실행
@@ -179,7 +180,8 @@ Windows 예시:
 
 ```powershell
 conda activate mouth-of-truth
-Start-Process "C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Unity.exe" -ArgumentList "-projectPath `"<repo-root>\unity-app`""
+$unityEditorPath = "<path-to-unity-editor>"
+Start-Process $unityEditorPath -ArgumentList "-projectPath `"<repo-root>\unity-app`""
 ```
 
 ## Python 브리지 검증
@@ -280,7 +282,7 @@ Windows에서는 macOS `say` 기반 검증 스크립트를 그대로 쓰지 않�
 
 ## 관련 문서
 
-- [build-and-distribution-guide-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/build-and-distribution-guide-ko.md)
-- [manual-validation-without-leap-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/manual-validation-without-leap-ko.md)
-- [session-architecture-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/session-architecture-ko.md)
-- [python-engine/models/README.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/python-engine/models/README.md)
+- [build-and-distribution-guide-ko.md](build-and-distribution-guide-ko.md)
+- [manual-validation-without-leap-ko.md](manual-validation-without-leap-ko.md)
+- [session-architecture-ko.md](session-architecture-ko.md)
+- [python-engine/models/README.md](../python-engine/models/README.md)

@@ -43,9 +43,9 @@ The current repository includes a playable end-to-end flow with:
 
 Committed setup and release guides are available here:
 
-- [developer-setup-checklist-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/developer-setup-checklist-ko.md)
-- [developer-setup-checklist-en.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/developer-setup-checklist-en.md)
-- [build-and-distribution-guide-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/build-and-distribution-guide-ko.md)
-- [build-and-distribution-guide-en.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/build-and-distribution-guide-en.md)
-- [manual-validation-without-leap-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/manual-validation-without-leap-ko.md)
-- [session-architecture-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/session-architecture-ko.md)
+- [developer-setup-checklist-ko.md](docs/developer-setup-checklist-ko.md)
+- [developer-setup-checklist-en.md](docs/developer-setup-checklist-en.md)
+- [build-and-distribution-guide-ko.md](docs/build-and-distribution-guide-ko.md)
+- [build-and-distribution-guide-en.md](docs/build-and-distribution-guide-en.md)
+- [manual-validation-without-leap-ko.md](docs/manual-validation-without-leap-ko.md)
+- [session-architecture-ko.md](docs/session-architecture-ko.md)

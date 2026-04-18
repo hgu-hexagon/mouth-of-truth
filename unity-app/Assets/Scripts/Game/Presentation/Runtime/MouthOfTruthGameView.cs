@@ -104,6 +104,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyStartScreenLayout();
             mBackgroundImage.sprite = mTitleBackgroundSprite;
+            setBackgroundTint(Color.white);
             setObjectActive(mLogoImage, true);
             setObjectActive(mTitleVignetteImage, true);
             setObjectActive(mSceneOverlayImage, false);
@@ -139,11 +140,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyCardSelectionLayout();
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
+            setBackgroundTint(new Color(0.82f, 0.80f, 0.78f, 1.0f));
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
-            setObjectActive(mSceneOverlayImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.08f);
             setObjectActive(mStartButton, false);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
@@ -217,7 +220,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mQuestionText, false);
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.12f);
+            setOverlayAlpha(0.18f);
             playInterfaceCue(mCardSelectClip, 0.90f);
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
@@ -280,10 +283,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyNarrationLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setBackgroundTint(new Color(0.76f, 0.74f, 0.72f, 1.0f));
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.24f);
+            setOverlayAlpha(0.30f);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -301,10 +305,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyAwaitingHandInsertionLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setBackgroundTint(new Color(0.76f, 0.74f, 0.72f, 1.0f));
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.26f);
+            setOverlayAlpha(0.32f);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
             setObjectActive(mPointerImage, false);
@@ -352,10 +357,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setBackgroundTint(new Color(0.76f, 0.74f, 0.72f, 1.0f));
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.28f);
+            setOverlayAlpha(0.34f);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -371,11 +377,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setBackgroundTint(new Color(0.72f, 0.70f, 0.68f, 1.0f));
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.30f);
+            setOverlayAlpha(0.38f);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -391,11 +398,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setBackgroundTint(new Color(0.70f, 0.68f, 0.66f, 1.0f));
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.34f);
+            setOverlayAlpha(0.44f);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -412,11 +420,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyResultLayout(verdictKind);
             setCardsVisible(false);
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setBackgroundTint(new Color(0.68f, 0.66f, 0.64f, 1.0f));
             setObjectActive(mBackgroundImage, true);
             setObjectActive(mCarpetImage, false);
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.38f);
+            setOverlayAlpha(0.48f);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mStatusPanelImage, false);
@@ -1070,6 +1079,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mSceneOverlayImage.color = overlayColor;
         }
 
+        private void setBackgroundTint(Color tintColor)
+        {
+            if (mBackgroundImage == null)
+            {
+                return;
+            }
+
+            mBackgroundImage.color = tintColor;
+        }
+
         private void setRectTransformLayout(
             RectTransform rectTransform,
             Vector2 anchor,
@@ -1109,7 +1128,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mSceneOverlayImage = createFullScreenImage(
                 "SceneOverlay",
                 mCanvasRootTransform,
-                new Color(0.03f, 0.02f, 0.02f, 0.0f));
+                new Color(0.01f, 0.01f, 0.015f, 0.0f));
             mCarpetImage = createImage(
                 "RedCarpet",
                 mCanvasRootTransform,

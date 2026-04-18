@@ -25,7 +25,17 @@ namespace MouthOfTruth.Editor
         public static void Run()
         {
             BuildMainSceneEditor.Run();
-            GeneratePresentationBackgroundsEditor.Run();
+
+            if (shouldRegeneratePresentationBackgrounds())
+            {
+                GeneratePresentationBackgroundsEditor.Run();
+            }
+            else
+            {
+                Debug.Log(
+                    "Skipping presentation background regeneration because the current Unity process "
+                    + "is running with a null graphics device.");
+            }
 
             List<string> errors = new List<string>();
 
@@ -51,6 +61,11 @@ namespace MouthOfTruth.Editor
                 + "Scene, assets, bridge paths, and presentation anchors are all available.");
         }
 
+        private static bool shouldRegeneratePresentationBackgrounds()
+        {
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null;
+        }
+
         private static void validateAssetPath(string assetPath, List<string> errors)
         {
             if (AssetDatabase.IsValidFolder(assetPath) || AssetDatabase.LoadAssetAtPath<Object>(assetPath) != null)
@@ -73,6 +88,7 @@ namespace MouthOfTruth.Editor
                 MouthOfTruthAssetCatalog.QuestionPanelFramePath,
                 MouthOfTruthAssetCatalog.StatusPanelFramePath,
                 MouthOfTruthAssetCatalog.ResultPanelFramePath,
+                MouthOfTruthAssetCatalog.FloorRunnerPath,
                 MouthOfTruthAssetCatalog.QuestionCardBackPath,
                 MouthOfTruthAssetCatalog.QuestionCardFrontPath,
                 MouthOfTruthAssetCatalog.TruthMouthFacePath,

@@ -43,7 +43,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingArtPath("ui/panel_result.png");
 
         public static string FloorRunnerPath =>
-            GetStreamingArtPath("environment/floor_red_carpet_runner.jpeg");
+            GetStreamingArtPath("environment/floor_red_carpet_runner.png");
 
         public static string QuestionCardBackPath =>
             GetStreamingArtPath("cards/question_card_back.png");

@@ -10,8 +10,38 @@ After completing this guide, you should be able to:
 - prepare the distributable Python runtime
 - run the macOS release build
 - run the Windows release build
-- identify the files that must be delivered to users
+- identify the folders that must be delivered to users
 - tell users which file they must launch
+
+## Build-host requirements
+
+### macOS build host
+
+Prepare the following:
+
+- macOS
+- Unity Editor `6000.4.1f1`
+- conda environment `mouth-truth` or `mouth-of-truth`
+- `conda-pack`
+
+### Windows build host
+
+Prepare the following:
+
+- Windows
+- Unity Editor `6000.4.1f1`
+- `Windows Build Support (IL2CPP)`
+- Visual Studio 2026
+- the `Desktop development with C++` workload
+- `MSVC x64/x86 build tools`
+- `Windows 11 SDK`
+- conda environment `mouth-truth` or `mouth-of-truth`
+- `conda-pack`
+
+Important:
+
+- If Unity Hub does not list `6000.4.1f1`, install it from the Unity Download Archive.
+- The Windows distribution should be built from a Windows Unity Editor.
 
 ## Pre-release checklist
 
@@ -19,10 +49,11 @@ Verify the following first.
 
 - The Unity project opens from `unity-app/`.
 - The main scene is `Assets/Scenes/Main.unity`.
-- Final PNG assets are applied under `unity-app/Assets/StreamingAssets/art/`.
-- Leap Motion integration and hardware validation are complete.
-- The local model assets for Python analysis are ready.
-- `python-engine/scripts/validate_bridge_runtime.sh` passes.
+- Runtime art assets are present under `unity-app/Assets/StreamingAssets/art/`.
+- `python -m compileall python-engine/src` passes.
+- On macOS, `python-engine/scripts/validate_bridge_runtime.sh` passes.
+- `Mouth Of Truth > Validate Software Flow` passes.
+- `Mouth Of Truth > Validate Product Readiness` passes.
 
 ## Build the distributable Python runtime
 
@@ -34,15 +65,15 @@ The release package must include the Python runtime.
 Run this command from the repository root.
 
 ```bash
-conda activate mouth-truth
+conda activate mouth-of-truth
 python-engine/scripts/package_python_runtime.sh
 ```
 
 The script performs the following actions.
 
-- Packages the `mouth-truth` or `mouth-of-truth` conda environment
-- Creates `python-runtime/` at the repository root
-- Expands the distributable Python executable and packages into that directory
+- packages the `mouth-truth` or `mouth-of-truth` conda environment
+- creates `python-runtime/` at the repository root
+- expands the distributable Python executable and packages into that directory
 
 If you use a different environment name, set it first.
 
@@ -53,20 +84,18 @@ python-engine/scripts/package_python_runtime.sh
 
 ### Windows Python runtime
 
-The Windows release package needs a Windows-packaged Python runtime.
-
 Open Windows PowerShell at the repository root and run:
 
 ```powershell
-conda activate mouth-truth
+conda activate mouth-of-truth
 .\python-engine\scripts\package_python_runtime.ps1
 ```
 
 The script performs the following actions.
 
-- Packages the `mouth-truth` or `mouth-of-truth` conda environment
-- Creates `python-runtime-windows/` at the repository root
-- Expands the distributable Windows Python executable and packages into that directory
+- packages the `mouth-truth` or `mouth-of-truth` conda environment
+- creates `python-runtime-windows/` at the repository root
+- expands the distributable Windows Python executable and packages into that directory
 
 If you use a different environment name, set it first.
 
@@ -82,9 +111,6 @@ $env:MOUTH_OF_TRUTH_CONDA_ENV = "<conda-env-name>"
 Run this Unity menu item.
 
 - `Mouth Of Truth > Build Main Scene`
-
-This step regenerates `Main.unity` from the current environment assets and
-anchor layout.
 
 ### 2. Run the macOS release build
 
@@ -108,8 +134,8 @@ The build creates the following output.
 
 ## Build the Windows release
 
-Run the Windows release from a Unity editor that has Windows Build Support
-installed.
+Run the Windows release from a Windows Unity Editor that has Windows Build
+Support installed.
 
 ### 1. Refresh the main scene
 
@@ -144,9 +170,9 @@ The build creates the following output.
 - `dist/windows/MouthOfTruth/python-runtime/`
 - `dist/windows/MouthOfTruth/bridge/`
 
-## Files that must exist after the build
+## Folders that must exist after the build
 
-Verify that all of the following exist.
+Verify that all of the following exist for macOS.
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
@@ -154,9 +180,7 @@ Verify that all of the following exist.
 - `dist/macos/MouthOfTruth/python-runtime/`
 - `dist/macos/MouthOfTruth/bridge/`
 
-Do not ship the build if any of these items are missing.
-
-For the Windows release, verify that all of the following exist.
+Verify that all of the following exist for Windows.
 
 - `dist/windows/MouthOfTruth/MouthOfTruth.exe`
 - `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
@@ -165,7 +189,9 @@ For the Windows release, verify that all of the following exist.
 - `dist/windows/MouthOfTruth/python-runtime/`
 - `dist/windows/MouthOfTruth/bridge/`
 
-## Files to deliver to users
+Do not ship the build if any required item is missing.
+
+## Folders to deliver to users
 
 Deliver the entire directory below.
 
@@ -186,8 +212,10 @@ Important:
 
 After extracting the package, the user should launch:
 
-- `Run Mouth of Truth.command`
-- `Run Mouth of Truth.bat`
+- macOS:
+  - `Run Mouth of Truth.command`
+- Windows:
+  - `Run Mouth of Truth.bat`
 
 The launcher sets the runtime root correctly and then opens the correct player
 for the platform.
@@ -209,9 +237,9 @@ The first launch can prompt for:
 
 The user must allow both permissions for the analysis features to work.
 
-For internal demo builds on macOS, also tell the user:
+On macOS, also tell the user:
 
-- if macOS blocks execution, right-click the file in Finder and select **Open**
+- if execution is blocked, right-click the file in Finder and select **Open**
 
 ## Final release verification
 
@@ -219,17 +247,19 @@ Verify the following flow before distribution.
 
 - The title screen opens.
 - `START GAME` works.
+- `EXIT GAME` works.
 - Card selection works.
 - Question TTS plays.
 - Answer collection starts after hand insertion.
 - Answer pause works when the hand is removed.
 - Answer resume works when the hand returns.
 - A result screen appears.
-- `TRY AGAIN` and `BACK TO TITLE` work.
+- `TRY AGAIN` works.
+- `EXIT GAME` works on the result screen.
 
 ## Troubleshooting
 
-### The app opens but analysis does not run
+### The app opens, but analysis does not run
 
 Cause:
 
@@ -239,34 +269,14 @@ Action:
 
 - Verify that both directories are present in the release package.
 
-### The user launched only the `.app` bundle
+### The Windows build fails before the player is produced
 
 Cause:
 
-- The app bundle was copied without the product root directory.
+- `Windows Build Support (IL2CPP)` may be missing, or
+- the Visual Studio C++ build toolchain may be incomplete.
 
 Action:
 
-- Re-deliver the full `MouthOfTruth/` directory.
-- Ask the user to launch `Run Mouth of Truth.command`.
-
-### Packaging `python-runtime/` fails
-
-Cause:
-
-- `conda-pack` is missing, or the conda environment name is different.
-
-Action:
-
-- Recreate the environment with `python-engine/environment.yml`.
-- Set `MOUTH_OF_TRUTH_CONDA_ENV` when needed and rerun the packaging script.
-
-## Related documents
-
-- `docs/developer-setup-checklist-en.md`
-- `python-engine/environment.yml`
-- `python-engine/requirements.txt`
-- `python-engine/scripts/package_python_runtime.sh`
-- `python-engine/scripts/package_python_runtime.ps1`
-- `tools/build-macos-release.sh`
-- `tools/build-windows-release.ps1`
+- Install `Windows Build Support (IL2CPP)` from Unity Hub.
+- Verify the `Desktop development with C++` workload in Visual Studio Installer.

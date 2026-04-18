@@ -9,8 +9,38 @@
 - 배포용 Python 런타임을 준비한다.
 - macOS 릴리즈 빌드를 실행한다.
 - Windows 릴리즈 빌드를 실행한다.
-- 사용자에게 전달해야 할 파일을 판단한다.
+- 사용자에게 전달해야 할 폴더를 판단한다.
 - 사용자가 어떤 파일을 실행해야 하는지 안내한다.
+
+## 빌드 호스트 전제
+
+### macOS 빌드
+
+아래 조건이 필요하다.
+
+- macOS
+- Unity Editor `6000.4.1f1`
+- conda 환경 `mouth-truth` 또는 `mouth-of-truth`
+- `conda-pack`
+
+### Windows 빌드
+
+아래 조건이 필요하다.
+
+- Windows
+- Unity Editor `6000.4.1f1`
+- `Windows Build Support (IL2CPP)`
+- Visual Studio 2026
+- `C++를 사용한 데스크톱 개발` 워크로드
+- `MSVC x64/x86 build tools`
+- `Windows 11 SDK`
+- conda 환경 `mouth-truth` 또는 `mouth-of-truth`
+- `conda-pack`
+
+중요:
+
+- Unity Hub 설치 목록에 `6000.4.1f1`이 바로 보이지 않으면 Unity Download Archive에서 직접 설치한다.
+- Windows 배포 폴더는 Windows Unity Editor에서 만드는 것이 가장 안전하다.
 
 ## 배포 전 확인
 
@@ -18,10 +48,11 @@
 
 - Unity 프로젝트가 `unity-app/` 경로에서 열린다.
 - 메인 씬이 `Assets/Scenes/Main.unity` 이다.
-- 최종 PNG 자산이 `unity-app/Assets/StreamingAssets/art/` 아래에 반영되어 있다.
-- Leap Motion 입력 연결과 장치 검증이 완료되어 있다.
-- Python 분석에 필요한 로컬 모델 자산이 준비되어 있다.
-- `python-engine/scripts/validate_bridge_runtime.sh` 가 통과한다.
+- 런타임 아트 자산이 `unity-app/Assets/StreamingAssets/art/` 아래에 반영되어 있다.
+- `python -m compileall python-engine/src` 가 통과한다.
+- macOS에서는 `python-engine/scripts/validate_bridge_runtime.sh` 가 통과한다.
+- Unity 메뉴의 `Mouth Of Truth > Validate Software Flow` 가 통과한다.
+- Unity 메뉴의 `Mouth Of Truth > Validate Product Readiness` 가 통과한다.
 
 ## 배포용 Python 런타임 만들기
 
@@ -33,7 +64,7 @@ Unity 빌드와 함께 Python 실행 환경도 묶어야 한다.
 저장소 루트에서 아래 명령을 실행한다.
 
 ```bash
-conda activate mouth-truth
+conda activate mouth-of-truth
 python-engine/scripts/package_python_runtime.sh
 ```
 
@@ -43,7 +74,7 @@ python-engine/scripts/package_python_runtime.sh
 - 저장소 루트에 `python-runtime/` 디렉토리를 만든다.
 - 배포용 Python 실행 파일과 패키지를 그 안에 풀어 둔다.
 
-만약 다른 환경 이름을 쓰고 있다면 환경 변수를 먼저 설정한다.
+다른 환경 이름을 쓰고 있다면 환경 변수를 먼저 설정한다.
 
 ```bash
 MOUTH_OF_TRUTH_CONDA_ENV=<conda-env-name> \
@@ -52,12 +83,10 @@ python-engine/scripts/package_python_runtime.sh
 
 ### Windows용 Python 런타임
 
-Windows 배포본은 Windows에서 패키징한 Python 런타임이 필요하다.
-
 Windows PowerShell에서 저장소 루트로 이동한 뒤 아래 명령을 실행한다.
 
 ```powershell
-conda activate mouth-truth
+conda activate mouth-of-truth
 .\python-engine\scripts\package_python_runtime.ps1
 ```
 
@@ -82,8 +111,6 @@ Unity 메뉴에서 아래 항목을 실행한다.
 
 - `Mouth Of Truth > Build Main Scene`
 
-이 단계는 현재 환경 자산과 앵커 배치를 기준으로 `Main.unity` 를 다시 정리한다.
-
 ### 2. macOS 배포 빌드 실행
 
 Unity 메뉴에서 아래 항목을 실행한다.
@@ -106,7 +133,7 @@ Unity 메뉴에서 아래 항목을 실행한다.
 
 ## Windows 릴리즈 빌드
 
-Windows 빌드는 Windows Build Support가 설치된 Unity 에디터에서 실행한다.
+Windows 빌드는 Windows Build Support가 설치된 Windows Unity Editor에서 실행한다.
 
 ### 1. 메인 씬 갱신
 
@@ -141,9 +168,9 @@ Unity 설치 경로가 기본값과 다르면 직접 넘긴다.
 - `dist/windows/MouthOfTruth/python-runtime/`
 - `dist/windows/MouthOfTruth/bridge/`
 
-## 배포 전에 확인할 파일
+## 빌드 후 확인할 폴더
 
-빌드가 끝나면 아래가 모두 존재해야 한다.
+macOS 배포본은 아래 항목이 모두 존재해야 한다.
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
@@ -151,9 +178,7 @@ Unity 설치 경로가 기본값과 다르면 직접 넘긴다.
 - `dist/macos/MouthOfTruth/python-runtime/`
 - `dist/macos/MouthOfTruth/bridge/`
 
-위 다섯 항목 중 하나라도 빠지면 배포본으로 사용하지 않는다.
-
-Windows 배포본은 아래 파일과 디렉토리가 모두 존재해야 한다.
+Windows 배포본은 아래 항목이 모두 존재해야 한다.
 
 - `dist/windows/MouthOfTruth/MouthOfTruth.exe`
 - `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
@@ -161,6 +186,8 @@ Windows 배포본은 아래 파일과 디렉토리가 모두 존재해야 한다
 - `dist/windows/MouthOfTruth/python-engine/`
 - `dist/windows/MouthOfTruth/python-runtime/`
 - `dist/windows/MouthOfTruth/bridge/`
+
+위 항목 중 하나라도 빠지면 배포본으로 사용하지 않는다.
 
 ## 사용자에게 전달할 파일
 
@@ -183,8 +210,10 @@ Windows 배포본은 아래 파일과 디렉토리가 모두 존재해야 한다
 
 사용자는 압축을 해제한 뒤 아래 파일을 실행한다.
 
-- `Run Mouth of Truth.command`
-- `Run Mouth of Truth.bat`
+- macOS:
+  - `Run Mouth of Truth.command`
+- Windows:
+  - `Run Mouth of Truth.bat`
 
 이 런처는 제품 루트 경로를 잡고 각 플랫폼 실행 파일을 올바른 위치에서 실행한다.
 
@@ -204,9 +233,9 @@ Windows 배포본은 아래 파일과 디렉토리가 모두 존재해야 한다
 
 이 권한은 분석 기능에 필요하므로 허용해야 한다.
 
-내부 시연용 빌드라면 아래도 같이 안내한다.
+macOS에서는 아래도 같이 안내한다.
 
-- macOS가 실행을 차단하면 Finder에서 파일을 우클릭한 뒤 **열기**를 선택한다.
+- 실행이 차단되면 Finder에서 파일을 우클릭한 뒤 **열기**를 선택한다.
 
 ## 배포 전 최종 점검
 
@@ -214,13 +243,15 @@ Windows 배포본은 아래 파일과 디렉토리가 모두 존재해야 한다
 
 - 시작 화면이 열린다.
 - `START GAME` 이 동작한다.
+- `EXIT GAME` 이 동작한다.
 - 카드 선택이 된다.
 - 질문 TTS가 재생된다.
 - 손 삽입 뒤 답변 수집이 시작된다.
 - 손을 빼면 일시정지된다.
-- 손을 다시 넣으면 재개된다.
-- 결과 화면이 표시된다.
-- `TRY AGAIN` 과 `BACK TO TITLE` 이 동작한다.
+- 손을 다시 올리면 재개된다.
+- 분석 뒤 결과 화면이 표시된다.
+- 결과 화면의 `TRY AGAIN` 이 동작한다.
+- 결과 화면의 `EXIT GAME` 이 동작한다.
 
 ## 문제 해결
 
@@ -228,40 +259,20 @@ Windows 배포본은 아래 파일과 디렉토리가 모두 존재해야 한다
 
 원인:
 
-- `python-runtime/` 또는 `python-engine/` 가 빠졌을 수 있다.
+- `python-runtime/` 또는 `python-engine/` 가 빠졌을 가능성이 있다.
 
 조치:
 
-- 배포 디렉토리 안에 두 폴더가 모두 있는지 확인한다.
+- 배포 폴더 안에 두 디렉토리가 모두 존재하는지 확인한다.
 
-### 사용자가 `.app` 만 따로 실행했다
+### Windows 빌드가 시작도 되지 않는다
 
 원인:
 
-- 제품 루트가 아니라 앱 번들만 단독으로 옮겼다.
+- `Windows Build Support (IL2CPP)` 가 없거나
+- Visual Studio의 C++ 빌드 도구가 빠져 있을 가능성이 있다.
 
 조치:
 
-- `MouthOfTruth/` 전체 디렉토리를 다시 전달한다.
-- 가능하면 `Run Mouth of Truth.command` 실행을 다시 안내한다.
-
-### python-runtime 생성이 실패한다
-
-원인:
-
-- `conda-pack` 가 환경에 없거나 conda 환경 이름이 다르다.
-
-조치:
-
-- `conda env create -f python-engine/environment.yml` 로 환경을 다시 만든다.
-- 필요하면 `MOUTH_OF_TRUTH_CONDA_ENV` 를 설정해 패키징 스크립트를 다시 실행한다.
-
-## 관련 문서
-
-- `docs/developer-setup-checklist-ko.md`
-- `python-engine/environment.yml`
-- `python-engine/requirements.txt`
-- `python-engine/scripts/package_python_runtime.sh`
-- `python-engine/scripts/package_python_runtime.ps1`
-- `tools/build-macos-release.sh`
-- `tools/build-windows-release.ps1`
+- Unity Hub에서 `Windows Build Support (IL2CPP)` 를 설치한다.
+- Visual Studio Installer에서 `C++를 사용한 데스크톱 개발` 을 확인한다.

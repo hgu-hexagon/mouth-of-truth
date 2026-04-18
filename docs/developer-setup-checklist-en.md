@@ -2,17 +2,17 @@
 
 ## Overview
 
-This document explains how to set up the Mouth of Truth project on a fresh
-machine after cloning the GitHub repository.
+This document explains how to set up the current Mouth of Truth project on a
+fresh machine after cloning the GitHub repository.
 
 After completing this guide, you should be able to:
 
 - clone the repository
 - create the Python environment
 - open the Unity project from the correct path
-- run the baseline game flow in deterministic mode
-- prepare the local model assets for full analysis
-- run the Python bridge validation
+- run deterministic mode and Python bridge mode
+- prepare the required local model assets
+- run the core software-flow validations
 
 ## Prerequisites
 
@@ -23,7 +23,18 @@ Install the following tools first.
 - Unity Editor `6000.4.1f1`
 - Miniforge or Mambaforge
 
-The current project has been validated primarily on macOS.
+If you will build Windows releases, install the following on Windows as well.
+
+- `Windows Build Support (IL2CPP)`
+- Visual Studio 2026
+- the `Desktop development with C++` workload
+- `MSVC x64/x86 build tools`
+- `Windows 11 SDK`
+
+Important:
+
+- If Unity Hub does not list `6000.4.1f1` directly, install it from the Unity Download Archive.
+- The current project baseline is `6000.4.1f1`.
 
 ## Clone the repository
 
@@ -77,6 +88,23 @@ python -m compileall python-engine/src
 
 If these commands succeed, the Python sources are readable and compilable.
 
+## Prepare the local model assets
+
+Full analysis mode uses the following local model assets.
+
+- Face model:
+  - `python-engine/models/face/yolo26x_rafdb_best.pt`
+- Voice emotion model:
+  - `python-engine/models/voice/best_wav2vec2_iemocap/`
+- Whisper cache root:
+  - `python-engine/models/whisper/`
+
+Important:
+
+- The face and voice models are not committed to the repository.
+- Request those assets from the project maintainer.
+- Whisper can download `whisper-tiny` on first use if the machine has internet access.
+
 ## Open the Unity project
 
 ### 1. Open the project in Unity Hub
@@ -97,62 +125,66 @@ Open this scene in Unity:
 
 - `Assets/Scenes/Main.unity`
 
-## Baseline execution
+## Runtime modes
 
-### Run deterministic mode
+The analysis client selection follows this order.
 
-Deterministic mode verifies the game flow without requiring the local analysis
-models.
+1. `MOUTH_OF_TRUTH_ANALYSIS_MODE=python` forces Python bridge mode
+2. `MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic` forces deterministic mode
+3. Without an override:
+   - Python bridge mode is used when the launcher script and module root exist
+   - deterministic mode is used otherwise
+
+## Run deterministic mode
+
+Deterministic mode verifies the product flow without requiring the local
+analysis models.
 
 Use this mode to verify:
 
 - the title screen
 - three question cards
-- hover and dwell card selection
+- hover and dwell selection
 - question reveal
-- macOS TTS narration
-- answer collection state changes
+- question TTS narration
+- hand insertion, pause, and resume
 - result presentation
 
-Launch Unity in deterministic mode from the repository root:
+On macOS, launch Unity like this from the repository root:
 
 ```bash
 MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic open -a "Unity" unity-app
 ```
 
-If Unity is already open, close it first and relaunch it with the environment
-variable.
+On Windows, launch Unity from PowerShell:
 
-## Prepare full analysis mode
+```powershell
+$env:MOUTH_OF_TRUTH_ANALYSIS_MODE = "deterministic"
+Start-Process "C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Unity.exe" -ArgumentList "-projectPath `"<repo-root>\unity-app`""
+```
 
-Full analysis mode uses:
+## Run Python bridge mode
 
-- microphone input
-- face frame capture
-- Whisper transcription
-- face emotion analysis
-- voice emotion analysis
+Python bridge mode uses Whisper transcription together with the face and voice
+analysis path.
 
-This path requires local model assets.
+macOS example:
 
-### Local model asset paths
+```bash
+conda activate mouth-of-truth
+open -a "Unity" unity-app
+```
 
-Prepare these locations:
+Windows example:
 
-- Face model:
-  - `python-engine/models/face/yolo26x_rafdb_best.pt`
-- Voice emotion model:
-  - `python-engine/models/voice/best_wav2vec2_iemocap/`
-- Whisper cache root:
-  - `python-engine/models/whisper/`
-
-If internet access is available, Whisper can download `whisper-tiny`
-automatically on first use.
-
-The face model and the voice emotion model are not committed to the repository.
-Request those assets from the project maintainer.
+```powershell
+conda activate mouth-of-truth
+Start-Process "C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Unity.exe" -ArgumentList "-projectPath `"<repo-root>\unity-app`""
+```
 
 ## Validate the Python bridge
+
+### macOS
 
 Run the following commands from the repository root:
 
@@ -167,8 +199,16 @@ This validation checks:
 - Python runner execution
 - Whisper transcription
 - result JSON generation
+- voice-only verdict fallback generation
 
-The validation succeeds when it prints `Bridge runtime validation succeeded.`
+### Windows
+
+Do not use the macOS `say`-based bridge validation script directly on Windows.
+Instead, verify the following first:
+
+- `python -m compileall python-engine/src`
+- `Mouth Of Truth > Validate Software Flow`
+- `Mouth Of Truth > Validate Product Readiness`
 
 ## Verification checklist
 
@@ -177,17 +217,19 @@ The baseline setup is ready when all of the following are true.
 - Unity opens from `unity-app/`.
 - `Assets/Scenes/Main.unity` opens correctly.
 - Unity has no blocking compile errors.
+- The title screen shows `START GAME` and `EXIT GAME`.
 - Card selection works.
 - TTS plays.
+- The answer stage starts after mouth insertion.
 - A result screen appears.
 
 The full analysis path is ready when all of the following are also true.
 
 - `python -m compileall python-engine/src` passes.
-- `validate_bridge_runtime.sh` passes.
 - The face model file exists.
 - The voice model directory exists.
 - The Whisper cache root exists.
+- `validate_bridge_runtime.sh` passes on macOS.
 
 ## Common mistakes
 
@@ -202,31 +244,42 @@ Action:
 - Close the incorrectly opened project.
 - Reopen `<repo-root>/unity-app` from Unity Hub.
 
-### The game runs but analysis does not
+### Unity Hub does not show `6000.4.1f1`
 
 Cause:
 
-- Unity is running in deterministic mode, or the local model assets are missing.
+- Hub can prioritize newer patch releases in the install list.
 
 Action:
 
-- Prepare the face and voice model assets for full analysis.
-- Relaunch Unity without the deterministic override.
+- Open the Unity Download Archive and install `6000.4.1f1` directly.
 
-### Whisper transcription does not start
+### The game runs, but analysis keeps falling back to deterministic mode
 
 Cause:
 
-- `python-engine/models/whisper/` is missing, or the network is blocked.
+- Python bridge mode is not available, or the environment override forces deterministic mode.
 
 Action:
 
-- Verify that `python-engine/models/whisper/` exists.
-- Rerun the bridge validation with network access when needed.
+- Check `MOUTH_OF_TRUTH_ANALYSIS_MODE`.
+- Verify that `python-engine/scripts/` and `python-engine/src/` are present.
+
+### No microphone is available, so the game drops to keyboard transcript fallback
+
+Cause:
+
+- No microphone device is available, or microphone startup failed.
+
+Action:
+
+- Check OS microphone permissions.
+- Verify that a working microphone device is present.
+- The keyboard transcript fallback is still a valid flow for software validation.
 
 ## Related documents
 
-- `docs/build-and-distribution-guide-en.md`
-- `python-engine/environment.yml`
-- `python-engine/requirements.txt`
-- `python-engine/models/README.md`
+- [build-and-distribution-guide-en.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/build-and-distribution-guide-en.md)
+- [manual-validation-without-leap-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/manual-validation-without-leap-ko.md)
+- [session-architecture-ko.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/docs/session-architecture-ko.md)
+- [python-engine/models/README.md](/Users/potterlim/Developments/Projects/new-mouth-of-truth/python-engine/models/README.md)

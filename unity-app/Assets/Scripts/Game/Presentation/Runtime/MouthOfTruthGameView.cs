@@ -143,7 +143,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mStartButton, true);
             setObjectActive(mExitButton, true);
             setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, true);
+            setObjectActive(mCarpetImage, false);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mStatusPanelImage, false);
@@ -289,6 +289,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     selectedCardView.SetScale(Mathf.Lerp(1.22f, 1.26f, easedProgress));
                 });
 
+            prepareCardLaunchPresentation();
             Vector2 launchStartPosition = selectedCardView.RectTransform.anchoredPosition;
             Vector2 launchTargetPosition = getMouthAnchorPosition() + new Vector2(0.0f, -24.0f);
 
@@ -306,6 +307,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         basePosition + new Vector2(0.0f, arcLift);
                     selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.82f, easedProgress));
                     selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
+                    mMouthImage.rectTransform.localScale =
+                        Vector3.one * Mathf.Lerp(0.94f, 1.0f, easedProgress);
                 });
 
             setCardsVisible(false);
@@ -1108,6 +1111,24 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(300.0f, 78.0f));
         }
 
+        private void prepareCardLaunchPresentation()
+        {
+            applyNarrationLayout();
+            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayAlpha(0.18f);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mQuestionText, false);
+            setObjectActive(mMouthImage, true);
+            applyMouthAnchoredLayout();
+            mMouthImage.rectTransform.localScale = Vector3.one * 0.94f;
+        }
+
         private void applyCardSelectionLayout()
         {
             setRectTransformLayout(
@@ -1121,18 +1142,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             setRectTransformLayout(
                 mMouthImage.rectTransform,
-                new Vector2(0.5f, 0.54f),
-                new Vector2(560.0f, 560.0f));
+                new Vector2(0.5f, 0.53f),
+                new Vector2(640.0f, 640.0f));
             mMouthImage.rectTransform.localScale = Vector3.one;
             setRectTransformLayout(
                 mQuestionPanelImage.rectTransform,
-                new Vector2(0.5f, 0.11f),
-                new Vector2(1460.0f, 136.0f));
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1500.0f, 122.0f));
             setRectTransformLayout(
                 mQuestionText.rectTransform,
-                new Vector2(0.5f, 0.11f),
-                new Vector2(1310.0f, 92.0f));
-            mQuestionText.fontSize = 32;
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1320.0f, 70.0f));
+            mQuestionText.fontSize = 30;
             mQuestionText.alignment = TextAnchor.MiddleCenter;
         }
 
@@ -1140,22 +1161,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             setRectTransformLayout(
                 mMouthImage.rectTransform,
-                new Vector2(0.5f, 0.57f),
-                new Vector2(660.0f, 660.0f));
+                new Vector2(0.5f, 0.56f),
+                new Vector2(700.0f, 700.0f));
             mMouthImage.rectTransform.localScale = Vector3.one;
             setRectTransformLayout(
                 mQuestionPanelImage.rectTransform,
-                new Vector2(0.5f, 0.11f),
-                new Vector2(1460.0f, 136.0f));
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1500.0f, 122.0f));
             setRectTransformLayout(
                 mQuestionText.rectTransform,
-                new Vector2(0.5f, 0.11f),
-                new Vector2(1280.0f, 88.0f));
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1320.0f, 70.0f));
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.22f),
                 new Vector2(250.0f, 320.0f));
-            mQuestionText.fontSize = 34;
+            mQuestionText.fontSize = 30;
         }
 
         private void applyAnswerStageLayout()
@@ -1167,17 +1188,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.rectTransform.localScale = Vector3.one;
             setRectTransformLayout(
                 mQuestionPanelImage.rectTransform,
-                new Vector2(0.5f, 0.11f),
-                new Vector2(1460.0f, 136.0f));
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1500.0f, 122.0f));
             setRectTransformLayout(
                 mQuestionText.rectTransform,
-                new Vector2(0.5f, 0.11f),
-                new Vector2(1280.0f, 88.0f));
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1320.0f, 70.0f));
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.21f),
                 new Vector2(220.0f, 300.0f));
-            mQuestionText.fontSize = 32;
+            mQuestionText.fontSize = 30;
         }
 
         private void applyResultLayout(EVerdictKind verdictKind)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import traceback
 from pathlib import Path
+from typing import Any
 
 
 def _ensure_package_root_on_sys_path() -> None:
@@ -17,13 +18,19 @@ _ensure_package_root_on_sys_path()
 
 from mouth_of_truth.contracts.analysis_contracts import (
     AnalysisRequest,
+    AnalysisResult,
     read_analysis_request,
     write_analysis_result,
 )
-from mouth_of_truth.fusion.judgment_policy import build_analysis_result as build_fused_analysis_result
+from mouth_of_truth.fusion.judgment_policy import (
+    build_analysis_result as build_fused_analysis_result,
+)
 
 
-def build_analysis_result(analysis_request: AnalysisRequest):
+AnalysisPayload = dict[str, Any]
+
+
+def _build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
     """Builds one verdict result from one bridge request payload."""
     answer_transcript = analysis_request.answer_transcript.strip()
 
@@ -31,16 +38,22 @@ def build_analysis_result(analysis_request: AnalysisRequest):
         from mouth_of_truth.speech.whisper_transcriber import WhisperTranscriber
 
         whisper_transcriber = WhisperTranscriber()
-        language_hint = detect_language_hint(analysis_request.question_text)
+        language_hint = _detect_language_hint(analysis_request.question_text)
         answer_transcript = whisper_transcriber.transcribe_audio_file(
             analysis_request.answer_audio_file_path,
             language_hint=language_hint,
         ).strip()
 
-    face_analysis = analyze_face_data(analysis_request)
-    voice_analysis = analyze_voice_data(analysis_request)
-    face_recognition_count = resolve_face_recognition_count(analysis_request, face_analysis)
-    voice_segment_count = resolve_voice_segment_count(analysis_request, voice_analysis)
+    face_analysis = _analyze_face_data(analysis_request)
+    voice_analysis = _analyze_voice_data(analysis_request)
+    face_recognition_count = _resolve_face_recognition_count(
+        analysis_request,
+        face_analysis,
+    )
+    voice_segment_count = _resolve_voice_segment_count(
+        analysis_request,
+        voice_analysis,
+    )
 
     return build_fused_analysis_result(
         request_id=analysis_request.request_id,
@@ -55,11 +68,11 @@ def build_analysis_result(analysis_request: AnalysisRequest):
 def run_once(request_file_path: str | Path, result_file_path: str | Path) -> None:
     """Reads one request file and writes one result file."""
     analysis_request = read_analysis_request(request_file_path)
-    analysis_result = build_analysis_result(analysis_request)
+    analysis_result = _build_analysis_result(analysis_request)
     write_analysis_result(result_file_path, analysis_result)
 
 
-def analyze_face_data(analysis_request: AnalysisRequest) -> dict:
+def _analyze_face_data(analysis_request: AnalysisRequest) -> AnalysisPayload:
     """Analyzes one saved face-frame directory, if it exists."""
     from mouth_of_truth.face.frame_directory_pipeline import (
         analyze_face_frame_directory,
@@ -82,7 +95,7 @@ def analyze_face_data(analysis_request: AnalysisRequest) -> dict:
         return build_empty_face_analysis()
 
 
-def analyze_voice_data(analysis_request: AnalysisRequest) -> dict:
+def _analyze_voice_data(analysis_request: AnalysisRequest) -> AnalysisPayload:
     """Analyzes one saved answer audio file, if it exists."""
     from mouth_of_truth.voice.voice_emotion_pipeline import (
         build_empty_voice_analysis,
@@ -105,7 +118,10 @@ def analyze_voice_data(analysis_request: AnalysisRequest) -> dict:
         return build_empty_voice_analysis()
 
 
-def resolve_face_recognition_count(analysis_request: AnalysisRequest, face_analysis: dict) -> int:
+def _resolve_face_recognition_count(
+    analysis_request: AnalysisRequest,
+    face_analysis: AnalysisPayload,
+) -> int:
     """Resolves the face-recognition count used for judgment readiness."""
     if analysis_request.face_frames_directory_path.strip():
         return int(face_analysis.get("recognition_count", 0))
@@ -113,7 +129,10 @@ def resolve_face_recognition_count(analysis_request: AnalysisRequest, face_analy
     return analysis_request.face_frame_count
 
 
-def resolve_voice_segment_count(analysis_request: AnalysisRequest, voice_analysis: dict) -> int:
+def _resolve_voice_segment_count(
+    analysis_request: AnalysisRequest,
+    voice_analysis: AnalysisPayload,
+) -> int:
     """Resolves the voice-segment count used for judgment readiness."""
     if analysis_request.answer_audio_file_path.strip():
         return int(voice_analysis.get("segment_count", 0))
@@ -121,7 +140,7 @@ def resolve_voice_segment_count(analysis_request: AnalysisRequest, voice_analysi
     return analysis_request.voice_segment_count
 
 
-def detect_language_hint(question_text: str) -> str | None:
+def _detect_language_hint(question_text: str) -> str | None:
     """Infers a Whisper language hint from the visible question text."""
     normalized_question_text = question_text.strip()
 

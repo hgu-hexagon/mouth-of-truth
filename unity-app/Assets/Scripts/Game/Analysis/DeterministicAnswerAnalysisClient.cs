@@ -21,7 +21,10 @@ namespace MouthOfTruth.Game.Analysis
                 throw new ArgumentNullException(nameof(answerAnalysisRequest));
             }
 
-            bool hasFaceSignal = answerAnalysisRequest.FaceFrameCount >= MINIMUM_FACE_RECOGNITION_COUNT;
+            _ = cancellationToken;
+
+            bool hasFaceSignal =
+                answerAnalysisRequest.FaceFrameCount >= MINIMUM_FACE_RECOGNITION_COUNT;
             bool hasVoiceSignal =
                 answerAnalysisRequest.VoiceSegmentCount >= MINIMUM_VOICE_SEGMENT_COUNT;
             List<string> reasonCodes = new List<string>();

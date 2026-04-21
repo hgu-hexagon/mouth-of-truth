@@ -13,18 +13,23 @@ FACE_WEIGHT = 0.75
 VOICE_WEIGHT = 0.25
 AMBIGUOUS_MULTIMODAL_SIGNAL_REASON_CODE = "ambiguous_multimodal_signal"
 DISCORDANT_MULTIMODAL_SIGNAL_REASON_CODE = "discordant_multimodal_signal"
+EmotionSummary = dict[str, Any]
+FusedVerdictPayload = dict[str, Any]
 
 
-def clamp(value: float, min_value: float, max_value: float) -> float:
+def _clamp(value: float, min_value: float, max_value: float) -> float:
     """Clamps one floating-point value to the provided range."""
     return max(min_value, min(value, max_value))
 
 
-def fuse_face_and_voice(face_result: dict[str, Any], voice_result: dict[str, Any]) -> dict[str, Any]:
+def fuse_face_and_voice(
+    face_result: EmotionSummary,
+    voice_result: EmotionSummary,
+) -> FusedVerdictPayload:
     """Fuses face and voice summaries into one final verdict payload."""
     face_score = float(face_result.get("avg_score", 0.0))
     voice_score = float(voice_result.get("avg_score", 0.0))
-    final_score = clamp(
+    final_score = _clamp(
         (face_score * FACE_WEIGHT) + (voice_score * VOICE_WEIGHT),
         0.0,
         100.0,

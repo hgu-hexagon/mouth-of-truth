@@ -11,7 +11,6 @@ MIN_VOICE_SEGMENTS_FOR_JUDGMENT = 1
 INSUFFICIENT_FACE_DATA_REASON_CODE = "insufficient_face_data"
 INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data"
 VOICE_ONLY_JUDGMENT_REASON_CODE = "voice_only_judgment"
-FACE_ONLY_JUDGMENT_REASON_CODE = "face_only_judgment"
 
 
 def build_analysis_result(
@@ -44,17 +43,6 @@ def build_analysis_result(
             reason_codes=append_reason_code(
                 reason_codes,
                 VOICE_ONLY_JUDGMENT_REASON_CODE,
-            ),
-        )
-
-    if has_face_signal:
-        return AnalysisResult(
-            request_id=request_id,
-            verdict=get_verdict_from_score(float(face_result.get("avg_score", 0.0))),
-            answer_transcript=answer_transcript,
-            reason_codes=append_reason_code(
-                reason_codes,
-                FACE_ONLY_JUDGMENT_REASON_CODE,
             ),
         )
 

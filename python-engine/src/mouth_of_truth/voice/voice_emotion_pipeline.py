@@ -5,6 +5,7 @@ from typing import Any
 
 import torch
 
+from mouth_of_truth.audio_signal import has_speech_signal
 from mouth_of_truth.voice.infer_voice import (
     TARGET_SAMPLE_RATE,
     load_audio,
@@ -29,11 +30,20 @@ def run_voice_emotion_pipeline(audio_path: str) -> dict[str, Any]:
     """Runs one voice-emotion analysis pipeline on one recorded answer file."""
     feature_extractor, model = load_voice_model()
     waveform = load_audio(audio_path)
+
+    if has_speech_signal(waveform, TARGET_SAMPLE_RATE) is False:
+        return build_empty_voice_analysis()
+
     segments = split_audio_into_segments(waveform, TARGET_SAMPLE_RATE)
     history: deque[list[float]] = deque(maxlen=VOICE_HISTORY_SIZE)
     segment_results: list[dict[str, Any]] = []
 
-    for segment_index, segment_waveform in enumerate(segments):
+    analyzed_segment_index = 0
+
+    for segment_waveform in segments:
+        if has_speech_signal(segment_waveform, TARGET_SAMPLE_RATE) is False:
+            continue
+
         prediction = predict_voice_segment(feature_extractor, model, segment_waveform)
         probabilities_data = prediction["probs"]
         history.append(probabilities_data)
@@ -44,7 +54,7 @@ def run_voice_emotion_pipeline(audio_path: str) -> dict[str, Any]:
 
         segment_results.append(
             {
-                "segment_index": segment_index,
+                "segment_index": analyzed_segment_index,
                 "label": prediction["label"],
                 "confidence": prediction["confidence"],
                 "change_score": change_score,
@@ -54,6 +64,7 @@ def run_voice_emotion_pipeline(audio_path: str) -> dict[str, Any]:
                 "prob_dict": prediction["prob_dict"],
             }
         )
+        analyzed_segment_index += 1
 
     return {
         "audio_path": audio_path,

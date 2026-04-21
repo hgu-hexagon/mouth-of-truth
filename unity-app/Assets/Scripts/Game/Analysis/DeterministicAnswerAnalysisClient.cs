@@ -12,7 +12,6 @@ namespace MouthOfTruth.Game.Analysis
         private const string INSUFFICIENT_FACE_DATA_REASON_CODE = "insufficient_face_data";
         private const string INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data";
         private const string VOICE_ONLY_JUDGMENT_REASON_CODE = "voice_only_judgment";
-        private const string FACE_ONLY_JUDGMENT_REASON_CODE = "face_only_judgment";
 
         public Task<AnswerAnalysisResult> AnalyzeAsync(
             AnswerAnalysisRequest answerAnalysisRequest,
@@ -38,7 +37,7 @@ namespace MouthOfTruth.Game.Analysis
                 reasonCodes.Add(INSUFFICIENT_VOICE_DATA_REASON_CODE);
             }
 
-            if (hasFaceSignal == false && hasVoiceSignal == false)
+            if (hasVoiceSignal == false)
             {
                 return Task.FromResult(
                     new AnswerAnalysisResult(
@@ -59,11 +58,6 @@ namespace MouthOfTruth.Game.Analysis
             if (hasFaceSignal == false)
             {
                 reasonCodes.Add(VOICE_ONLY_JUDGMENT_REASON_CODE);
-            }
-
-            if (hasVoiceSignal == false)
-            {
-                reasonCodes.Add(FACE_ONLY_JUDGMENT_REASON_CODE);
             }
 
             return Task.FromResult(

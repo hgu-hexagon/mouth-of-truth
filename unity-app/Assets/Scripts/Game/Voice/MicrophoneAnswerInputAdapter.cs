@@ -157,6 +157,11 @@ namespace MouthOfTruth.Game.Voice
                 return;
             }
 
+            if (containsSpeechSignal(activeSegmentSamples) == false)
+            {
+                return;
+            }
+
             mRecordedSegments.Add(activeSegmentSamples);
             mRecordedSegmentCount += 1;
         }
@@ -201,6 +206,59 @@ namespace MouthOfTruth.Game.Voice
             }
 
             return monoBuffer;
+        }
+
+        private bool containsSpeechSignal(float[] monoSamples)
+        {
+            if (monoSamples == null || monoSamples.Length == 0)
+            {
+                return false;
+            }
+
+            int windowSampleCount = Mathf.Max(
+                1,
+                Mathf.CeilToInt(SAMPLE_RATE * SPEECH_WINDOW_SECONDS));
+            int strideSampleCount = Mathf.Max(1, windowSampleCount / 2);
+
+            if (monoSamples.Length <= windowSampleCount)
+            {
+                return calculateWindowRms(monoSamples, 0, monoSamples.Length) >= SPEECH_RMS_THRESHOLD;
+            }
+
+            for (int startSampleIndex = 0;
+                 startSampleIndex + windowSampleCount <= monoSamples.Length;
+                 startSampleIndex += strideSampleCount)
+            {
+                if (calculateWindowRms(monoSamples, startSampleIndex, windowSampleCount)
+                    >= SPEECH_RMS_THRESHOLD)
+                {
+                    return true;
+                }
+            }
+
+            int tailWindowStartIndex = Math.Max(0, monoSamples.Length - windowSampleCount);
+            int tailSampleCount = monoSamples.Length - tailWindowStartIndex;
+            return calculateWindowRms(monoSamples, tailWindowStartIndex, tailSampleCount)
+                   >= SPEECH_RMS_THRESHOLD;
+        }
+
+        private float calculateWindowRms(float[] monoSamples, int startSampleIndex, int sampleCount)
+        {
+            if (sampleCount <= 0)
+            {
+                return 0.0f;
+            }
+
+            double squaredSum = 0.0d;
+
+            for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1)
+            {
+                float sampleValue = monoSamples[startSampleIndex + sampleIndex];
+                squaredSum += sampleValue * sampleValue;
+            }
+
+            double meanSquare = squaredSum / sampleCount;
+            return (float)Math.Sqrt(meanSquare);
         }
 
         private float calculateCurrentSpeechRms()

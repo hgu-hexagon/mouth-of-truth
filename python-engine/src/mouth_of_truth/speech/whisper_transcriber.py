@@ -6,6 +6,7 @@ import librosa
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
+from mouth_of_truth.audio_signal import has_speech_signal
 from mouth_of_truth.runtime.model_paths import resolve_whisper_model_cache_directory
 
 
@@ -45,6 +46,10 @@ class WhisperTranscriber:
             sr=WHISPER_SAMPLE_RATE,
             mono=True,
         )
+
+        if has_speech_signal(waveform.tolist(), WHISPER_SAMPLE_RATE) is False:
+            return ""
+
         transcription = self._get_transcription_pipeline()(
             waveform,
             generate_kwargs=self._build_generate_kwargs(language_hint),

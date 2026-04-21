@@ -176,7 +176,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, false);
+            setObjectActive(mCarpetImage, true);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, false);
@@ -1438,9 +1438,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 () => mExitRequested = true);
 
             mTitleVignetteImage.transform.SetSiblingIndex(mLogoImage.transform.GetSiblingIndex());
-            mQuestionPanelImage.transform.SetSiblingIndex(mQuestionText.transform.GetSiblingIndex());
-            mStatusPanelImage.transform.SetSiblingIndex(mPromptText.transform.GetSiblingIndex());
-            mResultPanelImage.transform.SetSiblingIndex(mVerdictImage.transform.GetSiblingIndex());
+            placeImageBehindText(mQuestionPanelImage.transform, mQuestionText.transform);
+            placeImageBehindText(mStatusPanelImage.transform, mPromptText.transform);
+            placeImageBehindText(mResultPanelImage.transform, mVerdictImage.transform);
 
             createCardView(EQuestionCardSlot.LeftCard, FALLBACK_LEFT_CARD_POSITION);
             createCardView(EQuestionCardSlot.CenterCard, FALLBACK_CENTER_CARD_POSITION);
@@ -1516,6 +1516,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Image image = imageObject.AddComponent<Image>();
             image.color = color;
             return image;
+        }
+
+        private void placeImageBehindText(Transform imageTransform, Transform textTransform)
+        {
+            if (imageTransform == null || textTransform == null)
+            {
+                return;
+            }
+
+            int targetIndex = Mathf.Max(0, textTransform.GetSiblingIndex() - 1);
+            imageTransform.SetSiblingIndex(targetIndex);
         }
 
         private Text createText(

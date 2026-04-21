@@ -1,28 +1,15 @@
 # Reference Assets
 
-## Concept Art Reference Groups
+This directory remains only as a lightweight documentation stub.
 
-The files under `concept-art/` organize the planning references by role so that the
-runtime project can keep product-facing asset paths separate from source references.
+The older concept-art JPEG references that were used during early layout planning
+have been removed so that the repository can stay focused on the current product
+runtime assets under `unity-app/Assets/StreamingAssets/art/`.
 
-- `concept-art/backgrounds/title-stone-wall-reference.jpeg`
-- `concept-art/branding/title-logo-reference.jpeg`
-- `concept-art/cards/question-card-back-reference.jpeg`
-- `concept-art/environment/persian-carpets-pack-reference.jpeg`
-- `concept-art/environment/persian-rug-reference.jpeg`
-- `concept-art/environment/red-carpet-runner-reference.jpeg`
-- `concept-art/mouth/truth-mouth-face-reference.jpeg`
-- `concept-art/verdict/verdict-true-reference.jpeg`
-- `concept-art/verdict/verdict-false-reference.jpeg`
+The active third-party environment content now lives in:
 
-## Target Asset Packs
+- `unity-app/Assets/ThirdParty/Environment/DungeonModularPack`
+- `unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp`
 
-The following packs are intended to be integrated into the Unity scene later:
-
-- [Persiang Carpets URP](https://assetstore.unity.com/packages/3d/props/persiang-carpets-urp-261455)
-- [Dungeon Modular Pack](https://assetstore.unity.com/packages/3d/environments/dungeons/dungeon-modular-pack-295430)
-
-## Current Usage Policy
-
-Until the licensed Asset Store packages are imported, the project uses reference images
-and placeholder object slots to keep the interaction flow implementable.
+If new design references need to be preserved later, they should be added here only
+when they are still actively useful to the shipped product workflow.

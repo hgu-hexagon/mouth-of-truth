@@ -40,14 +40,18 @@ design is delivered.
 - Runtime mappings:
   - `unity-app/Assets/StreamingAssets/audio/ambience/title_temple_ambience_loop.ogg`
 
-## Pending Asset Store Content
+## Imported Asset Store Content
 
-The following Asset Store packages are part of the intended art direction, but
-they are not yet imported into this repository because no local package cache or
-downloaded `.unitypackage` files were available in the current environment.
+The following Asset Store packages are already imported into this repository and
+support the current Unity environment build pipeline.
 
 - [Persiang Carpets URP](https://assetstore.unity.com/packages/3d/props/persiang-carpets-urp-261455)
 - [Dungeon Modular Pack](https://assetstore.unity.com/packages/3d/environments/dungeons/dungeon-modular-pack-295430)
 
-When those packages become available locally, they should replace the current
-2D placeholder background and carpet presentation with scene-level 3D assets.
+Current repository usage:
+
+- `Dungeon Modular Pack` provides the source environment scene, stage prefabs, and
+  materials consumed by `unity-app/Assets/Editor/BuildMainSceneEditor.cs`
+- `Persiang Carpets URP` remains available in the project as imported third-party
+  content, while the shipped runtime carpet presentation currently uses the curated
+  product asset at `unity-app/Assets/StreamingAssets/art/environment/floor_red_carpet_runner.png`

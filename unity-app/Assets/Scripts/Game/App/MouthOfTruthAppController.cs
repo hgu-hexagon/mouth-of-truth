@@ -294,6 +294,7 @@ namespace MouthOfTruth.Game.App
         private bool updateUiActionSelection(Vector2? pointerScreenPosition)
         {
             if (mGameStateMachine.CurrentState != EGameFlowState.StartScreen
+                && mGameStateMachine.CurrentState != EGameFlowState.AwaitingCardSelection
                 && mGameStateMachine.CurrentState != EGameFlowState.ShowingResult)
             {
                 mUiActionDwellSelectionTracker?.Reset();
@@ -397,6 +398,8 @@ namespace MouthOfTruth.Game.App
             QuestionDefinition selectedQuestionDefinition)
         {
             mIsTransitionBusy = true;
+            mGameView.UpdatePointerVisual(false, null);
+            mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
             await mGameView.PlayQuestionRevealAsync(selectedQuestionCardSlot, selectedQuestionDefinition);
             mGameStateMachine.MarkQuestionRevealCompleted();
             mGameView.ShowNarratingQuestion(selectedQuestionDefinition.Text);

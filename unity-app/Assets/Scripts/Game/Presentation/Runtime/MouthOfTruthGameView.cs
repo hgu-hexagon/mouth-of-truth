@@ -181,7 +181,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, false);
             setObjectActive(mStartButton, false);
-            setObjectActive(mExitButton, false);
+            setObjectActive(mExitButton, true);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mStatusPanelImage, false);
@@ -1135,6 +1135,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.5f, 0.07f),
                 new Vector2(1080.0f, 64.0f));
             mPromptText.fontSize = 30;
+            setRectTransformLayout(
+                mExitButton.GetComponent<RectTransform>(),
+                new Vector2(0.84f, 0.11f),
+                new Vector2(320.0f, 84.0f));
         }
 
         private void applyNarrationLayout()

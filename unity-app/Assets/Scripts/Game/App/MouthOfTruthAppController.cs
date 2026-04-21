@@ -48,6 +48,7 @@ namespace MouthOfTruth.Game.App
             mLifecycleCancellationTokenSource = new CancellationTokenSource();
             mGameView = GetComponent<MouthOfTruthGameView>() ?? gameObject.AddComponent<MouthOfTruthGameView>();
             await mGameView.InitializeAsync();
+            applyRuntimeCursorPresentation(isFocused: true);
 
             if (isPresentationCaptureEnabled() == false)
             {
@@ -131,6 +132,29 @@ namespace MouthOfTruth.Game.App
             mFaceCaptureInputAdapter?.CancelCollection();
             mLifecycleCancellationTokenSource?.Cancel();
             mLifecycleCancellationTokenSource?.Dispose();
+            restoreSystemCursor();
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (hasFocus)
+            {
+                applyRuntimeCursorPresentation(isFocused: true);
+                return;
+            }
+
+            restoreSystemCursor();
+        }
+
+        private void OnApplicationPause(bool isPaused)
+        {
+            if (isPaused)
+            {
+                restoreSystemCursor();
+                return;
+            }
+
+            applyRuntimeCursorPresentation(isFocused: true);
         }
 
         private void initializeStateMachine()
@@ -322,6 +346,7 @@ namespace MouthOfTruth.Game.App
         {
             mAnswerCaptureInputAdapter?.CancelCollection();
             mFaceCaptureInputAdapter?.CancelCollection();
+            restoreSystemCursor();
 
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
@@ -353,6 +378,18 @@ namespace MouthOfTruth.Game.App
                     || mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused);
 
             mGameView.UpdatePointerVisual(shouldShowPointer, pointerScreenPosition);
+        }
+
+        private static void applyRuntimeCursorPresentation(bool isFocused)
+        {
+            Cursor.visible = isFocused == false;
+            Cursor.lockState = CursorLockMode.None;
+        }
+
+        private static void restoreSystemCursor()
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
 
         private async Task revealQuestionAsync(

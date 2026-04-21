@@ -30,9 +30,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.09f;
         private const float ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR = 0.12f;
         private const float ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR = 0.05f;
-        private const float CARD_FRONT_READ_HOLD_MINIMUM_SECONDS = 1.25f;
-        private const float CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS = 2.15f;
-        private const float CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS = 0.0125f;
+        private const float CARD_FRONT_READ_HOLD_MINIMUM_SECONDS = 1.875f;
+        private const float CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS = 3.225f;
+        private const float CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS = 0.01875f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();

@@ -413,6 +413,7 @@ namespace MouthOfTruth.Game.App
         private async Task insertHandAsync()
         {
             mIsTransitionBusy = true;
+            mGameView.UpdatePointerVisual(false, null);
             bool isResumingAnswer = mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused;
 
             if (mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion)

@@ -373,6 +373,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             disableHeldHandPresentation();
             applyAnswerStageLayout();
+            setObjectActive(mPointerImage, false);
             setObjectActive(mHandImage, true);
             playInterfaceCue(mHandInsertClip, 0.9f);
 
@@ -436,9 +437,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
             mQuestionText.text = "손을 다시 올리면 답변이 이어집니다.";
-            setObjectActive(mPointerImage, false);
+            setObjectActive(mHandImage, false);
             applyMouthAnchoredLayout();
-            enableHeldHandPresentation(baseProgress: 0.28f, pulseAmplitude: 0.003f, pulseSpeed: 0.9f);
+            disableHeldHandPresentation();
         }
 
         public void ShowAnalyzing()
@@ -480,8 +481,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mMouthImage, true);
-            setObjectActive(mHandImage, true);
-            setObjectActive(mPointerImage, false);
+            setObjectActive(mHandImage, false);
             setObjectActive(mVerdictImage, true);
             setObjectActive(mVerdictText, false);
             setObjectActive(mResultPanelImage, false);
@@ -506,7 +506,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 EVerdictKind.False => "FALSE",
                 _ => "UNCERTAIN",
             };
-            setHandVisual(verdictKind == EVerdictKind.True ? 0.48f : 0.82f);
             applyMouthAnchoredLayout();
             playVerdictCue(verdictKind);
         }

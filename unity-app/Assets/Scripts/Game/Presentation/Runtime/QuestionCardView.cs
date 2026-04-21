@@ -38,7 +38,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCanvasGroup = gameObject.AddComponent<CanvasGroup>();
             mCardImage = gameObject.AddComponent<Image>();
             mCardImage.sprite = cardBackSprite;
-            mCardImage.type = Image.Type.Sliced;
+            mCardImage.type = Image.Type.Simple;
+            mCardImage.preserveAspect = true;
             mCardImage.raycastTarget = true;
 
             GameObject glowObject = new GameObject("Glow");
@@ -98,6 +99,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public void SetBack(Sprite cardBackSprite)
         {
             mCardImage.sprite = cardBackSprite;
+            mCardImage.type = Image.Type.Simple;
             mCardImage.color = Color.white;
             mQuestionText.text = string.Empty;
             mQuestionText.enabled = false;
@@ -118,6 +120,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mCardImage.sprite = cardFrontSprite;
             }
 
+            mCardImage.type = Image.Type.Simple;
             mCardImage.color = new Color(0.96f, 0.93f, 0.88f, 1.0f);
             mQuestionText.enabled = true;
             mQuestionText.text = questionText;

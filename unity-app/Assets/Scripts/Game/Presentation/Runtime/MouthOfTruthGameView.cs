@@ -1106,8 +1106,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(430.0f, 112.0f));
             setRectTransformLayout(
                 mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.86f, 0.09f),
-                new Vector2(300.0f, 78.0f));
+                new Vector2(0.5f, 0.065f),
+                new Vector2(320.0f, 80.0f));
         }
 
         private void prepareCardLaunchPresentation()

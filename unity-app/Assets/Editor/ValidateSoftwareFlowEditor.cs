@@ -281,17 +281,16 @@ namespace MouthOfTruth.Editor
                     voiceSegmentCount: 2),
                 CancellationToken.None).GetAwaiter().GetResult();
 
-            if (voiceOnlyResult.VerdictKind == EVerdictKind.Uncertain)
+            if (voiceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
                 throw new InvalidOperationException(
-                    "Voice-only data should still resolve to a deterministic verdict.");
+                    "Voice-only data should remain UNCERTAIN without a face signal.");
             }
 
-            if (voiceOnlyResult.ReasonCodes.Contains("insufficient_face_data") == false
-                || voiceOnlyResult.ReasonCodes.Contains("voice_only_judgment") == false)
+            if (voiceOnlyResult.ReasonCodes.Contains("insufficient_face_data") == false)
             {
                 throw new InvalidOperationException(
-                    "Voice-only deterministic verdict did not preserve the expected reason codes.");
+                    "Voice-only deterministic analysis did not preserve the insufficient_face_data reason code.");
             }
 
             AnswerAnalysisResult transcriptFreeVoiceOnlyResult =
@@ -305,16 +304,16 @@ namespace MouthOfTruth.Editor
                         voiceSegmentCount: 2),
                     CancellationToken.None).GetAwaiter().GetResult();
 
-            if (transcriptFreeVoiceOnlyResult.VerdictKind == EVerdictKind.Uncertain)
+            if (transcriptFreeVoiceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
                 throw new InvalidOperationException(
-                    "Voice segments alone should still resolve to a deterministic verdict.");
+                    "Transcript-free voice input should remain UNCERTAIN without a face signal.");
             }
 
-            if (transcriptFreeVoiceOnlyResult.ReasonCodes.Contains("voice_only_judgment") == false)
+            if (transcriptFreeVoiceOnlyResult.ReasonCodes.Contains("insufficient_face_data") == false)
             {
                 throw new InvalidOperationException(
-                    "Transcript-free voice verdict did not preserve the voice_only_judgment reason code.");
+                    "Transcript-free voice input did not preserve the insufficient_face_data reason code.");
             }
 
             AnswerAnalysisResult firstStableResult = deterministicAnswerAnalysisClient.AnalyzeAsync(
@@ -442,10 +441,10 @@ namespace MouthOfTruth.Editor
                     voiceSegmentCount: 1),
                 CancellationToken.None).GetAwaiter().GetResult();
 
-            if (bridgeAnalysisResult.VerdictKind == EVerdictKind.Uncertain)
+            if (bridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
             {
                 throw new InvalidOperationException(
-                    "Expected the Python bridge to resolve a voice-only verdict.");
+                    "Python bridge should keep voice-only input UNCERTAIN without a face signal.");
             }
 
             if (bridgeAnalysisResult.AnswerTranscript != "Bridge validation transcript")
@@ -459,10 +458,10 @@ namespace MouthOfTruth.Editor
                     "Python bridge did not surface the insufficient_face_data reason code.");
             }
 
-            if (bridgeAnalysisResult.ReasonCodes.Contains("voice_only_judgment") == false)
+            if (bridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data") == false)
             {
                 throw new InvalidOperationException(
-                    "Python bridge did not surface the voice_only_judgment reason code.");
+                    "Python bridge should treat count-only voice input as insufficient evidence.");
             }
 
             AnswerAnalysisResult voiceMissingBridgeAnalysisResult = pythonBridgeAnalysisClient.AnalyzeAsync(
@@ -486,6 +485,13 @@ namespace MouthOfTruth.Editor
             {
                 throw new InvalidOperationException(
                     "Python bridge did not surface the insufficient_voice_data reason code.");
+            }
+
+            if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data")
+                == false)
+            {
+                throw new InvalidOperationException(
+                    "Python bridge should treat count-only face input as insufficient evidence.");
             }
         }
 

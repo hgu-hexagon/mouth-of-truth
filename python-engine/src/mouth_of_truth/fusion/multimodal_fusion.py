@@ -2,11 +2,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from mouth_of_truth.fusion.verdict_policy import get_verdict_from_score
+from mouth_of_truth.contracts.verdict_kind import VerdictKind
+from mouth_of_truth.fusion.verdict_policy import (
+    get_multimodal_verdict_from_score,
+    should_mark_discordant_multimodal_signal,
+)
 
 
-FACE_WEIGHT = 0.5
-VOICE_WEIGHT = 0.5
+FACE_WEIGHT = 0.75
+VOICE_WEIGHT = 0.25
+AMBIGUOUS_MULTIMODAL_SIGNAL_REASON_CODE = "ambiguous_multimodal_signal"
+DISCORDANT_MULTIMODAL_SIGNAL_REASON_CODE = "discordant_multimodal_signal"
 
 
 def clamp(value: float, min_value: float, max_value: float) -> float:
@@ -23,10 +29,21 @@ def fuse_face_and_voice(face_result: dict[str, Any], voice_result: dict[str, Any
         0.0,
         100.0,
     )
+    reason_codes: list[str] = []
+
+    if should_mark_discordant_multimodal_signal(face_score, voice_score, final_score):
+        verdict = VerdictKind.UNCERTAIN
+        reason_codes.append(DISCORDANT_MULTIMODAL_SIGNAL_REASON_CODE)
+    else:
+        verdict = get_multimodal_verdict_from_score(final_score)
+
+        if verdict == VerdictKind.UNCERTAIN:
+            reason_codes.append(AMBIGUOUS_MULTIMODAL_SIGNAL_REASON_CODE)
 
     return {
         "face_score": face_score,
         "voice_score": voice_score,
         "final_score": final_score,
-        "verdict": get_verdict_from_score(final_score),
+        "verdict": verdict,
+        "reason_codes": reason_codes,
     }

@@ -11,7 +11,6 @@ namespace MouthOfTruth.Game.Analysis
         private const int MINIMUM_VOICE_SEGMENT_COUNT = 1;
         private const string INSUFFICIENT_FACE_DATA_REASON_CODE = "insufficient_face_data";
         private const string INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data";
-        private const string VOICE_ONLY_JUDGMENT_REASON_CODE = "voice_only_judgment";
 
         public Task<AnswerAnalysisResult> AnalyzeAsync(
             AnswerAnalysisRequest answerAnalysisRequest,
@@ -37,7 +36,7 @@ namespace MouthOfTruth.Game.Analysis
                 reasonCodes.Add(INSUFFICIENT_VOICE_DATA_REASON_CODE);
             }
 
-            if (hasVoiceSignal == false)
+            if (hasFaceSignal == false || hasVoiceSignal == false)
             {
                 return Task.FromResult(
                     new AnswerAnalysisResult(
@@ -46,7 +45,7 @@ namespace MouthOfTruth.Game.Analysis
                         reasonCodes));
             }
 
-            int paritySeed = calculateStableParitySeed(
+            int paritySeed = CalculateStableParitySeed(
                 answerAnalysisRequest.QuestionDefinition.ID,
                 answerAnalysisRequest.AnswerTranscript);
 
@@ -55,11 +54,6 @@ namespace MouthOfTruth.Game.Analysis
                     ? EVerdictKind.True
                     : EVerdictKind.False;
 
-            if (hasFaceSignal == false)
-            {
-                reasonCodes.Add(VOICE_ONLY_JUDGMENT_REASON_CODE);
-            }
-
             return Task.FromResult(
                 new AnswerAnalysisResult(
                     verdictKind,
@@ -67,7 +61,7 @@ namespace MouthOfTruth.Game.Analysis
                     reasonCodes));
         }
 
-        private int calculateStableParitySeed(string questionID, string answerTranscript)
+        private int CalculateStableParitySeed(string questionID, string answerTranscript)
         {
             string combinedText = $"{questionID}|{answerTranscript.Trim()}";
             int checksum = 0;

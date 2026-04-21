@@ -3,14 +3,15 @@ from __future__ import annotations
 from mouth_of_truth.contracts.analysis_contracts import AnalysisResult
 from mouth_of_truth.contracts.verdict_kind import VerdictKind
 from mouth_of_truth.fusion.multimodal_fusion import fuse_face_and_voice
-from mouth_of_truth.fusion.verdict_policy import get_verdict_from_score
+from mouth_of_truth.fusion.verdict_policy import get_face_only_verdict_from_score
 
 
 MIN_FACE_RECOGNITIONS_FOR_JUDGMENT = 4
 MIN_VOICE_SEGMENTS_FOR_JUDGMENT = 1
 INSUFFICIENT_FACE_DATA_REASON_CODE = "insufficient_face_data"
 INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data"
-VOICE_ONLY_JUDGMENT_REASON_CODE = "voice_only_judgment"
+FACE_ONLY_HIGH_CONFIDENCE_REASON_CODE = "face_only_high_confidence"
+AMBIGUOUS_FACE_SIGNAL_REASON_CODE = "ambiguous_face_signal"
 
 
 def build_analysis_result(
@@ -24,26 +25,40 @@ def build_analysis_result(
     """Builds one final game-facing analysis result."""
     has_face_signal = face_recognition_count >= MIN_FACE_RECOGNITIONS_FOR_JUDGMENT
     has_voice_signal = voice_segment_count >= MIN_VOICE_SEGMENTS_FOR_JUDGMENT
-    reason_codes = build_missing_signal_reason_codes(has_face_signal, has_voice_signal)
+    has_face_evidence = has_face_signal and has_face_summary_signal(face_result)
+    has_voice_evidence = has_voice_signal and has_voice_summary_signal(voice_result)
+    reason_codes = build_missing_signal_reason_codes(has_face_evidence, has_voice_evidence)
 
-    if has_face_signal and has_voice_signal:
+    if has_face_evidence and has_voice_evidence:
         fused_result = fuse_face_and_voice(face_result, voice_result)
         return AnalysisResult(
             request_id=request_id,
             verdict=fused_result["verdict"],
             answer_transcript=answer_transcript,
-            reason_codes=[],
+            reason_codes=fused_result["reason_codes"],
         )
 
-    if has_voice_signal:
+    if has_face_evidence:
+        face_verdict = get_face_only_verdict_from_score(
+            float(face_result.get("avg_score", 0.0))
+        )
+
+        if face_verdict == VerdictKind.UNCERTAIN:
+            reason_codes = append_reason_code(
+                reason_codes,
+                AMBIGUOUS_FACE_SIGNAL_REASON_CODE,
+            )
+        else:
+            reason_codes = append_reason_code(
+                reason_codes,
+                FACE_ONLY_HIGH_CONFIDENCE_REASON_CODE,
+            )
+
         return AnalysisResult(
             request_id=request_id,
-            verdict=get_verdict_from_score(float(voice_result.get("avg_score", 0.0))),
+            verdict=face_verdict,
             answer_transcript=answer_transcript,
-            reason_codes=append_reason_code(
-                reason_codes,
-                VOICE_ONLY_JUDGMENT_REASON_CODE,
-            ),
+            reason_codes=reason_codes,
         )
 
     return AnalysisResult(
@@ -52,6 +67,16 @@ def build_analysis_result(
         answer_transcript=answer_transcript,
         reason_codes=reason_codes,
     )
+
+
+def has_face_summary_signal(face_result: dict) -> bool:
+    """Returns whether face analysis produced one usable session summary."""
+    return str(face_result.get("dominant_label", "N/A")).strip().upper() != "N/A"
+
+
+def has_voice_summary_signal(voice_result: dict) -> bool:
+    """Returns whether voice analysis produced one usable session summary."""
+    return str(voice_result.get("dominant_label", "N/A")).strip().upper() != "N/A"
 
 
 def build_missing_signal_reason_codes(

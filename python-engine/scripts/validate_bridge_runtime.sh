@@ -59,20 +59,14 @@ if [[ ! -f "${RESULT_FILE_PATH}" ]]; then
   exit 1
 fi
 
-if grep -q '"Verdict"[[:space:]]*:[[:space:]]*"UNCERTAIN"' "${RESULT_FILE_PATH}"; then
-  echo "Expected the bridge runtime validation to resolve a voice-only verdict." >&2
+if ! grep -q '"Verdict"[[:space:]]*:[[:space:]]*"UNCERTAIN"' "${RESULT_FILE_PATH}"; then
+  echo "Expected the bridge runtime validation to keep voice-only input UNCERTAIN." >&2
   cat "${RESULT_FILE_PATH}" >&2
   exit 1
 fi
 
 if ! grep -q '"insufficient_face_data"' "${RESULT_FILE_PATH}"; then
   echo "Expected insufficient_face_data reason code in bridge validation result." >&2
-  cat "${RESULT_FILE_PATH}" >&2
-  exit 1
-fi
-
-if ! grep -q '"voice_only_judgment"' "${RESULT_FILE_PATH}"; then
-  echo "Expected voice_only_judgment reason code in bridge validation result." >&2
   cat "${RESULT_FILE_PATH}" >&2
   exit 1
 fi

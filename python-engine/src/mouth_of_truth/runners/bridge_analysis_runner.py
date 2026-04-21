@@ -20,16 +20,7 @@ from mouth_of_truth.contracts.analysis_contracts import (
     read_analysis_request,
     write_analysis_result,
 )
-from mouth_of_truth.face.frame_directory_pipeline import (
-    analyze_face_frame_directory,
-    build_empty_face_analysis,
-)
 from mouth_of_truth.fusion.judgment_policy import build_analysis_result as build_fused_analysis_result
-from mouth_of_truth.speech.whisper_transcriber import WhisperTranscriber
-from mouth_of_truth.voice.voice_emotion_pipeline import (
-    build_empty_voice_analysis,
-    run_voice_emotion_pipeline,
-)
 
 
 def build_analysis_result(analysis_request: AnalysisRequest):
@@ -37,6 +28,8 @@ def build_analysis_result(analysis_request: AnalysisRequest):
     answer_transcript = analysis_request.answer_transcript.strip()
 
     if not answer_transcript and analysis_request.answer_audio_file_path.strip():
+        from mouth_of_truth.speech.whisper_transcriber import WhisperTranscriber
+
         whisper_transcriber = WhisperTranscriber()
         language_hint = detect_language_hint(analysis_request.question_text)
         answer_transcript = whisper_transcriber.transcribe_audio_file(
@@ -68,6 +61,11 @@ def run_once(request_file_path: str | Path, result_file_path: str | Path) -> Non
 
 def analyze_face_data(analysis_request: AnalysisRequest) -> dict:
     """Analyzes one saved face-frame directory, if it exists."""
+    from mouth_of_truth.face.frame_directory_pipeline import (
+        analyze_face_frame_directory,
+        build_empty_face_analysis,
+    )
+
     face_frames_directory_path = analysis_request.face_frames_directory_path.strip()
 
     if not face_frames_directory_path:
@@ -86,6 +84,11 @@ def analyze_face_data(analysis_request: AnalysisRequest) -> dict:
 
 def analyze_voice_data(analysis_request: AnalysisRequest) -> dict:
     """Analyzes one saved answer audio file, if it exists."""
+    from mouth_of_truth.voice.voice_emotion_pipeline import (
+        build_empty_voice_analysis,
+        run_voice_emotion_pipeline,
+    )
+
     answer_audio_file_path = analysis_request.answer_audio_file_path.strip()
 
     if not answer_audio_file_path:

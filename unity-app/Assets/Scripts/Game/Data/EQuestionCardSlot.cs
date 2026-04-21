@@ -1,5 +1,3 @@
-using System;
-
 namespace MouthOfTruth.Game.Data
 {
     public enum EQuestionCardSlot

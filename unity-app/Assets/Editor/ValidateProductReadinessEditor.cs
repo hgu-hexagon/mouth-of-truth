@@ -65,8 +65,7 @@ namespace MouthOfTruth.Editor
 
         private static void validateAssetPath(string assetPath, List<string> errors)
         {
-            if (AssetDatabase.IsValidFolder(assetPath)
-                || AssetDatabase.LoadAssetAtPath<Object>(assetPath) != null)
+            if (AssetDatabase.IsValidFolder(assetPath) || AssetDatabase.LoadAssetAtPath<Object>(assetPath) != null)
             {
                 return;
             }

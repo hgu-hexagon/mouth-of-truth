@@ -45,11 +45,7 @@ def calculate_voice_change_score(current_probs: list[float], average_probs: list
 
 def calculate_voice_suspicion_score(base_score: float, change_score: float) -> float:
     """Combines one base score and one change score into one final voice score."""
-    return _clamp(
-        (FINAL_BASE_WEIGHT * base_score) + (FINAL_CHANGE_WEIGHT * change_score),
-        0.0,
-        100.0,
-    )
+    return _clamp((FINAL_BASE_WEIGHT * base_score) + (FINAL_CHANGE_WEIGHT * change_score), 0.0, 100.0)
 
 
 def get_voice_status_text(score: float) -> str:

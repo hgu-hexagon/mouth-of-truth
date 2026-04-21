@@ -32,11 +32,9 @@ namespace MouthOfTruth.Editor
         [MenuItem("Mouth Of Truth/Build Windows Release")]
         public static void Run()
         {
-            if (BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64)
-                == false)
+            if (BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64) == false)
             {
-                throw new BuildFailedException(
-                    "Windows Build Support is not installed for the current Unity editor.");
+                throw new BuildFailedException("Windows Build Support is not installed for the current Unity editor.");
             }
 
             BuildMainSceneEditor.Run();
@@ -63,8 +61,7 @@ namespace MouthOfTruth.Editor
 
             if (buildReport.summary.result != BuildResult.Succeeded)
             {
-                throw new BuildFailedException(
-                    $"Windows release build failed with result {buildReport.summary.result}.");
+                throw new BuildFailedException($"Windows release build failed with result {buildReport.summary.result}.");
             }
 
             stageRuntimeSupport(runtimeRootPath, distributionRootPath);
@@ -117,8 +114,7 @@ namespace MouthOfTruth.Editor
             {
                 if (Directory.Exists(configuredPythonRuntimeRootPath) == false)
                 {
-                    throw new BuildFailedException(
-                        $"Configured Windows python runtime root does not exist: {configuredPythonRuntimeRootPath}");
+                    throw new BuildFailedException($"Configured Windows python runtime root does not exist: {configuredPythonRuntimeRootPath}");
                 }
 
                 return configuredPythonRuntimeRootPath;
@@ -150,8 +146,7 @@ namespace MouthOfTruth.Editor
 
             if (File.Exists(packageScriptPath) == false)
             {
-                throw new BuildFailedException(
-                    $"Windows python runtime packaging script is missing: {packageScriptPath}");
+                throw new BuildFailedException($"Windows python runtime packaging script is missing: {packageScriptPath}");
             }
 
             if (Application.platform != RuntimePlatform.WindowsEditor)

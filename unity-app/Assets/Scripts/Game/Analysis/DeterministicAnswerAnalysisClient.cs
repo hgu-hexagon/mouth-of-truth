@@ -46,14 +46,11 @@ namespace MouthOfTruth.Game.Analysis
                         reasonCodes));
             }
 
-            int paritySeed = CalculateStableParitySeed(
+            int paritySeed = calculateStableParitySeed(
                 answerAnalysisRequest.QuestionDefinition.ID,
                 answerAnalysisRequest.AnswerTranscript);
 
-            EVerdictKind verdictKind =
-                paritySeed % 2 == 0
-                    ? EVerdictKind.True
-                    : EVerdictKind.False;
+            EVerdictKind verdictKind = paritySeed % 2 == 0 ? EVerdictKind.True : EVerdictKind.False;
 
             return Task.FromResult(
                 new AnswerAnalysisResult(
@@ -62,7 +59,7 @@ namespace MouthOfTruth.Game.Analysis
                     reasonCodes));
         }
 
-        private int CalculateStableParitySeed(string questionID, string answerTranscript)
+        private int calculateStableParitySeed(string questionID, string answerTranscript)
         {
             string combinedText = $"{questionID}|{answerTranscript.Trim()}";
             int checksum = 0;

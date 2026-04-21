@@ -20,8 +20,7 @@ namespace MouthOfTruth.Game.App
         {
             string configuredRuntimeRootPath = Environment.GetEnvironmentVariable(RUNTIME_ROOT_ENVIRONMENT_VARIABLE_NAME);
 
-            if (string.IsNullOrWhiteSpace(configuredRuntimeRootPath) == false
-                && Directory.Exists(configuredRuntimeRootPath))
+            if (string.IsNullOrWhiteSpace(configuredRuntimeRootPath) == false && Directory.Exists(configuredRuntimeRootPath))
             {
                 return configuredRuntimeRootPath;
             }

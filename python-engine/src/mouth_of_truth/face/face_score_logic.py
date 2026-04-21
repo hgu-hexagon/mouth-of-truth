@@ -67,11 +67,7 @@ def calculate_base_score(prob_dict: dict[str, float]) -> float:
 
 def calculate_suspicion_score(base_score: float, change_score: float) -> float:
     """Combines one base score and one change score into one final face score."""
-    return _clamp(
-        (FINAL_BASE_WEIGHT * base_score) + (FINAL_CHANGE_WEIGHT * change_score),
-        0.0,
-        100.0,
-    )
+    return _clamp((FINAL_BASE_WEIGHT * base_score) + (FINAL_CHANGE_WEIGHT * change_score), 0.0, 100.0)
 
 
 def get_status_text(score: float) -> str:

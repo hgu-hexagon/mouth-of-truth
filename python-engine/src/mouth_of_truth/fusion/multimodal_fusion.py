@@ -29,11 +29,7 @@ def fuse_face_and_voice(
     """Fuses face and voice summaries into one final verdict payload."""
     face_score = float(face_result.get("avg_score", 0.0))
     voice_score = float(voice_result.get("avg_score", 0.0))
-    final_score = _clamp(
-        (face_score * FACE_WEIGHT) + (voice_score * VOICE_WEIGHT),
-        0.0,
-        100.0,
-    )
+    final_score = _clamp((face_score * FACE_WEIGHT) + (voice_score * VOICE_WEIGHT), 0.0, 100.0)
     reason_codes: list[str] = []
 
     if should_mark_discordant_multimodal_signal(face_score, voice_score, final_score):

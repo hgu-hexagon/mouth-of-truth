@@ -77,8 +77,8 @@ namespace MouthOfTruth.Editor
             Quaternion rotation,
             float fieldOfView)
         {
-            const int imageWidth = 1920;
-            const int imageHeight = 1080;
+            const int IMAGE_WIDTH = 1920;
+            const int IMAGE_HEIGHT = 1080;
 
             Vector3 originalPosition = sourceCamera.transform.position;
             Quaternion originalRotation = sourceCamera.transform.rotation;
@@ -86,8 +86,8 @@ namespace MouthOfTruth.Editor
             RenderTexture originalTargetTexture = sourceCamera.targetTexture;
             RenderTexture previousActiveRenderTexture = RenderTexture.active;
 
-            RenderTexture renderTexture = new RenderTexture(imageWidth, imageHeight, 24);
-            Texture2D texture = new Texture2D(imageWidth, imageHeight, TextureFormat.RGB24, false);
+            RenderTexture renderTexture = new RenderTexture(IMAGE_WIDTH, IMAGE_HEIGHT, 24);
+            Texture2D texture = new Texture2D(IMAGE_WIDTH, IMAGE_HEIGHT, TextureFormat.RGB24, false);
 
             try
             {
@@ -98,7 +98,7 @@ namespace MouthOfTruth.Editor
                 RenderTexture.active = renderTexture;
 
                 sourceCamera.Render();
-                texture.ReadPixels(new Rect(0.0f, 0.0f, imageWidth, imageHeight), 0, 0);
+                texture.ReadPixels(new Rect(0.0f, 0.0f, IMAGE_WIDTH, IMAGE_HEIGHT), 0, 0);
                 texture.Apply();
 
                 File.WriteAllBytes(outputFilePath, texture.EncodeToPNG());

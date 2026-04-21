@@ -56,8 +56,7 @@ namespace MouthOfTruth.Editor
 
             if (buildReport.summary.result != BuildResult.Succeeded)
             {
-                throw new BuildFailedException(
-                    $"Mac release build failed with result {buildReport.summary.result}.");
+                throw new BuildFailedException($"Mac release build failed with result {buildReport.summary.result}.");
             }
 
             stageRuntimeSupport(runtimeRootPath, distributionRootPath);
@@ -110,8 +109,7 @@ namespace MouthOfTruth.Editor
             {
                 if (Directory.Exists(configuredPythonRuntimeRootPath) == false)
                 {
-                    throw new BuildFailedException(
-                        $"Configured python runtime root does not exist: {configuredPythonRuntimeRootPath}");
+                    throw new BuildFailedException($"Configured python runtime root does not exist: {configuredPythonRuntimeRootPath}");
                 }
 
                 return configuredPythonRuntimeRootPath;
@@ -142,8 +140,7 @@ namespace MouthOfTruth.Editor
 
             if (File.Exists(packageScriptPath) == false)
             {
-                throw new BuildFailedException(
-                    $"Python runtime packaging script is missing: {packageScriptPath}");
+                throw new BuildFailedException($"Python runtime packaging script is missing: {packageScriptPath}");
             }
 
             using Process packageProcess = new Process();

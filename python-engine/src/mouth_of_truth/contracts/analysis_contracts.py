@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import json
 import os
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 
 from mouth_of_truth.contracts.verdict_kind import VerdictKind
@@ -50,8 +50,14 @@ def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
         question_id=payload["QuestionID"],
         question_text=payload["QuestionText"],
         answer_transcript=payload.get("AnswerTranscript", ""),
-        answer_audio_file_path=resolve_runtime_relative_path(file_path, payload.get("AnswerAudioFilePath", "")),
-        face_frames_directory_path=resolve_runtime_relative_path(file_path, payload.get("FaceFramesDirectoryPath", "")),
+        answer_audio_file_path=resolve_runtime_relative_path(
+            file_path,
+            payload.get("AnswerAudioFilePath", ""),
+        ),
+        face_frames_directory_path=resolve_runtime_relative_path(
+            file_path,
+            payload.get("FaceFramesDirectoryPath", ""),
+        ),
         face_frame_count=int(payload.get("FaceFrameCount", 0)),
         voice_segment_count=int(payload.get("VoiceSegmentCount", 0)),
         requested_at_utc=payload["RequestedAtUtc"],

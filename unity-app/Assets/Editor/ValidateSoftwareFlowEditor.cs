@@ -352,38 +352,38 @@ namespace MouthOfTruth.Editor
         {
             Vector2 handFrontPosition = new Vector2(0.0f, 0.0f);
             Vector2 handInnerPosition = new Vector2(0.0f, 180.0f);
-            const float mouthDiameterPixels = 420.0f;
+            const float MOUTH_DIAMETER_PIXELS = 420.0f;
 
             EHandAnchorState exactFrontState = MouthOfTruthGameView.EvaluateHandAnchorState(
                 handFrontPosition,
                 handFrontPosition,
                 handInnerPosition,
-                mouthDiameterPixels);
+                MOUTH_DIAMETER_PIXELS);
             EHandAnchorState exactInnerState = MouthOfTruthGameView.EvaluateHandAnchorState(
                 handInnerPosition,
                 handFrontPosition,
                 handInnerPosition,
-                mouthDiameterPixels);
+                MOUTH_DIAMETER_PIXELS);
             EHandAnchorState outsideState = MouthOfTruthGameView.EvaluateHandAnchorState(
                 new Vector2(92.0f, 86.0f),
                 handFrontPosition,
                 handInnerPosition,
-                mouthDiameterPixels);
+                MOUTH_DIAMETER_PIXELS);
             EHandAnchorState betweenAnchorsState = MouthOfTruthGameView.EvaluateHandAnchorState(
                 new Vector2(0.0f, 84.0f),
                 handFrontPosition,
                 handInnerPosition,
-                mouthDiameterPixels);
+                MOUTH_DIAMETER_PIXELS);
             bool answerHoldState = MouthOfTruthGameView.EvaluateAnswerHoldState(
                 new Vector2(0.0f, 84.0f),
                 handFrontPosition,
                 handInnerPosition,
-                mouthDiameterPixels);
+                MOUTH_DIAMETER_PIXELS);
             bool wideAnswerHoldState = MouthOfTruthGameView.EvaluateAnswerHoldState(
                 new Vector2(92.0f, 86.0f),
                 handFrontPosition,
                 handInnerPosition,
-                mouthDiameterPixels);
+                MOUTH_DIAMETER_PIXELS);
 
             if (exactFrontState != EHandAnchorState.AtFrontAnchor)
             {

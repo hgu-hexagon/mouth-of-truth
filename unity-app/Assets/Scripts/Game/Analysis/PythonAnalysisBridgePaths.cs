@@ -11,7 +11,7 @@ namespace MouthOfTruth.Game.Analysis
         private const string RESULT_FILE_NAME = "analysis_result.json";
         private const string PYTHON_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON";
         private const string PYTHON_MODULE_NAME = "mouth_of_truth.runners.bridge_analysis_runner";
-        private static readonly string[] sBundledPythonRelativePaths =
+        private static readonly string[] BUNDLED_PYTHON_RELATIVE_PATHS =
         {
             "python-runtime/bin/python",
             "python-runtime/python",
@@ -49,7 +49,7 @@ namespace MouthOfTruth.Game.Analysis
 
             string runtimeRootPath = MouthOfTruthRuntimePaths.GetRuntimeRootPath();
 
-            foreach (string bundledPythonRelativePath in sBundledPythonRelativePaths)
+            foreach (string bundledPythonRelativePath in BUNDLED_PYTHON_RELATIVE_PATHS)
             {
                 string bundledPythonPath = Path.Combine(runtimeRootPath, bundledPythonRelativePath);
 

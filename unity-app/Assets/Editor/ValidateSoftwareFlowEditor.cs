@@ -32,8 +32,7 @@ namespace MouthOfTruth.Editor
 
             if (errors.Count > 0)
             {
-                string errorMessage =
-                    "Mouth of Truth software flow validation failed:\n- "
+                string errorMessage = "Mouth of Truth software flow validation failed:\n- "
                     + string.Join("\n- ", errors);
                 throw new BuildFailedException(errorMessage);
             }
@@ -82,8 +81,7 @@ namespace MouthOfTruth.Editor
 
             if (recycledRoundSelection.QuestionsBySlot.Count != 3)
             {
-                throw new InvalidOperationException(
-                    "A recycled round did not contain three cards.");
+                throw new InvalidOperationException("A recycled round did not contain three cards.");
             }
         }
 
@@ -112,8 +110,7 @@ namespace MouthOfTruth.Editor
 
             if (earlySelection != null)
             {
-                throw new InvalidOperationException(
-                    "Card selection confirmed before dwell time was complete.");
+                throw new InvalidOperationException("Card selection confirmed before dwell time was complete.");
             }
 
             GameSessionSnapshot hoverSnapshot = gameStateMachine.CreateSnapshot();
@@ -128,8 +125,7 @@ namespace MouthOfTruth.Editor
 
             if (confirmedSelection != EQuestionCardSlot.CenterCard)
             {
-                throw new InvalidOperationException(
-                    "Card selection did not confirm the centered card.");
+                throw new InvalidOperationException("Card selection did not confirm the centered card.");
             }
 
             assertState(gameStateMachine, EGameFlowState.RevealingQuestionCard, "question reveal");
@@ -163,8 +159,7 @@ namespace MouthOfTruth.Editor
 
             if (shouldFinishAnswer)
             {
-                throw new InvalidOperationException(
-                    "Answer finished while speech was still active.");
+                throw new InvalidOperationException("Answer finished while speech was still active.");
             }
 
             GameSessionSnapshot answeringSnapshot = gameStateMachine.CreateSnapshot();
@@ -227,8 +222,7 @@ namespace MouthOfTruth.Editor
 
             if (timedOut == false)
             {
-                throw new InvalidOperationException(
-                    "Answer timeout did not trigger after 8 seconds.");
+                throw new InvalidOperationException("Answer timeout did not trigger after 8 seconds.");
             }
 
             assertState(gameStateMachine, EGameFlowState.AnalyzingAnswer, "timeout analysis");
@@ -269,8 +263,7 @@ namespace MouthOfTruth.Editor
             if (insufficientDataResult.ReasonCodes.Contains("insufficient_face_data") == false
                 || insufficientDataResult.ReasonCodes.Contains("insufficient_voice_data") == false)
             {
-                throw new InvalidOperationException(
-                    "Insufficient data reason codes were incomplete.");
+                throw new InvalidOperationException("Insufficient data reason codes were incomplete.");
             }
 
             AnswerAnalysisResult faceOnlyResult = runDeterministicAnalysis(
@@ -282,15 +275,13 @@ namespace MouthOfTruth.Editor
 
             if (faceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
-                throw new InvalidOperationException(
-                    "Face-only data should remain UNCERTAIN until voice input is present.");
+                throw new InvalidOperationException("Face-only data should remain UNCERTAIN until voice input is present.");
             }
 
             if (faceOnlyResult.ReasonCodes.Contains("insufficient_voice_data") == false)
             {
                 throw new InvalidOperationException(
-                    "Face-only deterministic analysis did not preserve "
-                    + "the insufficient_voice_data reason code.");
+                    "Face-only deterministic analysis did not preserve the insufficient_voice_data reason code.");
             }
 
             AnswerAnalysisResult voiceOnlyResult = runDeterministicAnalysis(
@@ -302,29 +293,25 @@ namespace MouthOfTruth.Editor
 
             if (voiceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
-                throw new InvalidOperationException(
-                    "Voice-only data should remain UNCERTAIN without a face signal.");
+                throw new InvalidOperationException("Voice-only data should remain UNCERTAIN without a face signal.");
             }
 
             if (voiceOnlyResult.ReasonCodes.Contains("insufficient_face_data") == false)
             {
                 throw new InvalidOperationException(
-                    "Voice-only deterministic analysis did not preserve "
-                    + "the insufficient_face_data reason code.");
+                    "Voice-only deterministic analysis did not preserve the insufficient_face_data reason code.");
             }
 
-            AnswerAnalysisResult transcriptFreeVoiceOnlyResult =
-                runDeterministicAnalysis(
-                    deterministicAnswerAnalysisClient,
-                    questionDefinition,
-                    string.Empty,
-                    faceFrameCount: 0,
-                    voiceSegmentCount: 2);
+            AnswerAnalysisResult transcriptFreeVoiceOnlyResult = runDeterministicAnalysis(
+                deterministicAnswerAnalysisClient,
+                questionDefinition,
+                string.Empty,
+                faceFrameCount: 0,
+                voiceSegmentCount: 2);
 
             if (transcriptFreeVoiceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
-                throw new InvalidOperationException(
-                    "Transcript-free voice input should remain UNCERTAIN without a face signal.");
+                throw new InvalidOperationException("Transcript-free voice input should remain UNCERTAIN without a face signal.");
             }
 
             if (transcriptFreeVoiceOnlyResult.ReasonCodes.Contains(
@@ -332,8 +319,7 @@ namespace MouthOfTruth.Editor
                 == false)
             {
                 throw new InvalidOperationException(
-                    "Transcript-free voice input did not preserve "
-                    + "the insufficient_face_data reason code.");
+                    "Transcript-free voice input did not preserve the insufficient_face_data reason code.");
             }
 
             AnswerAnalysisResult firstStableResult = runDeterministicAnalysis(
@@ -353,15 +339,12 @@ namespace MouthOfTruth.Editor
             if (firstStableResult.VerdictKind == EVerdictKind.Uncertain
                 || secondStableResult.VerdictKind == EVerdictKind.Uncertain)
             {
-                throw new InvalidOperationException(
-                    "Deterministic verdicts should resolve "
-                    + "when counts are sufficient.");
+                throw new InvalidOperationException("Deterministic verdicts should resolve when counts are sufficient.");
             }
 
             if (firstStableResult.VerdictKind == secondStableResult.VerdictKind)
             {
-                throw new InvalidOperationException(
-                    "Deterministic verdicts should differ for stable parity-changing transcripts.");
+                throw new InvalidOperationException("Deterministic verdicts should differ for stable parity-changing transcripts.");
             }
         }
 
@@ -404,42 +387,32 @@ namespace MouthOfTruth.Editor
 
             if (exactFrontState != EHandAnchorState.AtFrontAnchor)
             {
-                throw new InvalidOperationException(
-                    "Front anchor targeting no longer resolves "
-                    + "to AtFrontAnchor.");
+                throw new InvalidOperationException("Front anchor targeting no longer resolves to AtFrontAnchor.");
             }
 
             if (exactInnerState != EHandAnchorState.AtInnerAnchor)
             {
-                throw new InvalidOperationException(
-                    "Inner anchor targeting no longer resolves "
-                    + "to AtInnerAnchor.");
+                throw new InvalidOperationException("Inner anchor targeting no longer resolves to AtInnerAnchor.");
             }
 
             if (outsideState != EHandAnchorState.OutsideMouth)
             {
-                throw new InvalidOperationException(
-                    "Wide off-center pointer input is still accepted "
-                    + "as a mouth hit.");
+                throw new InvalidOperationException("Wide off-center pointer input is still accepted as a mouth hit.");
             }
 
             if (betweenAnchorsState != EHandAnchorState.OutsideMouth)
             {
-                throw new InvalidOperationException(
-                    "The corridor between the front and inner anchors "
-                    + "is too wide for reliable targeting.");
+                throw new InvalidOperationException("The corridor between the front and inner anchors is too wide for reliable targeting.");
             }
 
             if (answerHoldState == false)
             {
-                throw new InvalidOperationException(
-                    "Answer hold sustain no longer accepts a centered mouth-hold position.");
+                throw new InvalidOperationException("Answer hold sustain no longer accepts a centered mouth-hold position.");
             }
 
             if (wideAnswerHoldState)
             {
-                throw new InvalidOperationException(
-                    "Answer hold sustain accepted a pointer that is too far off-center.");
+                throw new InvalidOperationException("Answer hold sustain accepted a pointer that is too far off-center.");
             }
         }
 
@@ -448,8 +421,7 @@ namespace MouthOfTruth.Editor
             if (File.Exists(PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath()) == false
                 || Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath()) == false)
             {
-                throw new InvalidOperationException(
-                    "Python bridge runtime prerequisites are missing.");
+                throw new InvalidOperationException("Python bridge runtime prerequisites are missing.");
             }
 
             PythonBridgeAnalysisClient pythonBridgeAnalysisClient =
@@ -465,26 +437,22 @@ namespace MouthOfTruth.Editor
 
             if (bridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
             {
-                throw new InvalidOperationException(
-                    "Python bridge should keep voice-only input UNCERTAIN without a face signal.");
+                throw new InvalidOperationException("Python bridge should keep voice-only input UNCERTAIN without a face signal.");
             }
 
             if (bridgeAnalysisResult.AnswerTranscript != "Bridge validation transcript")
             {
-                throw new InvalidOperationException(
-                    "Python bridge did not preserve the provided transcript.");
+                throw new InvalidOperationException("Python bridge did not preserve the provided transcript.");
             }
 
             if (bridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data") == false)
             {
-                throw new InvalidOperationException(
-                    "Python bridge did not surface the insufficient_face_data reason code.");
+                throw new InvalidOperationException("Python bridge did not surface the insufficient_face_data reason code.");
             }
 
             if (bridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data") == false)
             {
-                throw new InvalidOperationException(
-                    "Python bridge should treat count-only voice input as insufficient evidence.");
+                throw new InvalidOperationException("Python bridge should treat count-only voice input as insufficient evidence.");
             }
 
             AnswerAnalysisResult voiceMissingBridgeAnalysisResult = runPythonBridgeAnalysis(
@@ -504,15 +472,13 @@ namespace MouthOfTruth.Editor
             if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data")
                 == false)
             {
-                throw new InvalidOperationException(
-                    "Python bridge did not surface the insufficient_voice_data reason code.");
+                throw new InvalidOperationException("Python bridge did not surface the insufficient_voice_data reason code.");
             }
 
             if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data")
                 == false)
             {
-                throw new InvalidOperationException(
-                    "Python bridge should treat count-only face input as insufficient evidence.");
+                throw new InvalidOperationException("Python bridge should treat count-only face input as insufficient evidence.");
             }
         }
 

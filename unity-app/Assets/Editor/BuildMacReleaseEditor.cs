@@ -16,8 +16,7 @@ namespace MouthOfTruth.Editor
         private const string DISTRIBUTION_ROOT_RELATIVE_PATH = "dist/macos/MouthOfTruth";
         private const string APPLICATION_NAME = "MouthOfTruth.app";
         private const string PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON_RUNTIME_ROOT";
-        private const string PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH =
-            "python-engine/scripts/package_python_runtime.sh";
+        private const string PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH = "python-engine/scripts/package_python_runtime.sh";
         private static readonly string[] DISTRIBUTION_FILE_NAMES_TO_REMOVE =
         {
             ".DS_Store",
@@ -90,8 +89,7 @@ namespace MouthOfTruth.Editor
                 Path.Combine(distributionPythonEngineRootPath, "data", "session-workspace"));
             ensureBridgeDirectory(Path.Combine(distributionRootPath, "bridge"));
 
-            string configuredPythonRuntimeRootPath =
-                System.Environment.GetEnvironmentVariable(PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME);
+            string configuredPythonRuntimeRootPath = System.Environment.GetEnvironmentVariable(PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME);
             string bundledPythonRuntimeRootPath = resolveBundledPythonRuntimeRootPath(
                 runtimeRootPath,
                 configuredPythonRuntimeRootPath);
@@ -130,8 +128,7 @@ namespace MouthOfTruth.Editor
 
             if (Directory.Exists(bundledPythonRuntimeRootPath) == false)
             {
-                throw new BuildFailedException(
-                    "Bundled python runtime could not be prepared for the release build.");
+                throw new BuildFailedException("Bundled python runtime could not be prepared for the release build.");
             }
 
             return bundledPythonRuntimeRootPath;

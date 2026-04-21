@@ -16,20 +16,13 @@ namespace MouthOfTruth.Editor
     public static class BuildMainSceneEditor
     {
         private const string MAIN_SCENE_PATH = "Assets/Scenes/Main.unity";
-        private const string DUNGEON_DEMO_SCENE_PATH =
-            "Assets/ThirdParty/Environment/DungeonModularPack/Scenes/DemoScene.unity";
-        private const string DUNGEON_WALL_MATERIAL_PATH =
-            "Assets/ThirdParty/Environment/DungeonModularPack/Materials/M_Wall.mat";
-        private const string GENERATED_MATERIAL_DIRECTORY_PATH =
-            "Assets/Materials/GeneratedEnvironment";
-        private const string TORCH_PREFAB_PATH =
-            "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Torch_B.prefab";
-        private const string ARCH_PREFAB_PATH =
-            "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Arch_A.prefab";
-        private const string RED_RUNNER_TEXTURE_PATH =
-            "Assets/StreamingAssets/art/environment/floor_red_carpet_runner.png";
-        private const string RED_RUNNER_MATERIAL_PATH =
-            "Assets/Materials/GeneratedEnvironment/M_FloorRedRunner.mat";
+        private const string DUNGEON_DEMO_SCENE_PATH = "Assets/ThirdParty/Environment/DungeonModularPack/Scenes/DemoScene.unity";
+        private const string DUNGEON_WALL_MATERIAL_PATH = "Assets/ThirdParty/Environment/DungeonModularPack/Materials/M_Wall.mat";
+        private const string GENERATED_MATERIAL_DIRECTORY_PATH = "Assets/Materials/GeneratedEnvironment";
+        private const string TORCH_PREFAB_PATH = "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Torch_B.prefab";
+        private const string ARCH_PREFAB_PATH = "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Arch_A.prefab";
+        private const string RED_RUNNER_TEXTURE_PATH = "Assets/StreamingAssets/art/environment/floor_red_carpet_runner.png";
+        private const string RED_RUNNER_MATERIAL_PATH = "Assets/Materials/GeneratedEnvironment/M_FloorRedRunner.mat";
         private static readonly string[] THIRD_PARTY_MODEL_DIRECTORIES =
         {
             "Assets/ThirdParty/Environment/DungeonModularPack/Meshes",
@@ -652,10 +645,8 @@ namespace MouthOfTruth.Editor
         {
             ensureFolderHierarchy(GENERATED_MATERIAL_DIRECTORY_PATH);
 
-            string sanitizedMaterialAssetPath =
-                $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
-            string existingMaterialAssetPath =
-                $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
+            string sanitizedMaterialAssetPath = $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
+            string existingMaterialAssetPath = $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
             Shader safeShader = Shader.Find("Universal Render Pipeline/Unlit")
                 ?? Shader.Find("Universal Render Pipeline/Lit")
                 ?? Shader.Find("Unlit/Texture")

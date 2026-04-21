@@ -16,14 +16,11 @@ namespace MouthOfTruth.Game.Data
 
             if (File.Exists(filePath) == false)
             {
-                throw new FileNotFoundException(
-                    "Question pool JSON file was not found.",
-                    filePath);
+                throw new FileNotFoundException("Question pool JSON file was not found.", filePath);
             }
 
             string jsonText = File.ReadAllText(filePath);
-            QuestionPoolJsonDocument questionPoolJsonDocument =
-                JsonUtility.FromJson<QuestionPoolJsonDocument>(jsonText);
+            QuestionPoolJsonDocument questionPoolJsonDocument = JsonUtility.FromJson<QuestionPoolJsonDocument>(jsonText);
 
             if (questionPoolJsonDocument == null || questionPoolJsonDocument.questions == null)
             {

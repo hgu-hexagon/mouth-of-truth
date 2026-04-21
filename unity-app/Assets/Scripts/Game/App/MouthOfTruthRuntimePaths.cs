@@ -18,8 +18,7 @@ namespace MouthOfTruth.Game.App
 
         public static string GetRuntimeRootPath()
         {
-            string configuredRuntimeRootPath =
-                Environment.GetEnvironmentVariable(RUNTIME_ROOT_ENVIRONMENT_VARIABLE_NAME);
+            string configuredRuntimeRootPath = Environment.GetEnvironmentVariable(RUNTIME_ROOT_ENVIRONMENT_VARIABLE_NAME);
 
             if (string.IsNullOrWhiteSpace(configuredRuntimeRootPath) == false
                 && Directory.Exists(configuredRuntimeRootPath))
@@ -35,8 +34,7 @@ namespace MouthOfTruth.Game.App
                 }
             }
 
-            DirectoryInfo unityProjectDirectoryInfo =
-                Directory.GetParent(Application.dataPath)
+            DirectoryInfo unityProjectDirectoryInfo = Directory.GetParent(Application.dataPath)
                 ?? new DirectoryInfo(Application.dataPath);
             return unityProjectDirectoryInfo.Parent?.FullName ?? unityProjectDirectoryInfo.FullName;
         }
@@ -85,8 +83,7 @@ namespace MouthOfTruth.Game.App
 
             foreach (string bridgeLauncherRelativePath in BRIDGE_LAUNCHER_RELATIVE_PATHS)
             {
-                string bridgeLauncherScriptPath =
-                    Path.Combine(candidateRuntimeRootPath, bridgeLauncherRelativePath);
+                string bridgeLauncherScriptPath = Path.Combine(candidateRuntimeRootPath, bridgeLauncherRelativePath);
 
                 if (File.Exists(bridgeLauncherScriptPath))
                 {

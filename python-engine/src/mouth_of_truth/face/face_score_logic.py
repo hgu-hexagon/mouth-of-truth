@@ -4,7 +4,14 @@ from collections import Counter, deque
 from typing import Any
 
 
-def clamp(value: float, min_value: float, max_value: float) -> float:
+BASE_TENSE_WEIGHT = 0.65
+BASE_MEDIUM_WEIGHT = 0.25
+BASE_STABLE_WEIGHT = 0.30
+FINAL_BASE_WEIGHT = 0.60
+FINAL_CHANGE_WEIGHT = 0.40
+
+
+def _clamp(value: float, min_value: float, max_value: float) -> float:
     """Clamps one floating-point value to the provided range."""
     return max(min_value, min(value, max_value))
 
@@ -37,7 +44,7 @@ def calculate_change_score(current_probs: list[float], average_probs: list[float
     for current_probability, average_probability in zip(current_probs, average_probs):
         difference_sum += abs(current_probability - average_probability)
 
-    return clamp(difference_sum * 100.0, 0.0, 100.0)
+    return _clamp(difference_sum * 100.0, 0.0, 100.0)
 
 
 def calculate_base_score(prob_dict: dict[str, float]) -> float:
@@ -50,13 +57,21 @@ def calculate_base_score(prob_dict: dict[str, float]) -> float:
         + prob_dict.get("anger", 0.0)
     )
 
-    score = 100.0 * (0.65 * tense_probability + 0.25 * medium_probability - 0.30 * stable_probability)
-    return clamp(score, 0.0, 100.0)
+    score = 100.0 * (
+        (BASE_TENSE_WEIGHT * tense_probability)
+        + (BASE_MEDIUM_WEIGHT * medium_probability)
+        - (BASE_STABLE_WEIGHT * stable_probability)
+    )
+    return _clamp(score, 0.0, 100.0)
 
 
 def calculate_suspicion_score(base_score: float, change_score: float) -> float:
     """Combines one base score and one change score into one final face score."""
-    return clamp((0.6 * base_score) + (0.4 * change_score), 0.0, 100.0)
+    return _clamp(
+        (FINAL_BASE_WEIGHT * base_score) + (FINAL_CHANGE_WEIGHT * change_score),
+        0.0,
+        100.0,
+    )
 
 
 def get_status_text(score: float) -> str:

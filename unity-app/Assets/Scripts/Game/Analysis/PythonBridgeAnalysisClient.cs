@@ -40,8 +40,7 @@ namespace MouthOfTruth.Game.Analysis
                     RequestedAtUtc = DateTime.UtcNow.ToString("O"),
                 };
 
-            string requestJson =
-                UnityEngine.JsonUtility.ToJson(bridgeAnalysisRequestFileData, true);
+            string requestJson = UnityEngine.JsonUtility.ToJson(bridgeAnalysisRequestFileData, true);
             File.WriteAllText(PythonAnalysisBridgePaths.GetRequestFilePath(), requestJson);
             deletePreviousResultIfPresent();
 
@@ -61,8 +60,7 @@ namespace MouthOfTruth.Game.Analysis
             if (bridgeAnalysisResultFileData == null
                 || bridgeAnalysisResultFileData.RequestID != requestID)
             {
-                throw new InvalidDataException(
-                    "Python analysis returned an unexpected request identifier.");
+                throw new InvalidDataException("Python analysis returned an unexpected request identifier.");
             }
 
             return new AnswerAnalysisResult(
@@ -89,29 +87,22 @@ namespace MouthOfTruth.Game.Analysis
         private async Task runPythonBridgeProcessAsync(CancellationToken cancellationToken)
         {
             string pythonInterpreterPath = PythonAnalysisBridgePaths.GetPythonInterpreterPath();
-            string bridgeLauncherScriptPath =
-                PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath();
+            string bridgeLauncherScriptPath = PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath();
             string requestFilePath = PythonAnalysisBridgePaths.GetRequestFilePath();
             string resultFilePath = PythonAnalysisBridgePaths.GetResultFilePath();
 
-            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false
-                && File.Exists(pythonInterpreterPath) == false)
+            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false && File.Exists(pythonInterpreterPath) == false)
             {
-                throw new FileNotFoundException(
-                    "The configured Python interpreter was not found.",
-                    pythonInterpreterPath);
+                throw new FileNotFoundException("The configured Python interpreter was not found.", pythonInterpreterPath);
             }
 
             if (File.Exists(bridgeLauncherScriptPath) == false)
             {
-                throw new FileNotFoundException(
-                    "The Python bridge launcher script was not found.",
-                    bridgeLauncherScriptPath);
+                throw new FileNotFoundException("The Python bridge launcher script was not found.", bridgeLauncherScriptPath);
             }
 
             using Process process = new Process();
-            bool useWindowsCommandShell =
-                Application.platform == RuntimePlatform.WindowsEditor
+            bool useWindowsCommandShell = Application.platform == RuntimePlatform.WindowsEditor
                 || Application.platform == RuntimePlatform.WindowsPlayer;
             process.StartInfo = new ProcessStartInfo
             {
@@ -127,8 +118,7 @@ namespace MouthOfTruth.Game.Analysis
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
-            process.StartInfo.Environment["PYTHONPATH"] =
-                PythonAnalysisBridgePaths.GetPythonModuleRootPath();
+            process.StartInfo.Environment["PYTHONPATH"] = PythonAnalysisBridgePaths.GetPythonModuleRootPath();
 
             if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false)
             {
@@ -157,8 +147,7 @@ namespace MouthOfTruth.Game.Analysis
                 {
                 }
 
-                throw new TimeoutException(
-                    "Timed out while waiting for the Python analysis process.");
+                throw new TimeoutException("Timed out while waiting for the Python analysis process.");
             }
 
             string standardOutput = await standardOutputTask.ConfigureAwait(false);
@@ -191,10 +180,8 @@ namespace MouthOfTruth.Game.Analysis
             }
 
             string normalizedPath = Path.GetFullPath(originalPath);
-            string runtimeRootPath =
-                Path.GetFullPath(MouthOfTruthRuntimePaths.GetRuntimeRootPath());
-            string runtimeRootWithSeparator =
-                runtimeRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            string runtimeRootPath = Path.GetFullPath(MouthOfTruthRuntimePaths.GetRuntimeRootPath());
+            string runtimeRootWithSeparator = runtimeRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                 + Path.DirectorySeparatorChar;
 
             if (normalizedPath.StartsWith(

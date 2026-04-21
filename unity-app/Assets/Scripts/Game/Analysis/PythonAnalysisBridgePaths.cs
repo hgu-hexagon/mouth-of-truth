@@ -40,8 +40,7 @@ namespace MouthOfTruth.Game.Analysis
 
         public static string GetPythonInterpreterPath()
         {
-            string configuredInterpreterPath =
-                System.Environment.GetEnvironmentVariable(PYTHON_ENVIRONMENT_VARIABLE_NAME);
+            string configuredInterpreterPath = System.Environment.GetEnvironmentVariable(PYTHON_ENVIRONMENT_VARIABLE_NAME);
 
             if (string.IsNullOrWhiteSpace(configuredInterpreterPath) == false)
             {
@@ -52,8 +51,7 @@ namespace MouthOfTruth.Game.Analysis
 
             foreach (string bundledPythonRelativePath in sBundledPythonRelativePaths)
             {
-                string bundledPythonPath =
-                    Path.Combine(runtimeRootPath, bundledPythonRelativePath);
+                string bundledPythonPath = Path.Combine(runtimeRootPath, bundledPythonRelativePath);
 
                 if (File.Exists(bundledPythonPath))
                 {
@@ -66,8 +64,7 @@ namespace MouthOfTruth.Game.Analysis
 
         public static string GetBridgeLauncherScriptPath()
         {
-            string launcherFileName =
-                Application.platform == RuntimePlatform.WindowsEditor
+            string launcherFileName = Application.platform == RuntimePlatform.WindowsEditor
                 || Application.platform == RuntimePlatform.WindowsPlayer
                     ? "run_bridge_analysis.bat"
                     : "run_bridge_analysis.sh";

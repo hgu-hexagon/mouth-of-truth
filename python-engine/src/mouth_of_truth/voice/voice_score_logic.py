@@ -4,7 +4,14 @@ from collections import Counter
 from typing import Any
 
 
-def clamp(value: float, min_value: float, max_value: float) -> float:
+BASE_TENSE_WEIGHT = 0.60
+BASE_MEDIUM_WEIGHT = 0.25
+BASE_STABLE_WEIGHT = 0.25
+FINAL_BASE_WEIGHT = 0.65
+FINAL_CHANGE_WEIGHT = 0.35
+
+
+def _clamp(value: float, min_value: float, max_value: float) -> float:
     """Clamps one floating-point value to the provided range."""
     return max(min_value, min(value, max_value))
 
@@ -15,8 +22,12 @@ def calculate_voice_base_score(prob_dict: dict[str, float]) -> float:
     medium_probability = prob_dict.get("sad", 0.0) + prob_dict.get("exc", 0.0)
     tense_probability = prob_dict.get("ang", 0.0) + prob_dict.get("fru", 0.0)
 
-    score = 100.0 * (0.60 * tense_probability + 0.25 * medium_probability - 0.25 * stable_probability)
-    return clamp(score, 0.0, 100.0)
+    score = 100.0 * (
+        (BASE_TENSE_WEIGHT * tense_probability)
+        + (BASE_MEDIUM_WEIGHT * medium_probability)
+        - (BASE_STABLE_WEIGHT * stable_probability)
+    )
+    return _clamp(score, 0.0, 100.0)
 
 
 def calculate_voice_change_score(current_probs: list[float], average_probs: list[float]) -> float:
@@ -29,12 +40,16 @@ def calculate_voice_change_score(current_probs: list[float], average_probs: list
     for current_probability, average_probability in zip(current_probs, average_probs):
         difference_sum += abs(current_probability - average_probability)
 
-    return clamp(difference_sum * 100.0, 0.0, 100.0)
+    return _clamp(difference_sum * 100.0, 0.0, 100.0)
 
 
 def calculate_voice_suspicion_score(base_score: float, change_score: float) -> float:
     """Combines one base score and one change score into one final voice score."""
-    return clamp((0.65 * base_score) + (0.35 * change_score), 0.0, 100.0)
+    return _clamp(
+        (FINAL_BASE_WEIGHT * base_score) + (FINAL_CHANGE_WEIGHT * change_score),
+        0.0,
+        100.0,
+    )
 
 
 def get_voice_status_text(score: float) -> str:

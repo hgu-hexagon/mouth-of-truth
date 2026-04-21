@@ -292,8 +292,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     selectedCardView.SetScale(Mathf.Lerp(1.22f, 1.26f, easedProgress));
                 });
 
-            float cardFrontReadHoldDurationSeconds =
-                getCardFrontReadHoldDurationSeconds(questionDefinition.Text);
+            float cardFrontReadHoldDurationSeconds = getCardFrontReadHoldDurationSeconds(questionDefinition.Text);
             await animateOverTimeAsync(
                 cardFrontReadHoldDurationSeconds,
                 progress =>

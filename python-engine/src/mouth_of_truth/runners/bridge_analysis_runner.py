@@ -46,14 +46,8 @@ def _build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
 
     face_analysis = _analyze_face_data(analysis_request)
     voice_analysis = _analyze_voice_data(analysis_request)
-    face_recognition_count = _resolve_face_recognition_count(
-        analysis_request,
-        face_analysis,
-    )
-    voice_segment_count = _resolve_voice_segment_count(
-        analysis_request,
-        voice_analysis,
-    )
+    face_recognition_count = _resolve_face_recognition_count(analysis_request, face_analysis)
+    voice_segment_count = _resolve_voice_segment_count(analysis_request, voice_analysis)
 
     return build_fused_analysis_result(
         request_id=analysis_request.request_id,

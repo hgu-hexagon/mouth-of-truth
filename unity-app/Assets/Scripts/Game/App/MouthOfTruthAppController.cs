@@ -21,10 +21,8 @@ namespace MouthOfTruth.Game.App
     public class MouthOfTruthAppController : MonoBehaviour
     {
         private const float ANSWER_HOLD_LOSS_GRACE_SECONDS = 0.35f;
-        private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME =
-            "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
-        private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME =
-            "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
+        private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
+        private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
 
         private MouthOfTruthGameView mGameView;
         private MouthOfTruthGameStateMachine mGameStateMachine;
@@ -163,8 +161,7 @@ namespace MouthOfTruth.Game.App
                 Application.streamingAssetsPath,
                 "questions",
                 "question_pool.json");
-            IReadOnlyList<QuestionDefinition> questionDefinitions =
-                QuestionPoolLoader.LoadQuestionDefinitions(questionPoolFilePath);
+            IReadOnlyList<QuestionDefinition> questionDefinitions = QuestionPoolLoader.LoadQuestionDefinitions(questionPoolFilePath);
             QuestionDeckService questionDeckService = new QuestionDeckService(questionDefinitions);
             CardDwellSelectionTracker cardDwellSelectionTracker = new CardDwellSelectionTracker();
             AnswerCollectionPolicy answerCollectionPolicy = new AnswerCollectionPolicy();
@@ -210,10 +207,10 @@ namespace MouthOfTruth.Game.App
 
         private void updateCardSelection(Vector2? pointerScreenPosition)
         {
-            EQuestionCardSlot? hoveredQuestionCardSlot =
-                mGameView.GetHoveredQuestionCardSlot(pointerScreenPosition);
-            EQuestionCardSlot? confirmedQuestionCardSlot =
-                mGameStateMachine.UpdateCardSelection(hoveredQuestionCardSlot, Time.deltaTime);
+            EQuestionCardSlot? hoveredQuestionCardSlot = mGameView.GetHoveredQuestionCardSlot(pointerScreenPosition);
+            EQuestionCardSlot? confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(
+                hoveredQuestionCardSlot,
+                Time.deltaTime);
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
 
             float hoverProgress = hoveredQuestionCardSlot == null
@@ -237,8 +234,7 @@ namespace MouthOfTruth.Game.App
         {
             EHandAnchorState handAnchorState = mGameView.GetHandAnchorState(pointerScreenPosition);
 
-            bool canStartInsertion =
-                mLastObservedHandAnchorState == EHandAnchorState.OutsideMouth
+            bool canStartInsertion = mLastObservedHandAnchorState == EHandAnchorState.OutsideMouth
                 && handAnchorState != EHandAnchorState.OutsideMouth;
 
             if (canStartInsertion == false)
@@ -302,8 +298,7 @@ namespace MouthOfTruth.Game.App
                 return false;
             }
 
-            EUiActionTarget? hoveredUiActionTarget =
-                mGameView.GetHoveredUiActionTarget(pointerScreenPosition);
+            EUiActionTarget? hoveredUiActionTarget = mGameView.GetHoveredUiActionTarget(pointerScreenPosition);
             EUiActionTarget? confirmedUiActionTarget = mUiActionDwellSelectionTracker
                 .UpdateHoveredTarget(hoveredUiActionTarget, Time.deltaTime);
             float hoverProgress = hoveredUiActionTarget == null
@@ -674,8 +669,7 @@ namespace MouthOfTruth.Game.App
             try
             {
                 string outputDirectoryPath =
-                    Environment.GetEnvironmentVariable(
-                        PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME);
+                    Environment.GetEnvironmentVariable(PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME);
 
                 if (string.IsNullOrWhiteSpace(outputDirectoryPath))
                 {

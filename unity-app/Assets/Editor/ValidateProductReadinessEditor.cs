@@ -16,10 +16,8 @@ namespace MouthOfTruth.Editor
     public static class ValidateProductReadinessEditor
     {
         private const string MAIN_SCENE_PATH = "Assets/Scenes/Main.unity";
-        private const string DUNGEON_ROOT_PATH =
-            "Assets/ThirdParty/Environment/DungeonModularPack";
-        private const string CARPET_ROOT_PATH =
-            "Assets/ThirdParty/Environment/PersianCarpetUrp";
+        private const string DUNGEON_ROOT_PATH = "Assets/ThirdParty/Environment/DungeonModularPack";
+        private const string CARPET_ROOT_PATH = "Assets/ThirdParty/Environment/PersianCarpetUrp";
 
         [MenuItem("Mouth Of Truth/Validate Product Readiness")]
         public static void Run()
@@ -50,8 +48,7 @@ namespace MouthOfTruth.Editor
 
             if (errors.Count > 0)
             {
-                string errorMessage =
-                    "Mouth of Truth product readiness validation failed:\n- "
+                string errorMessage = "Mouth of Truth product readiness validation failed:\n- "
                     + string.Join("\n- ", errors);
                 throw new BuildFailedException(errorMessage);
             }
@@ -68,7 +65,8 @@ namespace MouthOfTruth.Editor
 
         private static void validateAssetPath(string assetPath, List<string> errors)
         {
-            if (AssetDatabase.IsValidFolder(assetPath) || AssetDatabase.LoadAssetAtPath<Object>(assetPath) != null)
+            if (AssetDatabase.IsValidFolder(assetPath)
+                || AssetDatabase.LoadAssetAtPath<Object>(assetPath) != null)
             {
                 return;
             }
@@ -133,8 +131,7 @@ namespace MouthOfTruth.Editor
                 return;
             }
 
-            IReadOnlyList<QuestionDefinition> questionDefinitions =
-                QuestionPoolLoader.LoadQuestionDefinitions(questionPoolFilePath);
+            IReadOnlyList<QuestionDefinition> questionDefinitions = QuestionPoolLoader.LoadQuestionDefinitions(questionPoolFilePath);
 
             if (questionDefinitions.Count < 3)
             {
@@ -154,8 +151,7 @@ namespace MouthOfTruth.Editor
                 errors.Add($"Python bridge launcher script is missing: {bridgeLauncherScriptPath}");
             }
 
-            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false
-                && File.Exists(pythonInterpreterPath) == false)
+            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false && File.Exists(pythonInterpreterPath) == false)
             {
                 errors.Add($"Python interpreter path is missing: {pythonInterpreterPath}");
             }
@@ -212,8 +208,7 @@ namespace MouthOfTruth.Editor
                 errors.Add("Main scene is missing EventSystem.");
             }
 
-            CardPresentationAnchorSet cardPresentationAnchorSet =
-                Object.FindAnyObjectByType<CardPresentationAnchorSet>();
+            CardPresentationAnchorSet cardPresentationAnchorSet = Object.FindAnyObjectByType<CardPresentationAnchorSet>();
 
             if (cardPresentationAnchorSet == null || cardPresentationAnchorSet.HasRequiredAnchors() == false)
             {

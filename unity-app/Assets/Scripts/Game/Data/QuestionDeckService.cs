@@ -27,8 +27,7 @@ namespace MouthOfTruth.Game.Data
 
             if (mAllEnabledQuestionDefinitions.Count < DEFAULT_ROUND_SIZE)
             {
-                throw new InvalidOperationException(
-                    "At least three enabled questions are required to start the game.");
+                throw new InvalidOperationException("At least three enabled questions are required to start the game.");
             }
 
             mRandom = randomSeed.HasValue

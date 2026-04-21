@@ -11,10 +11,8 @@ namespace MouthOfTruth.Editor
     public static class ConfigureUniversalRenderPipelineEditor
     {
         private const string SETTINGS_DIRECTORY_PATH = "Assets/Settings/Rendering";
-        private const string PIPELINE_ASSET_PATH =
-            SETTINGS_DIRECTORY_PATH + "/MouthOfTruthUniversalRenderPipeline.asset";
-        private const string RENDERER_ASSET_PATH =
-            SETTINGS_DIRECTORY_PATH + "/MouthOfTruthUniversalRenderer.asset";
+        private const string PIPELINE_ASSET_PATH = SETTINGS_DIRECTORY_PATH + "/MouthOfTruthUniversalRenderPipeline.asset";
+        private const string RENDERER_ASSET_PATH = SETTINGS_DIRECTORY_PATH + "/MouthOfTruthUniversalRenderer.asset";
 
         [MenuItem("Mouth Of Truth/Configure Universal Render Pipeline")]
         public static void Run()
@@ -93,12 +91,10 @@ namespace MouthOfTruth.Editor
 
             if (getDefaultPostProcessDataMethod == null)
             {
-                throw new InvalidOperationException(
-                    "Unable to locate URP default post-process data provider.");
+                throw new InvalidOperationException("Unable to locate URP default post-process data provider.");
             }
 
-            rendererData.postProcessData =
-                getDefaultPostProcessDataMethod.Invoke(null, null) as PostProcessData;
+            rendererData.postProcessData = getDefaultPostProcessDataMethod.Invoke(null, null) as PostProcessData;
         }
 
         private static void ensurePipelineAssetConfiguration(
@@ -108,13 +104,11 @@ namespace MouthOfTruth.Editor
             ResourceReloader.ReloadAllNullIn(pipelineAsset, UniversalRenderPipelineAsset.packagePath);
 
             SerializedObject serializedPipelineAsset = new SerializedObject(pipelineAsset);
-            SerializedProperty rendererDataListProperty =
-                serializedPipelineAsset.FindProperty("m_RendererDataList");
+            SerializedProperty rendererDataListProperty = serializedPipelineAsset.FindProperty("m_RendererDataList");
 
             if (rendererDataListProperty == null)
             {
-                throw new InvalidOperationException(
-                    "Unable to configure URP renderer data list on the project pipeline asset.");
+                throw new InvalidOperationException("Unable to configure URP renderer data list on the project pipeline asset.");
             }
 
             if (rendererDataListProperty.arraySize == 0)
@@ -124,8 +118,7 @@ namespace MouthOfTruth.Editor
 
             rendererDataListProperty.GetArrayElementAtIndex(0).objectReferenceValue = rendererData;
 
-            SerializedProperty defaultRendererIndexProperty =
-                serializedPipelineAsset.FindProperty("m_DefaultRendererIndex");
+            SerializedProperty defaultRendererIndexProperty = serializedPipelineAsset.FindProperty("m_DefaultRendererIndex");
 
             if (defaultRendererIndexProperty != null)
             {
@@ -140,14 +133,11 @@ namespace MouthOfTruth.Editor
         {
             Type globalSettingsType = typeof(UniversalRenderPipelineAsset).Assembly.GetType(
                 "UnityEngine.Rendering.Universal.UniversalRenderPipelineGlobalSettings");
-            MethodInfo ensureMethod = globalSettingsType?.GetMethod(
-                "Ensure",
-                BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo ensureMethod = globalSettingsType?.GetMethod("Ensure", BindingFlags.Static | BindingFlags.NonPublic);
 
             if (ensureMethod == null)
             {
-                throw new InvalidOperationException(
-                    "Unable to locate URP global settings Ensure method.");
+                throw new InvalidOperationException("Unable to locate URP global settings Ensure method.");
             }
 
             ensureMethod.Invoke(null, new object[] { true });

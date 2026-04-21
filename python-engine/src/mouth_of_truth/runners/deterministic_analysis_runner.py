@@ -23,10 +23,7 @@ def build_deterministic_analysis_result(request_file_path: str | Path) -> Analys
 
     has_face_signal = analysis_request.face_frame_count >= MINIMUM_FACE_RECOGNITION_COUNT
     has_voice_signal = analysis_request.voice_segment_count >= MINIMUM_VOICE_SEGMENT_COUNT
-    reason_codes = _build_missing_signal_reason_codes(
-        has_face_signal,
-        has_voice_signal,
-    )
+    reason_codes = _build_missing_signal_reason_codes(has_face_signal, has_voice_signal)
 
     if has_face_signal is False or has_voice_signal is False:
         return AnalysisResult(

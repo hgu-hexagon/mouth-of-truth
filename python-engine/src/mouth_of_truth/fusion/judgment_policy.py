@@ -31,16 +31,10 @@ def build_analysis_result(
     has_voice_signal = voice_segment_count >= MIN_VOICE_SEGMENTS_FOR_JUDGMENT
     has_face_evidence = has_face_signal and _has_face_summary_signal(face_result)
     has_voice_evidence = has_voice_signal and _has_voice_summary_signal(voice_result)
-    reason_codes = _build_missing_signal_reason_codes(
-        has_face_evidence,
-        has_voice_evidence,
-    )
+    reason_codes = _build_missing_signal_reason_codes(has_face_evidence, has_voice_evidence)
 
     if has_face_evidence and has_voice_evidence:
-        fused_result: FusedVerdictPayload = fuse_face_and_voice(
-            face_result,
-            voice_result,
-        )
+        fused_result: FusedVerdictPayload = fuse_face_and_voice(face_result, voice_result)
         return AnalysisResult(
             request_id=request_id,
             verdict=fused_result["verdict"],
@@ -49,20 +43,12 @@ def build_analysis_result(
         )
 
     if has_face_evidence:
-        face_verdict = get_face_only_verdict_from_score(
-            float(face_result.get("avg_score", 0.0))
-        )
+        face_verdict = get_face_only_verdict_from_score(float(face_result.get("avg_score", 0.0)))
 
         if face_verdict == VerdictKind.UNCERTAIN:
-            reason_codes = _append_reason_code(
-                reason_codes,
-                AMBIGUOUS_FACE_SIGNAL_REASON_CODE,
-            )
+            reason_codes = _append_reason_code(reason_codes, AMBIGUOUS_FACE_SIGNAL_REASON_CODE)
         else:
-            reason_codes = _append_reason_code(
-                reason_codes,
-                FACE_ONLY_HIGH_CONFIDENCE_REASON_CODE,
-            )
+            reason_codes = _append_reason_code(reason_codes, FACE_ONLY_HIGH_CONFIDENCE_REASON_CODE)
 
         return AnalysisResult(
             request_id=request_id,

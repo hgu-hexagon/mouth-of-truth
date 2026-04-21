@@ -15,10 +15,8 @@ namespace MouthOfTruth.Editor
         private const string MAIN_SCENE_PATH = "Assets/Scenes/Main.unity";
         private const string DISTRIBUTION_ROOT_RELATIVE_PATH = "dist/windows/MouthOfTruth";
         private const string APPLICATION_NAME = "MouthOfTruth.exe";
-        private const string PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME =
-            "MOUTH_OF_TRUTH_WINDOWS_PYTHON_RUNTIME_ROOT";
-        private const string PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH =
-            "python-engine/scripts/package_python_runtime.ps1";
+        private const string PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_WINDOWS_PYTHON_RUNTIME_ROOT";
+        private const string PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH = "python-engine/scripts/package_python_runtime.ps1";
         private static readonly string[] DISTRIBUTION_FILE_NAMES_TO_REMOVE =
         {
             ".DS_Store",
@@ -98,8 +96,7 @@ namespace MouthOfTruth.Editor
                 Path.Combine(distributionPythonEngineRootPath, "data", "session-workspace"));
             ensureBridgeDirectory(Path.Combine(distributionRootPath, "bridge"));
 
-            string configuredPythonRuntimeRootPath =
-                Environment.GetEnvironmentVariable(PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME);
+            string configuredPythonRuntimeRootPath = Environment.GetEnvironmentVariable(PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME);
             string bundledPythonRuntimeRootPath = resolveBundledPythonRuntimeRootPath(
                 runtimeRootPath,
                 configuredPythonRuntimeRootPath);
@@ -178,8 +175,7 @@ namespace MouthOfTruth.Editor
 
             if (packageProcess.Start() == false)
             {
-                throw new BuildFailedException(
-                    "Failed to start the Windows python runtime packaging process.");
+                throw new BuildFailedException("Failed to start the Windows python runtime packaging process.");
             }
 
             string standardOutput = packageProcess.StandardOutput.ReadToEnd();

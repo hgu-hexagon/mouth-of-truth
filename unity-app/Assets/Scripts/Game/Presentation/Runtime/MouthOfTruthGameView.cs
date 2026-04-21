@@ -30,6 +30,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.09f;
         private const float ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR = 0.12f;
         private const float ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR = 0.05f;
+        private const float CARD_FRONT_READ_HOLD_MINIMUM_SECONDS = 1.25f;
+        private const float CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS = 2.15f;
+        private const float CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS = 0.0125f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -287,6 +290,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 {
                     float easedProgress = easeOut(progress);
                     selectedCardView.SetScale(Mathf.Lerp(1.22f, 1.26f, easedProgress));
+                });
+
+            float cardFrontReadHoldDurationSeconds =
+                getCardFrontReadHoldDurationSeconds(questionDefinition.Text);
+            await animateOverTimeAsync(
+                cardFrontReadHoldDurationSeconds,
+                progress =>
+                {
+                    float pulse = Mathf.Sin(progress * Mathf.PI) * 0.012f;
+                    selectedCardView.SetScale(1.26f + pulse);
                 });
 
             prepareCardLaunchPresentation();
@@ -1738,6 +1751,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             updateAction?.Invoke(1.0f);
+        }
+
+        private static float getCardFrontReadHoldDurationSeconds(string questionText)
+        {
+            int questionLength = string.IsNullOrWhiteSpace(questionText)
+                ? 0
+                : questionText.Trim().Length;
+            float weightedDuration = questionLength * CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS;
+            return Mathf.Clamp(
+                CARD_FRONT_READ_HOLD_MINIMUM_SECONDS + weightedDuration,
+                CARD_FRONT_READ_HOLD_MINIMUM_SECONDS,
+                CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS);
         }
 
         private float easeOut(float progress)

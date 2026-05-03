@@ -399,7 +399,7 @@ namespace MouthOfTruth.Game.App
             mGameStateMachine.MarkQuestionRevealCompleted();
             mGameView.ShowNarratingQuestion(selectedQuestionDefinition.Text);
             await mQuestionNarrationService.SpeakQuestionAsync(
-                selectedQuestionDefinition.Text,
+                selectedQuestionDefinition,
                 mLifecycleCancellationTokenSource.Token);
             mGameStateMachine.MarkQuestionNarrationCompleted();
             mGameView.ShowAwaitingHandInsertion();
@@ -464,11 +464,14 @@ namespace MouthOfTruth.Game.App
             mIsTransitionBusy = true;
             mGameView.ShowAnalyzing();
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
-            AnswerCaptureResult answerCaptureResult = await mAnswerCaptureInputAdapter.CompleteCollectionAsync(
+            Task<AnswerCaptureResult> answerCaptureTask = mAnswerCaptureInputAdapter.CompleteCollectionAsync(
                 snapshot.SelectedQuestionDefinition?.ID,
                 mLifecycleCancellationTokenSource.Token);
-            FaceCaptureResult faceCaptureResult = await mFaceCaptureInputAdapter.CompleteCollectionAsync(
+            Task<FaceCaptureResult> faceCaptureTask = mFaceCaptureInputAdapter.CompleteCollectionAsync(
                 mLifecycleCancellationTokenSource.Token);
+            await Task.WhenAll(answerCaptureTask, faceCaptureTask);
+            AnswerCaptureResult answerCaptureResult = answerCaptureTask.Result;
+            FaceCaptureResult faceCaptureResult = faceCaptureTask.Result;
 
             if (string.IsNullOrWhiteSpace(answerCaptureResult.TranscriptText) == false)
             {
@@ -544,10 +547,19 @@ namespace MouthOfTruth.Game.App
 
         private IQuestionNarrationService createNarrationService()
         {
-            return Application.platform == RuntimePlatform.OSXEditor
+            IQuestionNarrationService fallbackNarrationService = Application.platform == RuntimePlatform.OSXEditor
                 || Application.platform == RuntimePlatform.OSXPlayer
                 ? new MacOsQuestionNarrationService()
                 : new SilentQuestionNarrationService();
+
+            string questionAudioDirectoryPath = Path.Combine(
+                Application.streamingAssetsPath,
+                "audio",
+                "questions");
+
+            return new PrerecordedQuestionNarrationService(
+                questionAudioDirectoryPath,
+                fallbackNarrationService);
         }
 
         private IAnswerAnalysisClient createAnalysisClient()

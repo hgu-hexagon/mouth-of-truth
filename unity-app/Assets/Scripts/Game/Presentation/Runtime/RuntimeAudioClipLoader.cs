@@ -57,6 +57,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             return fileExtension switch
             {
+                ".mp3" => AudioType.MPEG,
                 ".wav" => AudioType.WAV,
                 ".ogg" => AudioType.OGGVORBIS,
                 _ => AudioType.UNKNOWN,

@@ -18,8 +18,7 @@ namespace MouthOfTruth.Editor
         private const string MAIN_SCENE_PATH = "Assets/Scenes/Main.unity";
         private const string DUNGEON_ROOT_PATH = "Assets/ThirdParty/Environment/DungeonModularPack";
         private const string CARPET_ROOT_PATH = "Assets/ThirdParty/Environment/PersianCarpetUrp";
-        private const string UI_FONT_PATH = "Assets/Resources/Fonts/JuliusSansOne-Regular.ttf";
-        private const string KOREAN_FALLBACK_FONT_PATH = "Assets/Resources/Fonts/NotoSansCJKkr-Regular.otf";
+        private const string UI_FONT_PATH = "Assets/Resources/Fonts/GowunDodum-Regular.ttf";
 
         [MenuItem("Mouth Of Truth/Validate Product Readiness")]
         public static void Run()
@@ -43,7 +42,6 @@ namespace MouthOfTruth.Editor
             validateAssetPath(DUNGEON_ROOT_PATH, errors);
             validateAssetPath(CARPET_ROOT_PATH, errors);
             validateAssetPath(UI_FONT_PATH, errors);
-            validateAssetPath(KOREAN_FALLBACK_FONT_PATH, errors);
             validateStreamingAssets(errors);
             validateQuestionPool(errors);
             validatePythonBridge(errors);
@@ -144,6 +142,30 @@ namespace MouthOfTruth.Editor
             {
                 errors.Add(
                     $"Question pool must contain at least three enabled questions. Current count: {questionDefinitions.Count}");
+            }
+
+            validateQuestionNarrationAudio(questionDefinitions, errors);
+        }
+
+        private static void validateQuestionNarrationAudio(
+            IReadOnlyList<QuestionDefinition> questionDefinitions,
+            List<string> errors)
+        {
+            string questionAudioDirectoryPath = Path.Combine(
+                Application.streamingAssetsPath,
+                "audio",
+                "questions");
+
+            foreach (QuestionDefinition questionDefinition in questionDefinitions)
+            {
+                string questionAudioFilePath = Path.Combine(
+                    questionAudioDirectoryPath,
+                    $"{questionDefinition.ID}.mp3");
+
+                if (File.Exists(questionAudioFilePath) == false)
+                {
+                    errors.Add($"Question narration audio is missing: {questionAudioFilePath}");
+                }
             }
         }
 

@@ -54,9 +54,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public static string ExitIconButtonPath =>
             GetStreamingArtPath("ui/button_exit_icon.png");
 
-        public static string UiFontResourceName => "Fonts/JuliusSansOne-Regular";
+        public static string UiFontResourceName => "Fonts/GowunDodum-Regular";
 
-        public static string KoreanFallbackFontResourceName => "Fonts/NotoSansCJKkr-Regular";
+        public static string KoreanFallbackFontResourceName => "Fonts/GowunDodum-Regular";
 
         public static string FloorRunnerPath =>
             GetStreamingArtPath("environment/floor_red_carpet_runner.png");

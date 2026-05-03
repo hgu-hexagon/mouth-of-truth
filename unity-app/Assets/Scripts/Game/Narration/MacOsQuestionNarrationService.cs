@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using MouthOfTruth.Game.Data;
 using UnityEngine;
 
 namespace MouthOfTruth.Game.Narration
@@ -12,8 +13,10 @@ namespace MouthOfTruth.Game.Narration
         private const string DEFAULT_VOICE_NAME = "Grandpa (한국어(한국))";
         private const string VOICE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_TTS_VOICE";
 
-        public async Task SpeakQuestionAsync(string questionText, CancellationToken cancellationToken)
+        public async Task SpeakQuestionAsync(QuestionDefinition questionDefinition, CancellationToken cancellationToken)
         {
+            string questionText = questionDefinition?.Text ?? string.Empty;
+
             if (string.IsNullOrWhiteSpace(questionText))
             {
                 return;

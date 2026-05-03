@@ -2,128 +2,72 @@
   "questions": [
     {
       "id": "Q0001",
-      "text": "최근에 누군가에게 거짓말한 적이 있나요?",
-      "category": "daily",
+      "text": "배고프지 않다고 말해놓고 남의 음식을 탐낸 적이 있나요?",
+      "category": "humor",
       "difficulty": 1,
       "enabled": true
     },
     {
       "id": "Q0002",
-      "text": "아직 아무에게도 말하지 않은 비밀이 있나요?",
-      "category": "personal",
-      "difficulty": 2,
+      "text": "답장을 못 본 척하고 일부러 늦게 보낸 적이 있나요?",
+      "category": "social",
+      "difficulty": 1,
       "enabled": true
     },
     {
       "id": "Q0003",
-      "text": "최근에 후회되는 선택을 한 적이 있나요?",
-      "category": "reflection",
+      "text": "다이어트 중이라고 말하고 몰래 간식을 먹은 적이 있나요?",
+      "category": "humor",
       "difficulty": 1,
       "enabled": true
     },
     {
       "id": "Q0004",
-      "text": "친구에게 숨기고 있는 감정이 있나요?",
-      "category": "personal",
-      "difficulty": 2,
+      "text": "과제는 거의 다 했다고 말했지만 사실 거의 안 한 적이 있나요?",
+      "category": "school",
+      "difficulty": 1,
       "enabled": true
     },
     {
       "id": "Q0005",
-      "text": "최근에 약속을 어기고도 모른 척한 적이 있나요?",
-      "category": "daily",
+      "text": "약속 시간에 늦고도 길이 막혔다고 핑계를 댄 적이 있나요?",
+      "category": "social",
       "difficulty": 1,
       "enabled": true
     },
     {
       "id": "Q0006",
-      "text": "누군가를 질투한 적이 있나요?",
-      "category": "emotion",
-      "difficulty": 1,
-      "enabled": true
-    },
-    {
-      "id": "Q0007",
-      "text": "겉으로는 괜찮은 척했지만 사실은 아니었던 적이 있나요?",
+      "text": "괜찮다고 말했지만 사실은 전혀 괜찮지 않았던 적이 있나요?",
       "category": "emotion",
       "difficulty": 2,
       "enabled": true
     },
     {
+      "id": "Q0007",
+      "text": "아는 척 고개를 끄덕였지만 사실 하나도 몰랐던 적이 있나요?",
+      "category": "humor",
+      "difficulty": 1,
+      "enabled": true
+    },
+    {
       "id": "Q0008",
-      "text": "하고 싶지 않은 일을 좋아한다고 말한 적이 있나요?",
+      "text": "잠깐만 쉰다고 해놓고 한 시간 넘게 쉰 적이 있나요?",
       "category": "daily",
       "difficulty": 1,
       "enabled": true
     },
     {
       "id": "Q0009",
-      "text": "최근에 누군가를 실망시켰다고 느낀 적이 있나요?",
-      "category": "reflection",
-      "difficulty": 2,
+      "text": "단체 채팅방에서 메시지를 읽고도 조용히 사라진 적이 있나요?",
+      "category": "social",
+      "difficulty": 1,
       "enabled": true
     },
     {
       "id": "Q0010",
-      "text": "가장 최근에 한 거짓말을 아직 기억하나요?",
-      "category": "personal",
-      "difficulty": 3,
-      "enabled": true
-    },
-    {
-      "id": "Q0011",
-      "text": "지금 이 순간 숨기고 싶은 진실이 있나요?",
-      "category": "personal",
-      "difficulty": 3,
-      "enabled": true
-    },
-    {
-      "id": "Q0012",
-      "text": "누군가의 기대에 맞추기 위해 진심이 아닌 말을 한 적이 있나요?",
-      "category": "social",
-      "difficulty": 2,
-      "enabled": true
-    },
-    {
-      "id": "Q0013",
-      "text": "용서받지 못할까 봐 숨긴 일이 있나요?",
-      "category": "personal",
-      "difficulty": 3,
-      "enabled": true
-    },
-    {
-      "id": "Q0014",
-      "text": "최근에 스스로에게조차 솔직하지 못했던 적이 있나요?",
-      "category": "reflection",
-      "difficulty": 2,
-      "enabled": true
-    },
-    {
-      "id": "Q0015",
-      "text": "누군가에게 상처가 될까 봐 진실을 말하지 않은 적이 있나요?",
-      "category": "social",
-      "difficulty": 2,
-      "enabled": true
-    },
-    {
-      "id": "Q0016",
-      "text": "당신은 지금 떳떳하다고 말할 수 있나요?",
-      "category": "reflection",
-      "difficulty": 2,
-      "enabled": true
-    },
-    {
-      "id": "Q0017",
-      "text": "가장 후회되는 선택을 다시 반복할 가능성이 있나요?",
-      "category": "reflection",
-      "difficulty": 3,
-      "enabled": true
-    },
-    {
-      "id": "Q0018",
-      "text": "아무도 모르는 당신만의 진실이 있나요?",
-      "category": "personal",
-      "difficulty": 3,
+      "text": "솔직히 이 테스트를 진행하는 게 살짝 지루한가요?",
+      "category": "meta",
+      "difficulty": 1,
       "enabled": true
     }
   ]

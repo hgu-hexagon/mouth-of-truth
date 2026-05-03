@@ -14,6 +14,7 @@ namespace MouthOfTruth.Editor
     {
         private const string MAIN_SCENE_PATH = "Assets/Scenes/Main.unity";
         private const string DISTRIBUTION_ROOT_RELATIVE_PATH = "dist/macos/MouthOfTruth";
+        private const string DISTRIBUTION_ARCHIVE_RELATIVE_PATH = "dist/macos/MouthOfTruth-macos.zip";
         private const string APPLICATION_NAME = "MouthOfTruth.app";
         private const string PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON_RUNTIME_ROOT";
         private const string PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH = "python-engine/scripts/package_python_runtime.sh";
@@ -62,6 +63,7 @@ namespace MouthOfTruth.Editor
             stageRuntimeSupport(runtimeRootPath, distributionRootPath);
             pruneDistributionArtifacts(distributionRootPath);
             writeLauncherScript(distributionRootPath);
+            writeDistributionArchive(runtimeRootPath, distributionRootPath);
             AssetDatabase.Refresh();
         }
 
@@ -299,16 +301,55 @@ namespace MouthOfTruth.Editor
                 + "open \"${SCRIPT_DIRECTORY_PATH}/MouthOfTruth.app\"\n";
 
             File.WriteAllText(launcherScriptPath, launcherScriptContents);
-            using Process chmodProcess = new Process();
-            chmodProcess.StartInfo = new ProcessStartInfo
+            runProcess("/bin/chmod", $"+x \"{launcherScriptPath}\"", distributionRootPath);
+        }
+
+        private static void writeDistributionArchive(string runtimeRootPath, string distributionRootPath)
+        {
+            string archivePath = Path.Combine(runtimeRootPath, DISTRIBUTION_ARCHIVE_RELATIVE_PATH);
+
+            if (File.Exists(archivePath))
             {
-                FileName = "chmod",
-                Arguments = $"+x \"{launcherScriptPath}\"",
+                File.Delete(archivePath);
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(archivePath) ?? runtimeRootPath);
+            runProcess(
+                "/usr/bin/ditto",
+                $"-c -k --sequesterRsrc --keepParent \"{distributionRootPath}\" \"{archivePath}\"",
+                runtimeRootPath);
+        }
+
+        private static void runProcess(string fileName, string arguments, string workingDirectory)
+        {
+            using Process process = new Process();
+            process.StartInfo = new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                WorkingDirectory = workingDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
-            chmodProcess.Start();
-            chmodProcess.WaitForExit();
+
+            if (process.Start() == false)
+            {
+                throw new BuildFailedException($"Failed to start process: {fileName}");
+            }
+
+            string standardOutput = process.StandardOutput.ReadToEnd();
+            string standardError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (process.ExitCode != 0)
+            {
+                throw new BuildFailedException(
+                    $"{fileName} failed with exit code {process.ExitCode}.\n"
+                    + $"stdout:\n{standardOutput}\n"
+                    + $"stderr:\n{standardError}");
+            }
         }
     }
 }

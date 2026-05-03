@@ -18,6 +18,8 @@ namespace MouthOfTruth.Editor
         private const string MAIN_SCENE_PATH = "Assets/Scenes/Main.unity";
         private const string DUNGEON_ROOT_PATH = "Assets/ThirdParty/Environment/DungeonModularPack";
         private const string CARPET_ROOT_PATH = "Assets/ThirdParty/Environment/PersianCarpetUrp";
+        private const string UI_FONT_PATH = "Assets/Resources/Fonts/JuliusSansOne-Regular.ttf";
+        private const string KOREAN_FALLBACK_FONT_PATH = "Assets/Resources/Fonts/NotoSansCJKkr-Regular.otf";
 
         [MenuItem("Mouth Of Truth/Validate Product Readiness")]
         public static void Run()
@@ -40,6 +42,8 @@ namespace MouthOfTruth.Editor
             validateAssetPath(MAIN_SCENE_PATH, errors);
             validateAssetPath(DUNGEON_ROOT_PATH, errors);
             validateAssetPath(CARPET_ROOT_PATH, errors);
+            validateAssetPath(UI_FONT_PATH, errors);
+            validateAssetPath(KOREAN_FALLBACK_FONT_PATH, errors);
             validateStreamingAssets(errors);
             validateQuestionPool(errors);
             validatePythonBridge(errors);
@@ -85,6 +89,10 @@ namespace MouthOfTruth.Editor
                 MouthOfTruthAssetCatalog.QuestionPanelFramePath,
                 MouthOfTruthAssetCatalog.StatusPanelFramePath,
                 MouthOfTruthAssetCatalog.ResultPanelFramePath,
+                MouthOfTruthAssetCatalog.StartButtonPath,
+                MouthOfTruthAssetCatalog.TryAgainButtonPath,
+                MouthOfTruthAssetCatalog.EndGameButtonPath,
+                MouthOfTruthAssetCatalog.ExitIconButtonPath,
                 MouthOfTruthAssetCatalog.FloorRunnerPath,
                 MouthOfTruthAssetCatalog.QuestionCardBackPath,
                 MouthOfTruthAssetCatalog.QuestionCardFrontPath,

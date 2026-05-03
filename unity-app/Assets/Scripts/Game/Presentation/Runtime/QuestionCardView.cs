@@ -16,6 +16,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private CanvasGroup mCanvasGroup;
         private RectTransform mRectTransform;
         private Vector2 mDefaultAnchoredPosition;
+        private Font mPrimaryUiFont;
+        private Font mKoreanFallbackFont;
 
         public EQuestionCardSlot QuestionCardSlot { get; private set; }
 
@@ -26,9 +28,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public void Initialize(
             EQuestionCardSlot questionCardSlot,
             Transform parentTransform,
-            Sprite cardBackSprite)
+            Sprite cardBackSprite,
+            Font primaryUiFont,
+            Font koreanFallbackFont)
         {
             QuestionCardSlot = questionCardSlot;
+            mPrimaryUiFont = primaryUiFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            mKoreanFallbackFont = koreanFallbackFont ?? mPrimaryUiFont;
             transform.SetParent(parentTransform, false);
             gameObject.name = questionCardSlot.ToString();
 
@@ -83,14 +89,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             textRectTransform.offsetMin = Vector2.zero;
             textRectTransform.offsetMax = Vector2.zero;
             mQuestionText = textObject.AddComponent<Text>();
-            mQuestionText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            mQuestionText.font = mPrimaryUiFont;
             mQuestionText.alignment = TextAnchor.MiddleCenter;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
             mQuestionText.verticalOverflow = VerticalWrapMode.Overflow;
             mQuestionText.color = new Color(0.14f, 0.09f, 0.04f, 1.0f);
             mQuestionText.fontSize = 28;
             mQuestionText.raycastTarget = false;
-            mQuestionText.text = string.Empty;
+            setQuestionText(string.Empty);
             Shadow questionTextShadow = textObject.AddComponent<Shadow>();
             questionTextShadow.effectColor = new Color(0.98f, 0.95f, 0.89f, 0.38f);
             questionTextShadow.effectDistance = new Vector2(1.0f, -1.0f);
@@ -101,7 +107,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCardImage.sprite = cardBackSprite;
             mCardImage.type = Image.Type.Simple;
             mCardImage.color = Color.white;
-            mQuestionText.text = string.Empty;
+            setQuestionText(string.Empty);
             mQuestionText.enabled = false;
         }
 
@@ -123,7 +129,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCardImage.type = Image.Type.Simple;
             mCardImage.color = new Color(0.96f, 0.93f, 0.88f, 1.0f);
             mQuestionText.enabled = true;
-            mQuestionText.text = questionText;
+            setQuestionText(questionText);
         }
 
         public void SetVisualState(
@@ -184,6 +190,30 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public void ResetHoverState()
         {
             IsHovered = false;
+        }
+
+        private void setQuestionText(string questionText)
+        {
+            mQuestionText.font = containsHangul(questionText) ? mKoreanFallbackFont : mPrimaryUiFont;
+            mQuestionText.text = questionText;
+        }
+
+        private static bool containsHangul(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            foreach (char character in text)
+            {
+                if (character >= '\uac00' && character <= '\ud7a3')
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

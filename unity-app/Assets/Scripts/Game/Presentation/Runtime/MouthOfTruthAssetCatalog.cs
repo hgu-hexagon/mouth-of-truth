@@ -42,6 +42,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public static string ResultPanelFramePath =>
             GetStreamingArtPath("ui/panel_result.png");
 
+        public static string StartButtonPath =>
+            GetStreamingArtPath("ui/button_start_game.png");
+
+        public static string TryAgainButtonPath =>
+            GetStreamingArtPath("ui/button_try_again.png");
+
+        public static string EndGameButtonPath =>
+            GetStreamingArtPath("ui/button_end_game.png");
+
+        public static string ExitIconButtonPath =>
+            GetStreamingArtPath("ui/button_exit_icon.png");
+
+        public static string UiFontResourceName => "Fonts/JuliusSansOne-Regular";
+
+        public static string KoreanFallbackFontResourceName => "Fonts/NotoSansCJKkr-Regular";
+
         public static string FloorRunnerPath =>
             GetStreamingArtPath("environment/floor_red_carpet_runner.png");
 
@@ -79,16 +95,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingAudioPath("ambience/title_temple_ambience_loop.ogg");
 
         public static string ButtonConfirmPath =>
-            GetStreamingAudioPath("ui/button_confirm.ogg");
+            GetStreamingAudioPath("ui/button_confirm.wav");
 
         public static string CardHoverPath =>
             GetStreamingAudioPath("cards/card_hover.ogg");
 
         public static string CardSelectPath =>
-            GetStreamingAudioPath("cards/card_select.ogg");
+            GetStreamingAudioPath("cards/card_select.wav");
 
         public static string CardRevealPath =>
-            GetStreamingAudioPath("cards/card_reveal.ogg");
+            GetStreamingAudioPath("cards/card_reveal.wav");
 
         public static string HandInsertPath =>
             GetStreamingAudioPath("interaction/hand_insert.ogg");
@@ -97,12 +113,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingAudioPath("interaction/hand_pause.ogg");
 
         public static string ResultTruePath =>
-            GetStreamingAudioPath("results/result_true.ogg");
+            GetStreamingAudioPath("results/result_true.wav");
 
         public static string ResultFalsePath =>
-            GetStreamingAudioPath("results/result_false.ogg");
+            GetStreamingAudioPath("results/result_false.wav");
 
         public static string ResultUncertainPath =>
-            GetStreamingAudioPath("results/result_uncertain.ogg");
+            GetStreamingAudioPath("results/result_uncertain.wav");
     }
 }

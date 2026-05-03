@@ -42,6 +42,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Transform mCanvasRootTransform;
         private Image mBackgroundImage;
         private Image mSceneOverlayImage;
+        private Image mLoadingOverlayImage;
         private Image mCarpetImage;
         private Image mTitleVignetteImage;
         private Image mLogoImage;
@@ -65,6 +66,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mCardBackSprite;
         private Sprite mCardFrontSprite;
         private Sprite mButtonFrameSprite;
+        private Sprite mStartButtonSprite;
+        private Sprite mTryAgainButtonSprite;
+        private Sprite mEndGameButtonSprite;
+        private Sprite mExitIconButtonSprite;
         private Sprite mHandCursorSprite;
         private Sprite mVerdictTrueSprite;
         private Sprite mVerdictFalseSprite;
@@ -90,6 +95,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private AudioClip mResultTrueClip;
         private AudioClip mResultFalseClip;
         private AudioClip mResultUncertainClip;
+        private Font mUiFont;
+        private Font mKoreanFallbackFont;
         private EQuestionCardSlot? mLastAudibleHoveredCardSlot;
         private Camera mWorldCamera;
         private CardPresentationAnchorSet mCardPresentationAnchorSet;
@@ -109,6 +116,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public async Task InitializeAsync()
         {
             ensureEventSystemExists();
+            loadUiFonts();
             buildCanvas();
             cacheWorldPresentationReferences();
             buildAudioSources();
@@ -117,6 +125,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyTheme();
             refreshWorldPresentationLayout();
             ShowStartScreen();
+            setObjectActive(mLoadingOverlayImage, false);
         }
 
         private void LateUpdate()
@@ -138,6 +147,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             disableHeldHandPresentation();
             applyStartScreenLayout();
+            configureExitButtonAsTopLeftIcon();
             mBackgroundImage.sprite = mTitleBackgroundSprite;
             setBackgroundTint(TITLE_BACKGROUND_TINT);
             setObjectActive(mLogoImage, true);
@@ -163,9 +173,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mBackToTitleButton, false);
             setCardsVisible(false);
-            mPromptText.text = string.Empty;
-            mStatusText.text = string.Empty;
-            mAnswerTimerText.text = string.Empty;
+            setText(mPromptText, string.Empty);
+            setText(mStatusText, string.Empty);
+            setText(mAnswerTimerText, string.Empty);
             mLastAudibleHoveredCardSlot = null;
             mLastHoveredUiActionTarget = null;
             refreshWorldPresentationLayout();
@@ -176,6 +186,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             disableHeldHandPresentation();
             applyCardSelectionLayout();
+            configureExitButtonAsTopLeftIcon();
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
@@ -211,9 +222,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             applyCardAnchorPositions();
-            mPromptText.text = "원하는 질문을 손가락으로 선택하세요.";
-            mStatusText.text = string.Empty;
-            mAnswerTimerText.text = string.Empty;
+            setText(mPromptText, "원하는 질문을 손가락으로 선택하세요.");
+            setText(mStatusText, string.Empty);
+            setText(mAnswerTimerText, string.Empty);
             mLastAudibleHoveredCardSlot = null;
             mLastHoveredUiActionTarget = null;
         }
@@ -245,7 +256,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 pair.Value.SetVisualState(isDimmed: isSelected == false, isSelected, 0.0f);
             }
 
-            mPromptText.text = string.Empty;
+            setText(mPromptText, string.Empty);
         }
 
         public async Task PlayQuestionRevealAsync(
@@ -264,6 +275,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 bool isSelected = pair.Key == selectedQuestionCardSlot;
                 pair.Value.SetVisualState(isDimmed: isSelected == false, isSelected, 0.0f);
+                pair.Value.gameObject.SetActive(isSelected);
             }
 
             QuestionCardView selectedCardView = mCardViews[selectedQuestionCardSlot];
@@ -338,7 +350,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.24f);
-            setObjectActive(mExitButton, false);
+            configureExitButtonAsTopLeftIcon();
+            setObjectActive(mExitButton, true);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
@@ -348,7 +361,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
             setObjectActive(mPointerImage, false);
-            mQuestionText.text = questionText;
+            setText(mQuestionText, questionText);
             applyMouthAnchoredLayout();
         }
 
@@ -362,7 +375,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.26f);
-            setObjectActive(mExitButton, false);
+            configureExitButtonAsTopLeftIcon();
+            setObjectActive(mExitButton, true);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
             setObjectActive(mPointerImage, false);
@@ -376,7 +390,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mResultPanelImage, false);
             mAnswerInputField.text = string.Empty;
             mAnswerInputField.interactable = false;
-            mQuestionText.text = "“손을 내밀고, 진실을 담하라.”";
+            setText(mQuestionText, "“손을 내밀고, 진실을 담하라.”");
             applyMouthAnchoredLayout();
             setHandVisual(0.0f);
         }
@@ -418,14 +432,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mCarpetImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.28f);
-            setObjectActive(mExitButton, false);
+            configureExitButtonAsTopLeftIcon();
+            setObjectActive(mExitButton, true);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            mQuestionText.text = "천천히 답해주세요. 손은 입 안에 그대로 두면 됩니다.";
+            setText(mQuestionText, "천천히 답해주세요. 손은 입 안에 그대로 두면 됩니다.");
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             enableHeldHandPresentation(baseProgress: 0.78f, pulseAmplitude: 0.007f, pulseSpeed: 1.3f);
@@ -441,14 +456,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.30f);
-            setObjectActive(mExitButton, false);
+            configureExitButtonAsTopLeftIcon();
+            setObjectActive(mExitButton, true);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            mQuestionText.text = "손을 다시 올리면 답변이 이어집니다.";
+            setText(mQuestionText, "손을 다시 올리면 답변이 이어집니다.");
             setObjectActive(mHandImage, false);
             applyMouthAnchoredLayout();
             disableHeldHandPresentation();
@@ -464,14 +480,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.34f);
-            setObjectActive(mExitButton, false);
+            configureExitButtonAsTopLeftIcon();
+            setObjectActive(mExitButton, true);
             setObjectActive(mQuestionPanelImage, true);
             setObjectActive(mQuestionText, true);
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            mQuestionText.text = "진실의 입이 답을 살피고 있습니다.";
+            setText(mQuestionText, "진실의 입이 답을 살피고 있습니다.");
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             enableHeldHandPresentation(baseProgress: 0.82f, pulseAmplitude: 0.004f, pulseSpeed: 1.0f);
@@ -481,6 +498,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             disableHeldHandPresentation();
             applyResultLayout(verdictKind);
+            configureExitButtonAsEndGameButton();
             setCardsVisible(false);
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
@@ -512,20 +530,20 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 EVerdictKind.False => mVerdictFalseSprite,
                 _ => mVerdictUncertainSprite,
             };
-            mVerdictText.text = verdictKind switch
+            string verdictText = verdictKind switch
             {
                 EVerdictKind.True => "TRUE",
                 EVerdictKind.False => "FALSE",
                 _ => "UNCERTAIN",
             };
+            setText(mVerdictText, verdictText);
             applyMouthAnchoredLayout();
             playVerdictCue(verdictKind);
         }
 
         public void UpdateAnswerMetrics(float elapsedAnswerSeconds, float elapsedSilenceSeconds)
         {
-            mAnswerTimerText.text =
-                $"답변 {elapsedAnswerSeconds:0.0}s / 무음 {elapsedSilenceSeconds:0.0}s";
+            setText(mAnswerTimerText, $"답변 {elapsedAnswerSeconds:0.0}s / 무음 {elapsedSilenceSeconds:0.0}s");
         }
 
         public EQuestionCardSlot? GetHoveredQuestionCardSlot(Vector2? pointerScreenPosition)
@@ -760,6 +778,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             mAnswerInputField.SetTextWithoutNotify(transcriptText ?? string.Empty);
+            setText(mAnswerInputField.textComponent, transcriptText ?? string.Empty);
         }
 
         public void ClearAnswerTranscript()
@@ -771,7 +790,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             if (mAnswerInputField?.placeholder is Text placeholderLabel)
             {
-                placeholderLabel.text = placeholderText ?? string.Empty;
+                setText(placeholderLabel, placeholderText ?? string.Empty);
             }
         }
 
@@ -830,6 +849,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mButtonFrameSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.PrimaryButtonFramePath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.38f, 0.21f, 0.11f, 1.0f));
+            mStartButtonSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.StartButtonPath)
+                ?? mButtonFrameSprite;
+            mTryAgainButtonSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TryAgainButtonPath)
+                ?? mButtonFrameSprite;
+            mEndGameButtonSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.EndGameButtonPath)
+                ?? mButtonFrameSprite;
+            mExitIconButtonSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.ExitIconButtonPath)
+                ?? mButtonFrameSprite;
             mHandCursorSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.HandPointerPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.88f, 0.64f, 0.72f, 1.0f));
@@ -881,6 +912,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TruthMouthFacePath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.85f, 0.83f, 0.78f, 1.0f));
             mBackgroundImage.sprite = mTitleBackgroundSprite;
+        }
+
+        private void loadUiFonts()
+        {
+            mUiFont = Resources.Load<Font>(MouthOfTruthAssetCatalog.UiFontResourceName)
+                ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            mKoreanFallbackFont = Resources.Load<Font>(MouthOfTruthAssetCatalog.KoreanFallbackFontResourceName)
+                ?? mUiFont;
         }
 
         private async Task loadAudioClipsAsync()
@@ -945,14 +984,20 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mAnswerInputField.image.color = new Color(1.0f, 1.0f, 1.0f, 0.96f);
             }
 
-            mStartButton.image.sprite = mButtonFrameSprite;
-            mTryAgainButton.image.sprite = mButtonFrameSprite;
+            mStartButton.image.sprite = mStartButtonSprite;
+            mTryAgainButton.image.sprite = mTryAgainButtonSprite;
             mBackToTitleButton.image.sprite = mButtonFrameSprite;
-            mExitButton.image.sprite = mButtonFrameSprite;
-            mStartButton.image.type = Image.Type.Sliced;
-            mTryAgainButton.image.type = Image.Type.Sliced;
+            mExitButton.image.sprite = mExitIconButtonSprite;
+            mStartButton.image.type = Image.Type.Simple;
+            mTryAgainButton.image.type = Image.Type.Simple;
             mBackToTitleButton.image.type = Image.Type.Sliced;
-            mExitButton.image.type = Image.Type.Sliced;
+            mExitButton.image.type = Image.Type.Simple;
+            mStartButton.image.preserveAspect = true;
+            mTryAgainButton.image.preserveAspect = true;
+            mExitButton.image.preserveAspect = true;
+            setButtonLabelVisible(mStartButton, false);
+            setButtonLabelVisible(mTryAgainButton, false);
+            setButtonLabelVisible(mExitButton, false);
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -1114,12 +1159,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(1000.0f, 560.0f));
             setRectTransformLayout(
                 mStartButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.14f),
-                new Vector2(430.0f, 112.0f));
-            setRectTransformLayout(
-                mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.065f),
-                new Vector2(320.0f, 80.0f));
+                new Vector2(0.5f, 0.13f),
+                new Vector2(520.0f, 150.0f));
+            applyTopLeftExitButtonLayout();
         }
 
         private void prepareCardLaunchPresentation()
@@ -1147,14 +1189,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.5f, 0.07f),
                 new Vector2(1080.0f, 64.0f));
             mPromptText.fontSize = 30;
-            setRectTransformLayout(
-                mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.84f, 0.11f),
-                new Vector2(320.0f, 84.0f));
+            applyTopLeftExitButtonLayout();
         }
 
         private void applyNarrationLayout()
         {
+            applyTopLeftExitButtonLayout();
             setRectTransformLayout(
                 mMouthImage.rectTransform,
                 new Vector2(0.5f, 0.53f),
@@ -1174,6 +1214,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void applyAwaitingHandInsertionLayout()
         {
+            applyTopLeftExitButtonLayout();
             setRectTransformLayout(
                 mMouthImage.rectTransform,
                 new Vector2(0.5f, 0.56f),
@@ -1196,6 +1237,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void applyAnswerStageLayout()
         {
+            applyTopLeftExitButtonLayout();
             setRectTransformLayout(
                 mMouthImage.rectTransform,
                 new Vector2(0.5f, 0.60f),
@@ -1235,12 +1277,20 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(320.0f, 420.0f));
             setRectTransformLayout(
                 mTryAgainButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.12f),
-                new Vector2(420.0f, 112.0f));
+                new Vector2(0.5f, 0.205f),
+                new Vector2(410.0f, 127.0f));
             setRectTransformLayout(
                 mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.84f, 0.11f),
-                new Vector2(320.0f, 84.0f));
+                new Vector2(0.5f, 0.115f),
+                new Vector2(410.0f, 127.0f));
+        }
+
+        private void applyTopLeftExitButtonLayout()
+        {
+            setRectTransformLayout(
+                mExitButton.GetComponent<RectTransform>(),
+                new Vector2(0.06f, 0.90f),
+                new Vector2(78.0f, 78.0f));
         }
 
         private void setOverlayAlpha(float alpha)
@@ -1462,6 +1512,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             createCardView(EQuestionCardSlot.RightCard, FALLBACK_RIGHT_CARD_POSITION);
             mPointerImage.transform.SetAsLastSibling();
             mPointerImage.raycastTarget = false;
+            mLoadingOverlayImage = createFullScreenImage("LoadingOverlay", mCanvasRootTransform, Color.black);
+            mLoadingOverlayImage.transform.SetAsLastSibling();
+            mLoadingOverlayImage.raycastTarget = true;
         }
 
         private void buildAudioSources()
@@ -1493,7 +1546,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             GameObject cardObject = new GameObject(questionCardSlot.ToString());
             QuestionCardView questionCardView = cardObject.AddComponent<QuestionCardView>();
-            questionCardView.Initialize(questionCardSlot, mCanvasRootTransform, mCardBackSprite);
+            questionCardView.Initialize(
+                questionCardSlot,
+                mCanvasRootTransform,
+                mCardBackSprite,
+                mUiFont,
+                mKoreanFallbackFont);
             questionCardView.SetAnchoredPosition(anchoredPosition);
             mCardViews.Add(questionCardSlot, questionCardView);
         }
@@ -1562,7 +1620,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             rectTransform.anchoredPosition = anchoredPosition;
             rectTransform.sizeDelta = sizeDelta;
             Text text = textObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.font = mUiFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.alignment = TextAnchor.MiddleCenter;
             text.color = new Color(0.94f, 0.90f, 0.82f, 1.0f);
             text.fontSize = fontSize;
@@ -1571,6 +1629,36 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             text.verticalOverflow = VerticalWrapMode.Overflow;
             addTextShadow(textObject);
             return text;
+        }
+
+        private void setText(Text text, string value)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            string safeValue = value ?? string.Empty;
+            text.font = containsHangul(safeValue) ? mKoreanFallbackFont : mUiFont;
+            text.text = safeValue;
+        }
+
+        private static bool containsHangul(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            foreach (char character in text)
+            {
+                if (character >= '\uac00' && character <= '\ud7a3')
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private InputField createInputField()
@@ -1600,7 +1688,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 FontStyle.Italic);
             placeholderText.alignment = TextAnchor.MiddleLeft;
             placeholderText.color = new Color(0.80f, 0.74f, 0.66f, 0.7f);
-            placeholderText.text = "입력된 답변이 이 영역에 표시됩니다.";
+            setText(placeholderText, "입력된 답변이 이 영역에 표시됩니다.");
 
             Text valueText = createText(
                 "Text",
@@ -1659,8 +1747,44 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(-20.0f, -20.0f),
                 34,
                 FontStyle.Bold);
-            label.text = labelText;
+            setText(label, labelText);
             return button;
+        }
+
+        private void configureExitButtonAsTopLeftIcon()
+        {
+            if (mExitButton?.image == null)
+            {
+                return;
+            }
+
+            mExitButton.image.sprite = mExitIconButtonSprite;
+            mExitButton.image.type = Image.Type.Simple;
+            mExitButton.image.preserveAspect = true;
+            setButtonLabelVisible(mExitButton, false);
+        }
+
+        private void configureExitButtonAsEndGameButton()
+        {
+            if (mExitButton?.image == null)
+            {
+                return;
+            }
+
+            mExitButton.image.sprite = mEndGameButtonSprite;
+            mExitButton.image.type = Image.Type.Simple;
+            mExitButton.image.preserveAspect = true;
+            setButtonLabelVisible(mExitButton, false);
+        }
+
+        private void setButtonLabelVisible(Button button, bool isVisible)
+        {
+            Text label = button != null ? button.GetComponentInChildren<Text>(includeInactive: true) : null;
+
+            if (label != null)
+            {
+                label.gameObject.SetActive(isVisible);
+            }
         }
 
         private bool isScreenPointOverButton(Button button, Vector2 screenPosition)
@@ -1698,8 +1822,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (button.image != null)
             {
                 button.image.color = Color.Lerp(
-                    new Color(0.88f, 0.80f, 0.66f, 0.94f),
-                    new Color(1.0f, 0.92f, 0.72f, 1.0f),
+                    Color.white,
+                    new Color(1.0f, 0.92f, 0.78f, 1.0f),
                     effectiveHoverProgress);
             }
 

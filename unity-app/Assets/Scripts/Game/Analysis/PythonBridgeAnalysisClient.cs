@@ -8,9 +8,20 @@ using UnityEngine;
 
 namespace MouthOfTruth.Game.Analysis
 {
-    public class PythonBridgeAnalysisClient : IAnswerAnalysisClient
+    public class PythonBridgeAnalysisClient : IAnswerAnalysisClient, IDisposable
     {
         private const int DEFAULT_TIMEOUT_MILLISECONDS = 15000;
+        private const int WORKER_STARTUP_TIMEOUT_MILLISECONDS = 30000;
+        private const int WORKER_SHUTDOWN_TIMEOUT_MILLISECONDS = 1000;
+
+        private readonly SemaphoreSlim mAnalysisSemaphore = new SemaphoreSlim(1, 1);
+        private Process mWorkerProcess;
+        private bool mIsWorkerReady;
+
+        public PythonBridgeAnalysisClient()
+        {
+            tryStartWorkerProcess();
+        }
 
         public async Task<AnswerAnalysisResult> AnalyzeAsync(
             AnswerAnalysisRequest answerAnalysisRequest,
@@ -31,10 +42,8 @@ namespace MouthOfTruth.Game.Analysis
                     QuestionID = answerAnalysisRequest.QuestionDefinition.ID,
                     QuestionText = answerAnalysisRequest.QuestionDefinition.Text,
                     AnswerTranscript = answerAnalysisRequest.AnswerTranscript,
-                    AnswerAudioFilePath =
-                        buildRuntimeRelativePath(answerAnalysisRequest.AnswerAudioFilePath),
-                    FaceFramesDirectoryPath =
-                        buildRuntimeRelativePath(answerAnalysisRequest.FaceFramesDirectoryPath),
+                    AnswerAudioFilePath = buildRuntimeRelativePath(answerAnalysisRequest.AnswerAudioFilePath),
+                    FaceFramesDirectoryPath = buildRuntimeRelativePath(answerAnalysisRequest.FaceFramesDirectoryPath),
                     FaceFrameCount = answerAnalysisRequest.FaceFrameCount,
                     VoiceSegmentCount = answerAnalysisRequest.VoiceSegmentCount,
                     RequestedAtUtc = DateTime.UtcNow.ToString("O"),
@@ -44,7 +53,16 @@ namespace MouthOfTruth.Game.Analysis
             File.WriteAllText(PythonAnalysisBridgePaths.GetRequestFilePath(), requestJson);
             deletePreviousResultIfPresent();
 
-            await runPythonBridgeProcessAsync(cancellationToken).ConfigureAwait(false);
+            await mAnalysisSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                await runPythonAnalysisAsync(cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                mAnalysisSemaphore.Release();
+            }
 
             if (File.Exists(PythonAnalysisBridgePaths.GetResultFilePath()) == false)
             {
@@ -54,8 +72,7 @@ namespace MouthOfTruth.Game.Analysis
             }
 
             string resultJson = File.ReadAllText(PythonAnalysisBridgePaths.GetResultFilePath());
-            BridgeAnalysisResultFileData bridgeAnalysisResultFileData =
-                UnityEngine.JsonUtility.FromJson<BridgeAnalysisResultFileData>(resultJson);
+            BridgeAnalysisResultFileData bridgeAnalysisResultFileData = UnityEngine.JsonUtility.FromJson<BridgeAnalysisResultFileData>(resultJson);
 
             if (bridgeAnalysisResultFileData == null
                 || bridgeAnalysisResultFileData.RequestID != requestID)
@@ -67,6 +84,12 @@ namespace MouthOfTruth.Game.Analysis
                 parseVerdictKind(bridgeAnalysisResultFileData.Verdict),
                 bridgeAnalysisResultFileData.AnswerTranscript,
                 bridgeAnalysisResultFileData.ReasonCodes ?? Array.Empty<string>());
+        }
+
+        public void Dispose()
+        {
+            stopWorkerProcess();
+            mAnalysisSemaphore.Dispose();
         }
 
         private EVerdictKind parseVerdictKind(string verdictText)
@@ -82,6 +105,194 @@ namespace MouthOfTruth.Game.Analysis
             }
 
             return EVerdictKind.Uncertain;
+        }
+
+        private async Task runPythonAnalysisAsync(CancellationToken cancellationToken)
+        {
+            if (isWorkerAvailable())
+            {
+                try
+                {
+                    await runPythonWorkerAnalysisAsync(cancellationToken).ConfigureAwait(false);
+                    return;
+                }
+                catch (Exception exception)
+                {
+                    UnityEngine.Debug.LogWarning(
+                        "Persistent Python analysis worker failed. Falling back to one-shot analysis.\n"
+                        + exception);
+                    stopWorkerProcess();
+                    deletePreviousResultIfPresent();
+                }
+            }
+
+            await runPythonBridgeProcessAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task runPythonWorkerAnalysisAsync(CancellationToken cancellationToken)
+        {
+            if (mIsWorkerReady == false)
+            {
+                BridgeWorkerResponseFileData readyResponse = await readWorkerResponseAsync(
+                    WORKER_STARTUP_TIMEOUT_MILLISECONDS,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (string.Equals(readyResponse.Status, "ready", StringComparison.OrdinalIgnoreCase) == false)
+                {
+                    throw new InvalidOperationException(
+                        "Python analysis worker returned an unexpected startup status: "
+                        + readyResponse.Status);
+                }
+
+                mIsWorkerReady = true;
+            }
+
+            BridgeWorkerCommandFileData bridgeWorkerCommandFileData = new BridgeWorkerCommandFileData
+            {
+                Command = "analyze",
+                RequestFilePath = PythonAnalysisBridgePaths.GetRequestFilePath(),
+                ResultFilePath = PythonAnalysisBridgePaths.GetResultFilePath(),
+            };
+            string workerCommandJson = UnityEngine.JsonUtility.ToJson(bridgeWorkerCommandFileData, false);
+            await mWorkerProcess.StandardInput.WriteLineAsync(workerCommandJson).ConfigureAwait(false);
+            await mWorkerProcess.StandardInput.FlushAsync().ConfigureAwait(false);
+
+            BridgeWorkerResponseFileData response = await readWorkerResponseAsync(
+                DEFAULT_TIMEOUT_MILLISECONDS,
+                cancellationToken).ConfigureAwait(false);
+
+            if (string.Equals(response.Status, "done", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "Python analysis worker failed.\n"
+                + response.ErrorMessage);
+        }
+
+        private async Task<BridgeWorkerResponseFileData> readWorkerResponseAsync(
+            int timeoutMilliseconds,
+            CancellationToken cancellationToken)
+        {
+            if (isWorkerAvailable() == false)
+            {
+                throw new InvalidOperationException("Python analysis worker is not running.");
+            }
+
+            Task<string> readLineTask = mWorkerProcess.StandardOutput.ReadLineAsync();
+            Task timeoutTask = Task.Delay(timeoutMilliseconds, cancellationToken);
+            Task completedTask = await Task.WhenAny(readLineTask, timeoutTask).ConfigureAwait(false);
+
+            if (completedTask != readLineTask)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new TimeoutException("Timed out while waiting for the Python analysis worker.");
+            }
+
+            string responseJson = await readLineTask.ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(responseJson))
+            {
+                throw new EndOfStreamException("Python analysis worker stopped without returning a response.");
+            }
+
+            BridgeWorkerResponseFileData response = UnityEngine.JsonUtility.FromJson<BridgeWorkerResponseFileData>(responseJson);
+
+            if (response == null || string.IsNullOrWhiteSpace(response.Status))
+            {
+                throw new InvalidDataException("Python analysis worker returned malformed JSON: " + responseJson);
+            }
+
+            return response;
+        }
+
+        private void tryStartWorkerProcess()
+        {
+            try
+            {
+                string bridgeWorkerLauncherScriptPath = PythonAnalysisBridgePaths.GetBridgeWorkerLauncherScriptPath();
+
+                if (File.Exists(bridgeWorkerLauncherScriptPath) == false)
+                {
+                    return;
+                }
+
+                mWorkerProcess = buildPythonProcess(bridgeWorkerLauncherScriptPath, string.Empty);
+
+                if (mWorkerProcess.Start() == false)
+                {
+                    mWorkerProcess = null;
+                    return;
+                }
+
+                mWorkerProcess.ErrorDataReceived += (_, eventArguments) =>
+                {
+                    if (string.IsNullOrWhiteSpace(eventArguments.Data) == false)
+                    {
+                        UnityEngine.Debug.Log(eventArguments.Data);
+                    }
+                };
+                mWorkerProcess.BeginErrorReadLine();
+            }
+            catch (Exception exception)
+            {
+                UnityEngine.Debug.LogWarning(
+                    "Could not start the persistent Python analysis worker. One-shot analysis will be used.\n"
+                    + exception);
+                stopWorkerProcess();
+            }
+        }
+
+        private bool isWorkerAvailable()
+        {
+            return mWorkerProcess != null && mWorkerProcess.HasExited == false;
+        }
+
+        private void stopWorkerProcess()
+        {
+            if (mWorkerProcess == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (mWorkerProcess.HasExited == false)
+                {
+                    BridgeWorkerCommandFileData shutdownCommandFileData = new BridgeWorkerCommandFileData
+                    {
+                        Command = "shutdown",
+                    };
+                    string shutdownCommandJson = UnityEngine.JsonUtility.ToJson(shutdownCommandFileData, false);
+                    mWorkerProcess.StandardInput.WriteLine(shutdownCommandJson);
+                    mWorkerProcess.StandardInput.Flush();
+
+                    if (mWorkerProcess.WaitForExit(WORKER_SHUTDOWN_TIMEOUT_MILLISECONDS) == false)
+                    {
+                        mWorkerProcess.Kill();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    if (mWorkerProcess.HasExited == false)
+                    {
+                        mWorkerProcess.Kill();
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+            finally
+            {
+                mWorkerProcess.Dispose();
+                mWorkerProcess = null;
+                mIsWorkerReady = false;
+            }
         }
 
         private async Task runPythonBridgeProcessAsync(CancellationToken cancellationToken)
@@ -101,30 +312,9 @@ namespace MouthOfTruth.Game.Analysis
                 throw new FileNotFoundException("The Python bridge launcher script was not found.", bridgeLauncherScriptPath);
             }
 
-            using Process process = new Process();
-            bool useWindowsCommandShell = Application.platform == RuntimePlatform.WindowsEditor
-                || Application.platform == RuntimePlatform.WindowsPlayer;
-            process.StartInfo = new ProcessStartInfo
-            {
-                FileName = useWindowsCommandShell ? "cmd.exe" : bridgeLauncherScriptPath,
-                Arguments = buildBridgeLauncherArguments(
-                    useWindowsCommandShell,
-                    bridgeLauncherScriptPath,
-                    requestFilePath,
-                    resultFilePath),
-                WorkingDirectory = PythonAnalysisBridgePaths.GetProjectRootPath(),
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-            process.StartInfo.Environment["PYTHONPATH"] = PythonAnalysisBridgePaths.GetPythonModuleRootPath();
-
-            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false)
-            {
-                process.StartInfo.Environment["MOUTH_OF_TRUTH_PYTHON"] = pythonInterpreterPath;
-            }
-
+            using Process process = buildPythonProcess(
+                bridgeLauncherScriptPath,
+                buildBridgeLauncherArguments(requestFilePath, resultFilePath));
             if (process.Start() == false)
             {
                 throw new InvalidOperationException("Failed to start the Python analysis process.");
@@ -160,6 +350,38 @@ namespace MouthOfTruth.Game.Analysis
                     + $"stdout:\n{standardOutput}\n"
                     + $"stderr:\n{standardError}");
             }
+        }
+
+        private Process buildPythonProcess(string launcherScriptPath, string launcherArguments)
+        {
+            string pythonInterpreterPath = PythonAnalysisBridgePaths.GetPythonInterpreterPath();
+            bool useWindowsCommandShell = Application.platform == RuntimePlatform.WindowsEditor
+                || Application.platform == RuntimePlatform.WindowsPlayer;
+            Process process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = useWindowsCommandShell ? "cmd.exe" : launcherScriptPath,
+                    Arguments = buildCommandShellArguments(
+                        useWindowsCommandShell,
+                        launcherScriptPath,
+                        launcherArguments),
+                    WorkingDirectory = PythonAnalysisBridgePaths.GetProjectRootPath(),
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                },
+            };
+            process.StartInfo.Environment["PYTHONPATH"] = PythonAnalysisBridgePaths.GetPythonModuleRootPath();
+
+            if (string.IsNullOrWhiteSpace(pythonInterpreterPath) == false)
+            {
+                process.StartInfo.Environment["MOUTH_OF_TRUTH_PYTHON"] = pythonInterpreterPath;
+            }
+
+            return process;
         }
 
         private void deletePreviousResultIfPresent()
@@ -200,18 +422,40 @@ namespace MouthOfTruth.Game.Analysis
         }
 
         private string buildBridgeLauncherArguments(
-            bool useWindowsCommandShell,
-            string bridgeLauncherScriptPath,
             string requestFilePath,
             string resultFilePath)
         {
+            return $"\"{requestFilePath}\" \"{resultFilePath}\"";
+        }
+
+        private string buildCommandShellArguments(
+            bool useWindowsCommandShell,
+            string launcherScriptPath,
+            string launcherArguments)
+        {
             if (useWindowsCommandShell)
             {
-                return $"/c \"\"{bridgeLauncherScriptPath}\" "
-                    + $"\"{requestFilePath}\" \"{resultFilePath}\"\"";
+                return string.IsNullOrWhiteSpace(launcherArguments)
+                    ? $"/c \"\"{launcherScriptPath}\"\""
+                    : $"/c \"\"{launcherScriptPath}\" {launcherArguments}\"";
             }
 
-            return $"\"{requestFilePath}\" \"{resultFilePath}\"";
+            return launcherArguments;
+        }
+
+        [Serializable]
+        private class BridgeWorkerCommandFileData
+        {
+            public string Command = string.Empty;
+            public string RequestFilePath = string.Empty;
+            public string ResultFilePath = string.Empty;
+        }
+
+        [Serializable]
+        private class BridgeWorkerResponseFileData
+        {
+            public string Status = string.Empty;
+            public string ErrorMessage = string.Empty;
         }
     }
 }

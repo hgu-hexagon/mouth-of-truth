@@ -45,11 +45,21 @@ namespace MouthOfTruth.Editor
 
         private static void validateQuestionDeckCycle()
         {
-            IReadOnlyList<QuestionDefinition> questionDefinitions = loadQuestionDefinitions();
+            validateQuestionDeckCycle(loadQuestionDefinitions(), randomSeed: 1234);
+            validateQuestionDeckCycle(buildSyntheticQuestionDefinitions(3), randomSeed: 3003);
+            validateQuestionDeckCycle(buildSyntheticQuestionDefinitions(4), randomSeed: 3004);
+            validateQuestionDeckCycle(buildSyntheticQuestionDefinitions(10), randomSeed: 3010);
+            validateQuestionDeckCycle(buildSyntheticQuestionDefinitions(11), randomSeed: 3011);
+            validateQuestionDeckDoesNotFollowInputOrder();
+        }
+
+        private static void validateQuestionDeckCycle(
+            IReadOnlyList<QuestionDefinition> questionDefinitions,
+            int randomSeed)
+        {
             int enabledQuestionCount = questionDefinitions.Count(
                 questionDefinition => questionDefinition.IsEnabled);
-            QuestionDeckService questionDeckService =
-                new QuestionDeckService(questionDefinitions, randomSeed: 1234);
+            QuestionDeckService questionDeckService = new QuestionDeckService(questionDefinitions, randomSeed);
             HashSet<string> seenQuestionIDs = new HashSet<string>(StringComparer.Ordinal);
             int expectedUniqueRoundCount = Mathf.CeilToInt(enabledQuestionCount / 3.0f);
 
@@ -84,6 +94,27 @@ namespace MouthOfTruth.Editor
             if (recycledRoundSelection.QuestionsBySlot.Count != 3)
             {
                 throw new InvalidOperationException("A recycled round did not contain three cards.");
+            }
+        }
+
+        private static void validateQuestionDeckDoesNotFollowInputOrder()
+        {
+            IReadOnlyList<QuestionDefinition> questionDefinitions = buildSyntheticQuestionDefinitions(10);
+            QuestionDeckService questionDeckService = new QuestionDeckService(questionDefinitions, randomSeed: 1234);
+            List<string> firstRoundQuestionIDs = questionDeckService
+                .DrawNextRound()
+                .QuestionsBySlot
+                .Values
+                .Select(questionDefinition => questionDefinition.ID)
+                .ToList();
+            List<string> firstInputQuestionIDs = questionDefinitions
+                .Take(3)
+                .Select(questionDefinition => questionDefinition.ID)
+                .ToList();
+
+            if (firstRoundQuestionIDs.SequenceEqual(firstInputQuestionIDs))
+            {
+                throw new InvalidOperationException("Question deck preserved input order instead of shuffling.");
             }
         }
 
@@ -426,8 +457,7 @@ namespace MouthOfTruth.Editor
                 throw new InvalidOperationException("Python bridge runtime prerequisites are missing.");
             }
 
-            PythonBridgeAnalysisClient pythonBridgeAnalysisClient =
-                new PythonBridgeAnalysisClient();
+            using PythonBridgeAnalysisClient pythonBridgeAnalysisClient = new PythonBridgeAnalysisClient();
             QuestionDefinition questionDefinition =
                 new QuestionDefinition("QBRIDGE", "Bridge validation question", "test", 1, true);
             AnswerAnalysisResult bridgeAnalysisResult = runPythonBridgeAnalysis(
@@ -498,6 +528,25 @@ namespace MouthOfTruth.Editor
                 Application.streamingAssetsPath,
                 QUESTION_POOL_RELATIVE_PATH);
             return QuestionPoolLoader.LoadQuestionDefinitions(questionPoolFilePath);
+        }
+
+        private static IReadOnlyList<QuestionDefinition> buildSyntheticQuestionDefinitions(int questionCount)
+        {
+            List<QuestionDefinition> questionDefinitions = new List<QuestionDefinition>();
+
+            for (int questionIndex = 0; questionIndex < questionCount; questionIndex += 1)
+            {
+                string questionID = $"Q{questionIndex + 1:D4}";
+                questionDefinitions.Add(
+                    new QuestionDefinition(
+                        questionID,
+                        $"Synthetic question {questionIndex + 1}",
+                        "test",
+                        1,
+                        true));
+            }
+
+            return questionDefinitions;
         }
 
         private static void validateStep(

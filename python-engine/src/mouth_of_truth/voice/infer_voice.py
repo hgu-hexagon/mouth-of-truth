@@ -12,15 +12,23 @@ from mouth_of_truth.runtime.model_paths import resolve_voice_model_directory
 
 VOICE_LABELS = ["ang", "hap", "exc", "neu", "sad", "fru"]
 TARGET_SAMPLE_RATE = 16000
+_CACHED_FEATURE_EXTRACTOR: AutoFeatureExtractor | None = None
+_CACHED_VOICE_MODEL: AutoModelForAudioClassification | None = None
 
 
 def load_voice_model() -> tuple[AutoFeatureExtractor, AutoModelForAudioClassification]:
     """Loads one trained voice-emotion model and feature extractor."""
+    global _CACHED_FEATURE_EXTRACTOR
+    global _CACHED_VOICE_MODEL
+
+    if _CACHED_FEATURE_EXTRACTOR is not None and _CACHED_VOICE_MODEL is not None:
+        return _CACHED_FEATURE_EXTRACTOR, _CACHED_VOICE_MODEL
+
     voice_model_directory = resolve_voice_model_directory()
-    feature_extractor = AutoFeatureExtractor.from_pretrained(str(voice_model_directory))
-    model = AutoModelForAudioClassification.from_pretrained(str(voice_model_directory))
-    model.eval()
-    return feature_extractor, model
+    _CACHED_FEATURE_EXTRACTOR = AutoFeatureExtractor.from_pretrained(str(voice_model_directory))
+    _CACHED_VOICE_MODEL = AutoModelForAudioClassification.from_pretrained(str(voice_model_directory))
+    _CACHED_VOICE_MODEL.eval()
+    return _CACHED_FEATURE_EXTRACTOR, _CACHED_VOICE_MODEL
 
 
 def load_audio(audio_path: str) -> list[float]:

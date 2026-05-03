@@ -128,6 +128,7 @@ namespace MouthOfTruth.Game.App
         {
             mAnswerCaptureInputAdapter?.CancelCollection();
             mFaceCaptureInputAdapter?.CancelCollection();
+            (mAnswerAnalysisClient as IDisposable)?.Dispose();
             mLifecycleCancellationTokenSource?.Cancel();
             mLifecycleCancellationTokenSource?.Dispose();
             restoreSystemCursor();
@@ -464,12 +465,15 @@ namespace MouthOfTruth.Game.App
             mIsTransitionBusy = true;
             mGameView.ShowAnalyzing();
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
+            System.Diagnostics.Stopwatch captureStopwatch = System.Diagnostics.Stopwatch.StartNew();
             Task<AnswerCaptureResult> answerCaptureTask = mAnswerCaptureInputAdapter.CompleteCollectionAsync(
                 snapshot.SelectedQuestionDefinition?.ID,
                 mLifecycleCancellationTokenSource.Token);
             Task<FaceCaptureResult> faceCaptureTask = mFaceCaptureInputAdapter.CompleteCollectionAsync(
                 mLifecycleCancellationTokenSource.Token);
             await Task.WhenAll(answerCaptureTask, faceCaptureTask);
+            captureStopwatch.Stop();
+            Debug.Log($"Answer capture finalization completed in {captureStopwatch.ElapsedMilliseconds} ms.");
             AnswerCaptureResult answerCaptureResult = answerCaptureTask.Result;
             FaceCaptureResult faceCaptureResult = faceCaptureTask.Result;
 
@@ -487,9 +491,12 @@ namespace MouthOfTruth.Game.App
 
             try
             {
+                System.Diagnostics.Stopwatch analysisStopwatch = System.Diagnostics.Stopwatch.StartNew();
                 answerAnalysisResult = await mAnswerAnalysisClient.AnalyzeAsync(
                     answerAnalysisRequest,
                     mLifecycleCancellationTokenSource.Token);
+                analysisStopwatch.Stop();
+                Debug.Log($"Answer analysis completed in {analysisStopwatch.ElapsedMilliseconds} ms.");
             }
             catch (Exception exception)
             {
@@ -501,6 +508,7 @@ namespace MouthOfTruth.Game.App
                     mLifecycleCancellationTokenSource.Token);
             }
 
+            await mGameView.PlayAnalysisCompleteTransitionAsync();
             applyTranscriptUpdate(answerAnalysisResult.AnswerTranscript);
             snapshot = mGameStateMachine.CreateSnapshot();
             mGameStateMachine.CompleteAnalysis(answerAnalysisResult);

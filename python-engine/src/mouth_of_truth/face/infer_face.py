@@ -7,10 +7,19 @@ from ultralytics import YOLO
 from mouth_of_truth.runtime.model_paths import resolve_face_model_path
 
 
+_CACHED_FACE_MODEL: YOLO | None = None
+
+
 def load_face_model() -> YOLO:
     """Loads one trained face-emotion model."""
+    global _CACHED_FACE_MODEL
+
+    if _CACHED_FACE_MODEL is not None:
+        return _CACHED_FACE_MODEL
+
     face_model_path = resolve_face_model_path()
-    return YOLO(str(face_model_path))
+    _CACHED_FACE_MODEL = YOLO(str(face_model_path))
+    return _CACHED_FACE_MODEL
 
 
 def probs_to_dict(model_names: dict[int, str], probs_data: list[float]) -> dict[str, float]:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import traceback
 from pathlib import Path
@@ -28,13 +29,18 @@ from mouth_of_truth.fusion.judgment_policy import (
 
 
 AnalysisPayload = dict[str, Any]
+ENABLE_TRANSCRIPTION_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_ENABLE_TRANSCRIPTION"
 
 
 def _build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
     """Builds one verdict result from one bridge request payload."""
     answer_transcript = analysis_request.answer_transcript.strip()
 
-    if not answer_transcript and analysis_request.answer_audio_file_path.strip():
+    if (
+        not answer_transcript
+        and analysis_request.answer_audio_file_path.strip()
+        and _should_transcribe_answer()
+    ):
         from mouth_of_truth.speech.whisper_transcriber import WhisperTranscriber
 
         whisper_transcriber = WhisperTranscriber()
@@ -148,6 +154,12 @@ def _detect_language_hint(question_text: str) -> str | None:
         return "en"
 
     return None
+
+
+def _should_transcribe_answer() -> bool:
+    """Returns whether answer transcription should run before returning a verdict."""
+    configured_value = os.environ.get(ENABLE_TRANSCRIPTION_ENVIRONMENT_VARIABLE_NAME, "")
+    return configured_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def main(argv: list[str] | None = None) -> int:

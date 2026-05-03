@@ -18,6 +18,7 @@ from mouth_of_truth.face.infer_face import load_face_model, predict_face_crop
 
 FACE_PADDING = 20
 HISTORY_SIZE = 15
+MAX_ANALYSIS_FRAME_COUNT = 12
 
 
 def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict[str, Any]:
@@ -26,6 +27,8 @@ def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict
 
     if not frame_files:
         return build_empty_face_analysis()
+
+    sampled_frame_files = select_representative_frame_files(frame_files)
 
     face_cascade = cv2.CascadeClassifier(
         cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -38,7 +41,7 @@ def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict
     history: deque[list[float]] = deque(maxlen=HISTORY_SIZE)
     recognition_results: list[dict[str, Any]] = []
 
-    for frame_file_path in frame_files:
+    for frame_file_path in sampled_frame_files:
         frame = cv2.imread(str(frame_file_path))
 
         if frame is None:
@@ -94,6 +97,28 @@ def list_frame_files(face_frames_directory_path: str | Path) -> list[Path]:
     frame_files.extend(face_frames_directory_path.glob("*.jpeg"))
     frame_files.extend(face_frames_directory_path.glob("*.png"))
     return sorted(frame_files)
+
+
+def select_representative_frame_files(
+    frame_files: list[Path],
+    maximum_frame_count: int = MAX_ANALYSIS_FRAME_COUNT,
+) -> list[Path]:
+    """Selects evenly spaced frames so long answers remain quick to analyze."""
+    if maximum_frame_count <= 0:
+        raise ValueError("maximum_frame_count must be greater than zero.")
+
+    if len(frame_files) <= maximum_frame_count:
+        return frame_files
+
+    if maximum_frame_count == 1:
+        return [frame_files[len(frame_files) // 2]]
+
+    last_frame_index = len(frame_files) - 1
+    selected_indices = {
+        round((last_frame_index * sample_index) / (maximum_frame_count - 1))
+        for sample_index in range(maximum_frame_count)
+    }
+    return [frame_files[frame_index] for frame_index in sorted(selected_indices)]
 
 
 def extract_largest_face_crop(

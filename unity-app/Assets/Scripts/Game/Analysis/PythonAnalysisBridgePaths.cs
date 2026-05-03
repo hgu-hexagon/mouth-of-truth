@@ -11,6 +11,7 @@ namespace MouthOfTruth.Game.Analysis
         private const string RESULT_FILE_NAME = "analysis_result.json";
         private const string PYTHON_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON";
         private const string PYTHON_MODULE_NAME = "mouth_of_truth.runners.bridge_analysis_runner";
+        private const string PYTHON_WORKER_MODULE_NAME = "mouth_of_truth.runners.bridge_analysis_worker";
         private static readonly string[] BUNDLED_PYTHON_RELATIVE_PATHS =
         {
             "python-runtime/bin/python",
@@ -75,6 +76,19 @@ namespace MouthOfTruth.Game.Analysis
                 launcherFileName);
         }
 
+        public static string GetBridgeWorkerLauncherScriptPath()
+        {
+            string launcherFileName = Application.platform == RuntimePlatform.WindowsEditor
+                || Application.platform == RuntimePlatform.WindowsPlayer
+                    ? "run_bridge_analysis_worker.bat"
+                    : "run_bridge_analysis_worker.sh";
+
+            return Path.Combine(
+                MouthOfTruthRuntimePaths.GetPythonEngineRootPath(),
+                "scripts",
+                launcherFileName);
+        }
+
         public static string GetPythonModuleRootPath()
         {
             return Path.Combine(MouthOfTruthRuntimePaths.GetPythonEngineRootPath(), "src");
@@ -83,6 +97,11 @@ namespace MouthOfTruth.Game.Analysis
         public static string GetBridgeRunnerModuleName()
         {
             return PYTHON_MODULE_NAME;
+        }
+
+        public static string GetBridgeWorkerModuleName()
+        {
+            return PYTHON_WORKER_MODULE_NAME;
         }
     }
 }

@@ -52,6 +52,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Text mPromptText;
         private Text mQuestionText;
         private Text mStatusText;
+        private Text mAnalyzingDotsText;
         private Text mAnswerTimerText;
         private InputField mAnswerInputField;
         private Image mMouthImage;
@@ -104,9 +105,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mUseWorldEnvironmentLayout;
         private EUiActionTarget? mLastHoveredUiActionTarget;
         private bool mUseHeldHandPresentation;
+        private bool mIsAnalyzingPresentationActive;
         private float mHeldHandBaseProgress;
         private float mHeldHandPulseAmplitude;
         private float mHeldHandPulseSpeed;
+        private float mAnalyzingPresentationStartedAtSeconds;
 
         private bool mStartRequested;
         private bool mTryAgainRequested;
@@ -130,9 +133,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void LateUpdate()
         {
-            if (mUseHeldHandPresentation == false
-                || mHandImage == null
-                || mHandImage.gameObject.activeSelf == false)
+            updateHeldHandPresentation();
+            updateAnalyzingPresentation();
+        }
+
+        private void updateHeldHandPresentation()
+        {
+            if (mUseHeldHandPresentation == false || mHandImage == null || mHandImage.gameObject.activeSelf == false)
             {
                 return;
             }
@@ -143,8 +150,30 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setHandVisual(insertionProgress);
         }
 
+        private void updateAnalyzingPresentation()
+        {
+            if (mIsAnalyzingPresentationActive == false || mAnalyzingDotsText == null)
+            {
+                return;
+            }
+
+            float elapsedSeconds = Time.unscaledTime - mAnalyzingPresentationStartedAtSeconds;
+            int dotCount = 1 + (Mathf.FloorToInt(elapsedSeconds * 2.2f) % 3);
+            setText(mAnalyzingDotsText, new string('.', dotCount));
+
+            if (mMouthImage == null)
+            {
+                return;
+            }
+
+            float pulse = (Mathf.Sin(elapsedSeconds * 2.6f) + 1.0f) * 0.5f;
+            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.48f, 0.64f, pulse));
+            mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.985f, 1.01f, pulse);
+        }
+
         public void ShowStartScreen()
         {
+            disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyStartScreenLayout();
             configureExitButtonAsTopLeftIcon();
@@ -184,6 +213,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
         {
+            disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyCardSelectionLayout();
             configureExitButtonAsTopLeftIcon();
@@ -342,6 +372,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowNarratingQuestion(string questionText)
         {
+            disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyNarrationLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
@@ -367,6 +398,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAwaitingHandInsertion()
         {
+            disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyAwaitingHandInsertionLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
@@ -425,6 +457,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnswering()
         {
+            disableAnalyzingPresentation();
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
@@ -448,6 +481,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnswerPaused()
         {
+            disableAnalyzingPresentation();
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
@@ -472,6 +506,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnalyzing()
         {
+            disableHeldHandPresentation();
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
@@ -488,14 +523,38 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            setText(mQuestionText, "진실의 입이 답을 살피고 있습니다.");
+            setText(mQuestionText, "진실의 입이 답을 가늠하고 있습니다.");
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
-            enableHeldHandPresentation(baseProgress: 0.82f, pulseAmplitude: 0.004f, pulseSpeed: 1.0f);
+            setHandVisual(0.82f);
+            setObjectActive(mHandImage, true);
+            enableAnalyzingPresentation();
+        }
+
+        public async Task PlayAnalysisCompleteTransitionAsync()
+        {
+            if (mIsAnalyzingPresentationActive == false)
+            {
+                return;
+            }
+
+            await animateOverTimeAsync(
+                0.45f,
+                progress =>
+                {
+                    float easedProgress = easeOut(progress);
+                    setOverlayAlpha(Mathf.Lerp(0.34f, 0.48f, easedProgress));
+                    mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.58f, 0.42f, easedProgress));
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.035f, easedProgress);
+                    mAnalyzingDotsText.color = new Color(1.0f, 0.92f, 0.78f, Mathf.Lerp(1.0f, 0.0f, easedProgress));
+                });
+
+            disableAnalyzingPresentation();
         }
 
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
+            disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyResultLayout(verdictKind);
             configureExitButtonAsEndGameButton();
@@ -1426,6 +1485,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(1200.0f, 140.0f),
                 34,
                 FontStyle.Bold);
+            mAnalyzingDotsText = createText(
+                "AnalyzingDotsText",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.57f),
+                new Vector2(0.5f, 0.57f),
+                Vector2.zero,
+                new Vector2(360.0f, 140.0f),
+                90,
+                FontStyle.Bold);
             mAnswerTimerText = createText(
                 "AnswerTimerText",
                 mCanvasRootTransform,
@@ -1512,6 +1580,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             createCardView(EQuestionCardSlot.RightCard, FALLBACK_RIGHT_CARD_POSITION);
             mPointerImage.transform.SetAsLastSibling();
             mPointerImage.raycastTarget = false;
+            mAnalyzingDotsText.transform.SetAsLastSibling();
             mLoadingOverlayImage = createFullScreenImage("LoadingOverlay", mCanvasRootTransform, Color.black);
             mLoadingOverlayImage.transform.SetAsLastSibling();
             mLoadingOverlayImage.raycastTarget = true;
@@ -1932,6 +2001,35 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mHeldHandBaseProgress = 0.0f;
             mHeldHandPulseAmplitude = 0.0f;
             mHeldHandPulseSpeed = 0.0f;
+        }
+
+        private void enableAnalyzingPresentation()
+        {
+            mIsAnalyzingPresentationActive = true;
+            mAnalyzingPresentationStartedAtSeconds = Time.unscaledTime;
+            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.56f);
+            mMouthImage.rectTransform.localScale = Vector3.one;
+            setObjectActive(mAnalyzingDotsText, true);
+            mAnalyzingDotsText.transform.SetAsLastSibling();
+            mAnalyzingDotsText.color = new Color(1.0f, 0.92f, 0.78f, 1.0f);
+            setText(mAnalyzingDotsText, "...");
+        }
+
+        private void disableAnalyzingPresentation()
+        {
+            mIsAnalyzingPresentationActive = false;
+
+            if (mMouthImage != null)
+            {
+                mMouthImage.color = Color.white;
+                mMouthImage.rectTransform.localScale = Vector3.one;
+            }
+
+            if (mAnalyzingDotsText != null)
+            {
+                setObjectActive(mAnalyzingDotsText, false);
+                setText(mAnalyzingDotsText, string.Empty);
+            }
         }
 
         private static bool isInsideAnchorWindow(

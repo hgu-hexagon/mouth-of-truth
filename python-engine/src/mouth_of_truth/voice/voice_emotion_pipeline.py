@@ -23,6 +23,7 @@ from mouth_of_truth.voice.voice_score_logic import (
 
 SEGMENT_SECONDS = 2.0
 SEGMENT_STRIDE_SECONDS = 1.0
+MAX_ANALYSIS_SEGMENT_COUNT = 4
 VOICE_HISTORY_SIZE = 10
 
 
@@ -34,16 +35,18 @@ def run_voice_emotion_pipeline(audio_path: str) -> dict[str, Any]:
     if has_speech_signal(waveform, TARGET_SAMPLE_RATE) is False:
         return build_empty_voice_analysis()
 
-    segments = split_audio_into_segments(waveform, TARGET_SAMPLE_RATE)
+    segments = [
+        segment_waveform
+        for segment_waveform in split_audio_into_segments(waveform, TARGET_SAMPLE_RATE)
+        if has_speech_signal(segment_waveform, TARGET_SAMPLE_RATE)
+    ]
+    segments = select_representative_segments(segments)
     history: deque[list[float]] = deque(maxlen=VOICE_HISTORY_SIZE)
     segment_results: list[dict[str, Any]] = []
 
     analyzed_segment_index = 0
 
     for segment_waveform in segments:
-        if has_speech_signal(segment_waveform, TARGET_SAMPLE_RATE) is False:
-            continue
-
         prediction = predict_voice_segment(feature_extractor, model, segment_waveform)
         probabilities_data = prediction["probs"]
         history.append(probabilities_data)
@@ -112,6 +115,28 @@ def split_audio_into_segments(
             segments.append(tail_segment)
 
     return segments
+
+
+def select_representative_segments(
+    segments: list[list[float]],
+    maximum_segment_count: int = MAX_ANALYSIS_SEGMENT_COUNT,
+) -> list[list[float]]:
+    """Selects evenly spaced speech segments so verdict latency stays bounded."""
+    if maximum_segment_count <= 0:
+        raise ValueError("maximum_segment_count must be greater than zero.")
+
+    if len(segments) <= maximum_segment_count:
+        return segments
+
+    if maximum_segment_count == 1:
+        return [segments[len(segments) // 2]]
+
+    last_segment_index = len(segments) - 1
+    selected_indices = {
+        round((last_segment_index * sample_index) / (maximum_segment_count - 1))
+        for sample_index in range(maximum_segment_count)
+    }
+    return [segments[segment_index] for segment_index in sorted(selected_indices)]
 
 
 def predict_voice_segment(

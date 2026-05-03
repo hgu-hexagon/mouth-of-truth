@@ -1267,22 +1267,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.rectTransform.localScale = Vector3.one;
             setRectTransformLayout(
                 mVerdictImage.rectTransform,
-                new Vector2(0.5f, 0.64f),
+                new Vector2(0.5f, 0.58f),
                 verdictKind == EVerdictKind.Uncertain
-                    ? new Vector2(1420.0f, 330.0f)
-                    : new Vector2(1120.0f, 290.0f));
+                    ? new Vector2(1320.0f, 306.0f)
+                    : new Vector2(1040.0f, 270.0f));
             setRectTransformLayout(
                 mHandImage.rectTransform,
-                new Vector2(0.5f, 0.21f),
-                new Vector2(320.0f, 420.0f));
+                new Vector2(0.5f, 0.18f),
+                new Vector2(280.0f, 380.0f));
             setRectTransformLayout(
                 mTryAgainButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.205f),
-                new Vector2(410.0f, 127.0f));
+                new Vector2(0.5f, 0.25f),
+                new Vector2(360.0f, 100.0f));
             setRectTransformLayout(
                 mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.115f),
-                new Vector2(410.0f, 127.0f));
+                new Vector2(0.5f, 0.125f),
+                new Vector2(360.0f, 100.0f));
         }
 
         private void applyTopLeftExitButtonLayout()

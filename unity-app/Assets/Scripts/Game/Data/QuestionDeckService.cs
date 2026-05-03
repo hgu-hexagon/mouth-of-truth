@@ -34,32 +34,42 @@ namespace MouthOfTruth.Game.Data
                 ? new Random(randomSeed.Value)
                 : new Random();
             mRemainingQuestionDefinitions = new Queue<QuestionDefinition>();
-            refillDeckIfNeeded(DEFAULT_ROUND_SIZE);
+            refillDeckExcluding(Array.Empty<QuestionDefinition>());
         }
 
         public QuestionRoundSelection DrawNextRound()
         {
-            refillDeckIfNeeded(DEFAULT_ROUND_SIZE);
+            List<QuestionDefinition> roundQuestionDefinitions = new List<QuestionDefinition>();
+
+            while (roundQuestionDefinitions.Count < DEFAULT_ROUND_SIZE)
+            {
+                if (mRemainingQuestionDefinitions.Count == 0)
+                {
+                    refillDeckExcluding(roundQuestionDefinitions);
+                }
+
+                roundQuestionDefinitions.Add(mRemainingQuestionDefinitions.Dequeue());
+            }
 
             Dictionary<EQuestionCardSlot, QuestionDefinition> questionsBySlot =
                 new Dictionary<EQuestionCardSlot, QuestionDefinition>
                 {
-                    { EQuestionCardSlot.LeftCard, mRemainingQuestionDefinitions.Dequeue() },
-                    { EQuestionCardSlot.CenterCard, mRemainingQuestionDefinitions.Dequeue() },
-                    { EQuestionCardSlot.RightCard, mRemainingQuestionDefinitions.Dequeue() },
+                    { EQuestionCardSlot.LeftCard, roundQuestionDefinitions[0] },
+                    { EQuestionCardSlot.CenterCard, roundQuestionDefinitions[1] },
+                    { EQuestionCardSlot.RightCard, roundQuestionDefinitions[2] },
                 };
 
             return new QuestionRoundSelection(questionsBySlot);
         }
 
-        private void refillDeckIfNeeded(int minimumQuestionCount)
+        private void refillDeckExcluding(IReadOnlyList<QuestionDefinition> currentRoundQuestionDefinitions)
         {
-            if (mRemainingQuestionDefinitions.Count >= minimumQuestionCount)
-            {
-                return;
-            }
+            HashSet<string> currentRoundQuestionIDs = new HashSet<string>(
+                currentRoundQuestionDefinitions.Select(questionDefinition => questionDefinition.ID),
+                StringComparer.Ordinal);
 
             List<QuestionDefinition> shuffledQuestionDefinitions = mAllEnabledQuestionDefinitions
+                .Where(questionDefinition => currentRoundQuestionIDs.Contains(questionDefinition.ID) == false)
                 .OrderBy(_ => mRandom.Next())
                 .ToList();
 

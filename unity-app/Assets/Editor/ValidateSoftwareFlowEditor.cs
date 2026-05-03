@@ -51,7 +51,7 @@ namespace MouthOfTruth.Editor
             QuestionDeckService questionDeckService =
                 new QuestionDeckService(questionDefinitions, randomSeed: 1234);
             HashSet<string> seenQuestionIDs = new HashSet<string>(StringComparer.Ordinal);
-            int expectedUniqueRoundCount = enabledQuestionCount / 3;
+            int expectedUniqueRoundCount = Mathf.CeilToInt(enabledQuestionCount / 3.0f);
 
             for (int roundIndex = 0; roundIndex < expectedUniqueRoundCount; roundIndex += 1)
             {
@@ -61,7 +61,9 @@ namespace MouthOfTruth.Editor
                     QuestionDefinition questionDefinition
                     in questionRoundSelection.QuestionsBySlot.Values)
                 {
-                    if (seenQuestionIDs.Add(questionDefinition.ID) == false)
+                    bool isNewQuestion = seenQuestionIDs.Add(questionDefinition.ID);
+
+                    if (isNewQuestion == false && seenQuestionIDs.Count < enabledQuestionCount)
                     {
                         throw new InvalidOperationException(
                             $"Question {questionDefinition.ID} repeated "

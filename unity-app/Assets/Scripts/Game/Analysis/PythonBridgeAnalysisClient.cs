@@ -10,7 +10,7 @@ namespace MouthOfTruth.Game.Analysis
 {
     public class PythonBridgeAnalysisClient : IAnswerAnalysisClient
     {
-        private const int DEFAULT_TIMEOUT_MILLISECONDS = 8000;
+        private const int DEFAULT_TIMEOUT_MILLISECONDS = 15000;
 
         public async Task<AnswerAnalysisResult> AnalyzeAsync(
             AnswerAnalysisRequest answerAnalysisRequest,

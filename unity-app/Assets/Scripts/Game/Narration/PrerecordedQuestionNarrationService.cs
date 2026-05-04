@@ -32,6 +32,10 @@ namespace MouthOfTruth.Game.Narration
             mAudioSource.playOnAwake = false;
             mAudioSource.loop = false;
             mAudioSource.spatialBlend = 0.0f;
+            mAudioSource.volume = 0.92f;
+            mAudioSource.priority = 8;
+            mAudioSource.dopplerLevel = 0.0f;
+            mAudioSource.ignoreListenerPause = true;
         }
 
         public async Task SpeakQuestionAsync(QuestionDefinition questionDefinition, CancellationToken cancellationToken)

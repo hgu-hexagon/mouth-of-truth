@@ -18,7 +18,8 @@ from mouth_of_truth.face.infer_face import load_face_model, predict_face_crop
 
 FACE_PADDING = 20
 HISTORY_SIZE = 15
-MAX_ANALYSIS_FRAME_COUNT = 4
+MAX_ANALYSIS_FRAME_COUNT = 3
+TARGET_ANALYSIS_RECOGNITION_COUNT = 1
 
 
 def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict[str, Any]:
@@ -69,6 +70,9 @@ def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict
                 "suspicion_score": suspicion_score,
             }
         )
+
+        if len(recognition_results) >= TARGET_ANALYSIS_RECOGNITION_COUNT:
+            break
 
     return {
         "frame_count": len(frame_files),

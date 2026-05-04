@@ -135,6 +135,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void LateUpdate()
         {
+            ensureAmbiencePlayback();
             updateHeldHandPresentation();
             updateAnsweringPresentation();
             updateAnalyzingPresentation();
@@ -571,7 +572,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             await animateOverTimeAsync(
-                0.16f,
+                0.10f,
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
@@ -1626,11 +1627,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAmbienceAudioSource.loop = true;
             mAmbienceAudioSource.playOnAwake = false;
             mAmbienceAudioSource.volume = 0.32f;
+            mAmbienceAudioSource.spatialBlend = 0.0f;
+            mAmbienceAudioSource.priority = 0;
+            mAmbienceAudioSource.dopplerLevel = 0.0f;
+            mAmbienceAudioSource.ignoreListenerPause = true;
 
             mInterfaceAudioSource = gameObject.AddComponent<AudioSource>();
             mInterfaceAudioSource.loop = false;
             mInterfaceAudioSource.playOnAwake = false;
             mInterfaceAudioSource.volume = 0.85f;
+            mInterfaceAudioSource.spatialBlend = 0.0f;
+            mInterfaceAudioSource.priority = 16;
+            mInterfaceAudioSource.dopplerLevel = 0.0f;
+            mInterfaceAudioSource.ignoreListenerPause = true;
         }
 
         private void ensureEventSystemExists()

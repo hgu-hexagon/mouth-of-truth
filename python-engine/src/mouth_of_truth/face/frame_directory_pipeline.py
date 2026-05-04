@@ -18,7 +18,7 @@ from mouth_of_truth.face.infer_face import load_face_model, predict_face_crop
 
 FACE_PADDING = 20
 HISTORY_SIZE = 15
-MAX_ANALYSIS_FRAME_COUNT = 12
+MAX_ANALYSIS_FRAME_COUNT = 6
 
 
 def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict[str, Any]:

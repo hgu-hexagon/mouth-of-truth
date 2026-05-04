@@ -464,7 +464,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             playInterfaceCue(mHandInsertClip, 0.9f);
 
             await animateOverTimeAsync(
-                0.45f,
+                0.28f,
                 progress =>
                 {
                     float easedProgress = easeOut(progress);

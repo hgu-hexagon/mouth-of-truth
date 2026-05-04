@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -50,8 +51,7 @@ def _build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
             language_hint=language_hint,
         ).strip()
 
-    face_analysis = _analyze_face_data(analysis_request)
-    voice_analysis = _analyze_voice_data(analysis_request)
+    face_analysis, voice_analysis = _analyze_modalities(analysis_request)
     face_recognition_count = _resolve_face_recognition_count(analysis_request, face_analysis)
     voice_segment_count = _resolve_voice_segment_count(analysis_request, voice_analysis)
 
@@ -63,6 +63,16 @@ def _build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
         face_recognition_count=face_recognition_count,
         voice_segment_count=voice_segment_count,
     )
+
+
+def _analyze_modalities(
+    analysis_request: AnalysisRequest,
+) -> tuple[AnalysisPayload, AnalysisPayload]:
+    """Runs face and voice analysis in parallel to keep verdict latency low."""
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        face_future = executor.submit(_analyze_face_data, analysis_request)
+        voice_future = executor.submit(_analyze_voice_data, analysis_request)
+        return face_future.result(), voice_future.result()
 
 
 def run_once(request_file_path: str | Path, result_file_path: str | Path) -> None:

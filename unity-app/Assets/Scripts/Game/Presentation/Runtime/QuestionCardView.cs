@@ -100,9 +100,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.resizeTextMaxSize = 26;
             mQuestionText.raycastTarget = false;
             setQuestionText(string.Empty);
-            Shadow questionTextShadow = textObject.AddComponent<Shadow>();
-            questionTextShadow.effectColor = new Color(0.98f, 0.95f, 0.89f, 0.38f);
-            questionTextShadow.effectDistance = new Vector2(1.0f, -1.0f);
         }
 
         public void SetBack(Sprite cardBackSprite)

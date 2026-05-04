@@ -30,12 +30,25 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.09f;
         private const float ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR = 0.12f;
         private const float ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR = 0.05f;
+        private const float CARD_INTENT_LEFT_MAX_NORMALIZED_X = 0.39f;
+        private const float CARD_INTENT_RIGHT_MIN_NORMALIZED_X = 0.61f;
+        private const float CARD_INTENT_MIN_NORMALIZED_Y = 0.28f;
+        private const float CARD_INTENT_MAX_NORMALIZED_Y = 0.84f;
+        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.26f;
+        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.28f;
+        private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.22f;
+        private const float MOUTH_INTENT_INNER_SWITCH_FACTOR = 0.58f;
+        private const float ANSWER_HOLD_INTENT_HALF_WIDTH_FACTOR = 0.28f;
+        private const float ANSWER_HOLD_INTENT_MARGIN_FACTOR = 0.26f;
+        private const float BUTTON_INTENT_EXPANSION_PIXELS = 54.0f;
+        private const float EXIT_BUTTON_INTENT_EXPANSION_PIXELS = 32.0f;
         private const float CARD_FRONT_READ_HOLD_MINIMUM_SECONDS = 1.875f;
         private const float CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS = 3.225f;
         private const float CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS = 0.01875f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
+        private readonly Vector3[] mHitTestWorldCorners = new Vector3[4];
 
         private Canvas mCanvas;
         private RectTransform mCanvasRootRectTransform;
@@ -657,7 +670,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     }
                 }
 
-                return null;
+                return EvaluateQuestionCardIntentSlot(
+                    pointerScreenPosition.Value,
+                    Screen.width,
+                    Screen.height);
             }
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
@@ -680,22 +696,34 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             Vector2 screenPosition = pointerScreenPosition.Value;
 
-            if (isScreenPointOverButton(mStartButton, screenPosition))
+            if (isScreenPointOverButton(
+                    mStartButton,
+                    screenPosition,
+                    BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.StartGame;
             }
 
-            if (isScreenPointOverButton(mTryAgainButton, screenPosition))
+            if (isScreenPointOverButton(
+                    mTryAgainButton,
+                    screenPosition,
+                    BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.TryAgain;
             }
 
-            if (isScreenPointOverButton(mExitButton, screenPosition))
+            if (isScreenPointOverButton(
+                    mExitButton,
+                    screenPosition,
+                    EXIT_BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.ExitGame;
             }
 
-            if (isScreenPointOverButton(mBackToTitleButton, screenPosition))
+            if (isScreenPointOverButton(
+                    mBackToTitleButton,
+                    screenPosition,
+                    BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.BackToTitle;
             }
@@ -738,7 +766,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthDiameterPixels = Mathf.Max(
                 1.0f,
                 Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
-            return EvaluateHandAnchorState(
+            EHandAnchorState exactAnchorState = EvaluateHandAnchorState(
+                pointerCanvasPosition,
+                getHandFrontPosition(),
+                getHandInnerPosition(),
+                mouthDiameterPixels);
+
+            if (exactAnchorState != EHandAnchorState.OutsideMouth)
+            {
+                return exactAnchorState;
+            }
+
+            return EvaluateMouthIntentAnchorState(
                 pointerCanvasPosition,
                 getHandFrontPosition(),
                 getHandInnerPosition(),
@@ -762,11 +801,52 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthDiameterPixels = Mathf.Max(
                 1.0f,
                 Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
-            return EvaluateAnswerHoldState(
+            if (EvaluateAnswerHoldState(
+                pointerCanvasPosition,
+                getHandFrontPosition(),
+                getHandInnerPosition(),
+                mouthDiameterPixels))
+            {
+                return true;
+            }
+
+            return EvaluateMouthIntentHoldState(
                 pointerCanvasPosition,
                 getHandFrontPosition(),
                 getHandInnerPosition(),
                 mouthDiameterPixels);
+        }
+
+        public static EQuestionCardSlot? EvaluateQuestionCardIntentSlot(
+            Vector2 screenPosition,
+            float screenWidth,
+            float screenHeight)
+        {
+            if (screenWidth <= 0.0f || screenHeight <= 0.0f)
+            {
+                return null;
+            }
+
+            float normalizedX = Mathf.Clamp01(screenPosition.x / screenWidth);
+            float normalizedY = Mathf.Clamp01(screenPosition.y / screenHeight);
+
+            if (normalizedY < CARD_INTENT_MIN_NORMALIZED_Y
+                || normalizedY > CARD_INTENT_MAX_NORMALIZED_Y)
+            {
+                return null;
+            }
+
+            if (normalizedX < CARD_INTENT_LEFT_MAX_NORMALIZED_X)
+            {
+                return EQuestionCardSlot.LeftCard;
+            }
+
+            if (normalizedX > CARD_INTENT_RIGHT_MIN_NORMALIZED_X)
+            {
+                return EQuestionCardSlot.RightCard;
+            }
+
+            return EQuestionCardSlot.CenterCard;
         }
 
         public static EHandAnchorState EvaluateHandAnchorState(
@@ -827,6 +907,54 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float maximumY = Mathf.Max(handFrontPosition.y, handInnerPosition.y) + corridorMargin;
 
             return Mathf.Abs(pointerCanvasPosition.x - handFrontPosition.x) <= corridorHalfWidth
+                && pointerCanvasPosition.y >= minimumY
+                && pointerCanvasPosition.y <= maximumY;
+        }
+
+        public static EHandAnchorState EvaluateMouthIntentAnchorState(
+            Vector2 pointerCanvasPosition,
+            Vector2 handFrontPosition,
+            Vector2 handInnerPosition,
+            float mouthDiameterPixels)
+        {
+            float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
+            float intentHalfWidth = clampedMouthDiameterPixels * MOUTH_INTENT_HALF_WIDTH_FACTOR;
+            float minimumY = Mathf.Min(handFrontPosition.y, handInnerPosition.y)
+                - (clampedMouthDiameterPixels * MOUTH_INTENT_LOWER_MARGIN_FACTOR);
+            float maximumY = Mathf.Max(handFrontPosition.y, handInnerPosition.y)
+                + (clampedMouthDiameterPixels * MOUTH_INTENT_UPPER_MARGIN_FACTOR);
+            float centerX = Mathf.Lerp(handFrontPosition.x, handInnerPosition.x, 0.5f);
+
+            if (Mathf.Abs(pointerCanvasPosition.x - centerX) > intentHalfWidth
+                || pointerCanvasPosition.y < minimumY
+                || pointerCanvasPosition.y > maximumY)
+            {
+                return EHandAnchorState.OutsideMouth;
+            }
+
+            float innerSwitchY = Mathf.Lerp(
+                handFrontPosition.y,
+                handInnerPosition.y,
+                MOUTH_INTENT_INNER_SWITCH_FACTOR);
+            return pointerCanvasPosition.y >= innerSwitchY
+                ? EHandAnchorState.AtInnerAnchor
+                : EHandAnchorState.AtFrontAnchor;
+        }
+
+        public static bool EvaluateMouthIntentHoldState(
+            Vector2 pointerCanvasPosition,
+            Vector2 handFrontPosition,
+            Vector2 handInnerPosition,
+            float mouthDiameterPixels)
+        {
+            float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
+            float corridorHalfWidth = clampedMouthDiameterPixels * ANSWER_HOLD_INTENT_HALF_WIDTH_FACTOR;
+            float corridorMargin = clampedMouthDiameterPixels * ANSWER_HOLD_INTENT_MARGIN_FACTOR;
+            float centerX = Mathf.Lerp(handFrontPosition.x, handInnerPosition.x, 0.5f);
+            float minimumY = Mathf.Min(handFrontPosition.y, handInnerPosition.y) - corridorMargin;
+            float maximumY = Mathf.Max(handFrontPosition.y, handInnerPosition.y) + corridorMargin;
+
+            return Mathf.Abs(pointerCanvasPosition.x - centerX) <= corridorHalfWidth
                 && pointerCanvasPosition.y >= minimumY
                 && pointerCanvasPosition.y <= maximumY;
         }
@@ -1899,14 +2027,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
         }
 
-        private bool isScreenPointOverButton(Button button, Vector2 screenPosition)
+        private bool isScreenPointOverButton(
+            Button button,
+            Vector2 screenPosition,
+            float intentExpansionPixels)
         {
             return button != null
                 && button.gameObject.activeInHierarchy
                 && button.interactable
-                && isScreenPointOverRectTransform(
-                    button.GetComponent<RectTransform>(),
-                    screenPosition);
+                && (
+                    isScreenPointOverRectTransform(button.GetComponent<RectTransform>(), screenPosition)
+                    || isScreenPointOverExpandedRectTransform(
+                        button.GetComponent<RectTransform>(),
+                        screenPosition,
+                        intentExpansionPixels)
+                );
         }
 
         private bool isScreenPointOverRectTransform(
@@ -1918,6 +2053,40 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     rectTransform,
                     screenPosition,
                     null);
+        }
+
+        private bool isScreenPointOverExpandedRectTransform(
+            RectTransform rectTransform,
+            Vector2 screenPosition,
+            float expansionPixels)
+        {
+            if (rectTransform == null || expansionPixels <= 0.0f)
+            {
+                return false;
+            }
+
+            rectTransform.GetWorldCorners(mHitTestWorldCorners);
+            Vector2 firstScreenCorner = RectTransformUtility.WorldToScreenPoint(null, mHitTestWorldCorners[0]);
+            float minimumX = firstScreenCorner.x;
+            float maximumX = firstScreenCorner.x;
+            float minimumY = firstScreenCorner.y;
+            float maximumY = firstScreenCorner.y;
+
+            for (int cornerIndex = 1; cornerIndex < mHitTestWorldCorners.Length; cornerIndex += 1)
+            {
+                Vector2 screenCorner = RectTransformUtility.WorldToScreenPoint(
+                    null,
+                    mHitTestWorldCorners[cornerIndex]);
+                minimumX = Mathf.Min(minimumX, screenCorner.x);
+                maximumX = Mathf.Max(maximumX, screenCorner.x);
+                minimumY = Mathf.Min(minimumY, screenCorner.y);
+                maximumY = Mathf.Max(maximumY, screenCorner.y);
+            }
+
+            return screenPosition.x >= minimumX - expansionPixels
+                && screenPosition.x <= maximumX + expansionPixels
+                && screenPosition.y >= minimumY - expansionPixels
+                && screenPosition.y <= maximumY + expansionPixels;
         }
 
         private void updateButtonVisual(Button button, bool isHovered, float hoverProgress)

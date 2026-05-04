@@ -27,6 +27,7 @@ namespace MouthOfTruth.Editor
             validateStep("state machine flow", validateStateMachineFlow, errors);
             validateStep("answer timeout behavior", validateAnswerTimeoutFlow, errors);
             validateStep("mouth hand anchor targeting", validateHandAnchorTargeting, errors);
+            validateStep("leap intent targeting", validateLeapIntentTargeting, errors);
             validateStep("deterministic analysis", validateDeterministicAnalysis, errors);
             validateStep("unity python bridge round trip", validatePythonBridgeRoundTrip, errors);
 
@@ -459,6 +460,74 @@ namespace MouthOfTruth.Editor
             {
                 throw new InvalidOperationException("Answer hold sustain accepted a pointer that is too far off-center.");
             }
+        }
+
+        private static void validateLeapIntentTargeting()
+        {
+            assertCondition(
+                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
+                    new Vector2(220.0f, 540.0f),
+                    1200.0f,
+                    900.0f) == EQuestionCardSlot.LeftCard,
+                "Left-side Leap intent did not resolve to the left card.");
+            assertCondition(
+                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
+                    new Vector2(600.0f, 540.0f),
+                    1200.0f,
+                    900.0f) == EQuestionCardSlot.CenterCard,
+                "Center Leap intent did not resolve to the center card.");
+            assertCondition(
+                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
+                    new Vector2(980.0f, 540.0f),
+                    1200.0f,
+                    900.0f) == EQuestionCardSlot.RightCard,
+                "Right-side Leap intent did not resolve to the right card.");
+            assertCondition(
+                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
+                    new Vector2(600.0f, 120.0f),
+                    1200.0f,
+                    900.0f) == null,
+                "Low off-stage Leap intent unexpectedly resolved to a card.");
+
+            Vector2 handFrontPosition = new Vector2(0.0f, 0.0f);
+            Vector2 handInnerPosition = new Vector2(0.0f, 180.0f);
+            const float MOUTH_DIAMETER_PIXELS = 420.0f;
+
+            assertCondition(
+                MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
+                    new Vector2(82.0f, 74.0f),
+                    handFrontPosition,
+                    handInnerPosition,
+                    MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtFrontAnchor,
+                "Loose Leap mouth intent did not resolve to the front anchor.");
+            assertCondition(
+                MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
+                    new Vector2(72.0f, 142.0f),
+                    handFrontPosition,
+                    handInnerPosition,
+                    MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtInnerAnchor,
+                "Loose Leap mouth intent did not resolve to the inner anchor.");
+            assertCondition(
+                MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
+                    new Vector2(150.0f, 100.0f),
+                    handFrontPosition,
+                    handInnerPosition,
+                    MOUTH_DIAMETER_PIXELS) == EHandAnchorState.OutsideMouth,
+                "Far off-center Leap mouth intent was accepted too broadly.");
+            assertCondition(
+                MouthOfTruthGameView.EvaluateMouthIntentHoldState(
+                    new Vector2(82.0f, 74.0f),
+                    handFrontPosition,
+                    handInnerPosition,
+                    MOUTH_DIAMETER_PIXELS),
+                "Loose Leap answer hold did not accept a near-mouth position.");
+            assertCondition(
+                MouthOfTruthGameView.EvaluateMouthIntentHoldState(
+                    new Vector2(150.0f, 100.0f),
+                    handFrontPosition,
+                    handInnerPosition,
+                    MOUTH_DIAMETER_PIXELS) == false,
+                "Loose Leap answer hold accepted a far off-center position.");
         }
 
         private static void validatePythonBridgeRoundTrip()

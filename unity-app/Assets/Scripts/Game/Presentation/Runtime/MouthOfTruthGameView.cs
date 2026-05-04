@@ -45,6 +45,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float CARD_FRONT_READ_HOLD_MINIMUM_SECONDS = 1.875f;
         private const float CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS = 3.225f;
         private const float CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS = 0.01875f;
+        private const float CARD_HOVER_AUDIO_COOLDOWN_SECONDS = 0.22f;
+        private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
+        private const float INTERFACE_AUDIO_OVERLAP_DUCK_SCALE = 0.72f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -125,6 +128,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private float mHeldHandPulseSpeed;
         private float mAnsweringPresentationStartedAtSeconds;
         private float mAnalyzingPresentationStartedAtSeconds;
+        private float mLastCardHoverCueTimeSeconds = -999.0f;
 
         private bool mStartRequested;
         private bool mTryAgainRequested;
@@ -245,6 +249,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setText(mAnswerTimerText, string.Empty);
             mLastAudibleHoveredCardSlot = null;
             mLastHoveredUiActionTarget = null;
+            mLastCardHoverCueTimeSeconds = -999.0f;
             refreshWorldPresentationLayout();
             ensureAmbiencePlayback();
         }
@@ -296,15 +301,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setText(mAnswerTimerText, string.Empty);
             mLastAudibleHoveredCardSlot = null;
             mLastHoveredUiActionTarget = null;
+            mLastCardHoverCueTimeSeconds = -999.0f;
         }
 
         public void UpdateCardHoverVisual(EQuestionCardSlot? hoveredQuestionCardSlot, float hoverProgress)
         {
             if (hoveredQuestionCardSlot != mLastAudibleHoveredCardSlot)
             {
-                if (hoveredQuestionCardSlot.HasValue)
+                bool hasEnoughCardHoverAudioGap = Time.unscaledTime - mLastCardHoverCueTimeSeconds >= CARD_HOVER_AUDIO_COOLDOWN_SECONDS;
+
+                if (hoveredQuestionCardSlot.HasValue && hasEnoughCardHoverAudioGap)
                 {
-                    playInterfaceCue(mCardHoverClip, 0.52f);
+                    mLastCardHoverCueTimeSeconds = Time.unscaledTime;
+                    playInterfaceCue(mCardHoverClip, 0.32f);
                 }
 
                 mLastAudibleHoveredCardSlot = hoveredQuestionCardSlot;
@@ -338,7 +347,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mQuestionText, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.12f);
-            playInterfaceCue(mCardSelectClip, 0.72f);
+            playInterfaceCue(mCardSelectClip, 0.58f);
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -363,7 +372,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 });
 
             selectedCardView.SetFront(mCardFrontSprite, questionDefinition.Text);
-            playInterfaceCue(mCardRevealClip, 0.72f);
+            playInterfaceCue(mCardRevealClip, 0.58f);
 
             await animateOverTimeAsync(
                 0.16f,
@@ -475,7 +484,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyAnswerStageLayout();
             setObjectActive(mPointerImage, false);
             setObjectActive(mHandImage, true);
-            playInterfaceCue(mHandInsertClip, 0.9f);
+            playInterfaceCue(mHandInsertClip, 0.68f);
 
             await animateOverTimeAsync(
                 0.28f,
@@ -492,7 +501,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             disableAnsweringPresentation();
             disableHeldHandPresentation();
-            playInterfaceCue(mHandPauseClip, 0.9f);
+            playInterfaceCue(mHandPauseClip, 0.68f);
             await animateOverTimeAsync(
                 0.35f,
                 progress => setHandVisual(Mathf.Lerp(1.0f, 0.0f, easeOut(progress))));
@@ -1760,7 +1769,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mInterfaceAudioSource = gameObject.AddComponent<AudioSource>();
             mInterfaceAudioSource.loop = false;
             mInterfaceAudioSource.playOnAwake = false;
-            mInterfaceAudioSource.volume = 0.85f;
+            mInterfaceAudioSource.volume = 0.78f;
             mInterfaceAudioSource.spatialBlend = 0.0f;
             mInterfaceAudioSource.priority = 16;
             mInterfaceAudioSource.dopplerLevel = 0.0f;
@@ -1971,7 +1980,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             button.onClick.AddListener(
                 () =>
                 {
-                    playInterfaceCue(mButtonConfirmClip, 0.85f);
+                    playInterfaceCue(mButtonConfirmClip, 0.68f);
                     clickedAction?.Invoke();
                 });
 
@@ -2291,7 +2300,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            mInterfaceAudioSource.PlayOneShot(audioClip, volumeScale);
+            float safeVolumeScale = Mathf.Clamp(volumeScale, 0.0f, INTERFACE_AUDIO_MAX_VOLUME_SCALE);
+
+            if (mInterfaceAudioSource.isPlaying)
+            {
+                safeVolumeScale *= INTERFACE_AUDIO_OVERLAP_DUCK_SCALE;
+            }
+
+            mInterfaceAudioSource.PlayOneShot(audioClip, safeVolumeScale);
         }
 
         private void playVerdictCue(EVerdictKind verdictKind)
@@ -2303,7 +2319,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 _ => mResultUncertainClip,
             };
 
-            playInterfaceCue(verdictClip, 0.78f);
+            playInterfaceCue(verdictClip, 0.62f);
         }
 
         private void addTextShadow(GameObject textObject)

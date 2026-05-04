@@ -212,9 +212,14 @@ namespace MouthOfTruth.Editor
             gameStateMachine.NotifyHandReachedInnerAnchor();
             assertState(gameStateMachine, EGameFlowState.Answering, "answer resume");
 
-            shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(
-                2.9f,
-                isSpeechDetected: false);
+            shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(2.0f, isSpeechDetected: false);
+
+            if (shouldFinishAnswer)
+            {
+                throw new InvalidOperationException("Answer finished before the hesitation tolerance elapsed.");
+            }
+
+            shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(0.3f, isSpeechDetected: false);
 
             if (shouldFinishAnswer == false)
             {

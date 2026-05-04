@@ -14,13 +14,21 @@ namespace MouthOfTruth.Game.Analysis
         private const int WORKER_STARTUP_TIMEOUT_MILLISECONDS = 30000;
         private const int WORKER_SHUTDOWN_TIMEOUT_MILLISECONDS = 1000;
 
+        private readonly object mWorkerReadyLock = new object();
         private readonly SemaphoreSlim mAnalysisSemaphore = new SemaphoreSlim(1, 1);
         private Process mWorkerProcess;
+        private Task mWorkerReadyTask;
         private bool mIsWorkerReady;
 
         public PythonBridgeAnalysisClient()
         {
             tryStartWorkerProcess();
+        }
+
+        public Task WarmUpAsync(CancellationToken cancellationToken)
+        {
+            _ = cancellationToken;
+            return ensureWorkerReadyAsync();
         }
 
         public async Task<AnswerAnalysisResult> AnalyzeAsync(
@@ -131,20 +139,11 @@ namespace MouthOfTruth.Game.Analysis
 
         private async Task runPythonWorkerAnalysisAsync(CancellationToken cancellationToken)
         {
+            await ensureWorkerReadyAsync().ConfigureAwait(false);
+
             if (mIsWorkerReady == false)
             {
-                BridgeWorkerResponseFileData readyResponse = await readWorkerResponseAsync(
-                    WORKER_STARTUP_TIMEOUT_MILLISECONDS,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (string.Equals(readyResponse.Status, "ready", StringComparison.OrdinalIgnoreCase) == false)
-                {
-                    throw new InvalidOperationException(
-                        "Python analysis worker returned an unexpected startup status: "
-                        + readyResponse.Status);
-                }
-
-                mIsWorkerReady = true;
+                throw new InvalidOperationException("Python analysis worker is not ready.");
             }
 
             BridgeWorkerCommandFileData bridgeWorkerCommandFileData = new BridgeWorkerCommandFileData
@@ -169,6 +168,36 @@ namespace MouthOfTruth.Game.Analysis
             throw new InvalidOperationException(
                 "Python analysis worker failed.\n"
                 + response.ErrorMessage);
+        }
+
+        private Task ensureWorkerReadyAsync()
+        {
+            if (mIsWorkerReady || isWorkerAvailable() == false)
+            {
+                return Task.CompletedTask;
+            }
+
+            lock (mWorkerReadyLock)
+            {
+                mWorkerReadyTask ??= readWorkerReadyAsync();
+                return mWorkerReadyTask;
+            }
+        }
+
+        private async Task readWorkerReadyAsync()
+        {
+            BridgeWorkerResponseFileData readyResponse = await readWorkerResponseAsync(
+                WORKER_STARTUP_TIMEOUT_MILLISECONDS,
+                CancellationToken.None).ConfigureAwait(false);
+
+            if (string.Equals(readyResponse.Status, "ready", StringComparison.OrdinalIgnoreCase) == false)
+            {
+                throw new InvalidOperationException(
+                    "Python analysis worker returned an unexpected startup status: "
+                    + readyResponse.Status);
+            }
+
+            mIsWorkerReady = true;
         }
 
         private async Task<BridgeWorkerResponseFileData> readWorkerResponseAsync(
@@ -291,6 +320,7 @@ namespace MouthOfTruth.Game.Analysis
             {
                 mWorkerProcess.Dispose();
                 mWorkerProcess = null;
+                mWorkerReadyTask = null;
                 mIsWorkerReady = false;
             }
         }

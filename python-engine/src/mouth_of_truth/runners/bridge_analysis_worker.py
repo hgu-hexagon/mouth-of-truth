@@ -5,6 +5,8 @@ import json
 import os
 import sys
 import traceback
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TextIO
@@ -80,27 +82,42 @@ def run_worker() -> int:
 
 def _prewarm_models() -> None:
     """Loads heavyweight models before the first answer reaches analysis."""
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [
+            executor.submit(_prewarm_face_model),
+            executor.submit(_prewarm_voice_model),
+        ]
+
+        for future in futures:
+            future.result()
+
+
+def _prewarm_face_model() -> None:
+    """Loads the face model cache for the persistent worker."""
+    from mouth_of_truth.face.infer_face import load_face_model
+
+    _prewarm_model(
+        load_face_model,
+        "Face model prewarm failed. The worker will still handle requests with fallback logic.",
+    )
+
+
+def _prewarm_voice_model() -> None:
+    """Loads the voice model cache for the persistent worker."""
+    from mouth_of_truth.voice.infer_voice import load_voice_model
+
+    _prewarm_model(
+        load_voice_model,
+        "Voice model prewarm failed. The worker will still handle requests with fallback logic.",
+    )
+
+
+def _prewarm_model(load_model: Callable[[], object], failure_message: str) -> None:
+    """Runs one model warm-up step without failing the worker."""
     try:
-        from mouth_of_truth.face.infer_face import load_face_model
-
-        load_face_model()
+        load_model()
     except Exception:
-        print(
-            "Face model prewarm failed. The worker will still handle requests with fallback logic.\n"
-            f"{traceback.format_exc()}",
-            file=sys.stderr,
-        )
-
-    try:
-        from mouth_of_truth.voice.infer_voice import load_voice_model
-
-        load_voice_model()
-    except Exception:
-        print(
-            "Voice model prewarm failed. The worker will still handle requests with fallback logic.\n"
-            f"{traceback.format_exc()}",
-            file=sys.stderr,
-        )
+        print(f"{failure_message}\n{traceback.format_exc()}", file=sys.stderr)
 
 
 def _parse_worker_command(raw_line: str) -> WorkerCommand:

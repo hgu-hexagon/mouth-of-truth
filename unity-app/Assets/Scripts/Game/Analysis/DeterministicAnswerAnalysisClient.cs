@@ -12,6 +12,12 @@ namespace MouthOfTruth.Game.Analysis
         private const string INSUFFICIENT_FACE_DATA_REASON_CODE = "insufficient_face_data";
         private const string INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data";
 
+        public Task WarmUpAsync(CancellationToken cancellationToken)
+        {
+            _ = cancellationToken;
+            return Task.CompletedTask;
+        }
+
         public Task<AnswerAnalysisResult> AnalyzeAsync(
             AnswerAnalysisRequest answerAnalysisRequest,
             CancellationToken cancellationToken)

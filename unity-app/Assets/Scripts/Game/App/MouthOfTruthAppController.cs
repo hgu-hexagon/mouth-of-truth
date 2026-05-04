@@ -44,6 +44,8 @@ namespace MouthOfTruth.Game.App
         private async void Start()
         {
             mLifecycleCancellationTokenSource = new CancellationTokenSource();
+            mAnswerAnalysisClient = createAnalysisClient();
+            _ = warmUpAnalysisClientAsync();
             mGameView = GetComponent<MouthOfTruthGameView>() ?? gameObject.AddComponent<MouthOfTruthGameView>();
             await mGameView.InitializeAsync();
             applyRuntimeCursorPresentation(isFocused: true);
@@ -173,7 +175,7 @@ namespace MouthOfTruth.Game.App
                 cardDwellSelectionTracker,
                 answerCollectionPolicy);
             mQuestionNarrationService = createNarrationService();
-            mAnswerAnalysisClient = createAnalysisClient();
+            mAnswerAnalysisClient ??= createAnalysisClient();
             mHandInteractionInputAdapter = createHandInteractionInputAdapter();
             mAnswerCaptureInputAdapter = createAnswerCaptureInputAdapter();
             mFaceCaptureInputAdapter = createFaceCaptureInputAdapter();
@@ -593,6 +595,24 @@ namespace MouthOfTruth.Game.App
             return new DeterministicAnswerAnalysisClient();
         }
 
+        private async Task warmUpAnalysisClientAsync()
+        {
+            try
+            {
+                System.Diagnostics.Stopwatch warmUpStopwatch = System.Diagnostics.Stopwatch.StartNew();
+                await mAnswerAnalysisClient.WarmUpAsync(mLifecycleCancellationTokenSource.Token);
+                warmUpStopwatch.Stop();
+                Debug.Log($"Answer analysis engine warmed up in {warmUpStopwatch.ElapsedMilliseconds} ms.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning(
+                    "Answer analysis engine warm-up did not finish before gameplay. "
+                    + "The first verdict may wait for startup.\n"
+                    + exception);
+            }
+        }
+
         private IHandInteractionInputAdapter createHandInteractionInputAdapter()
         {
             return new CompositeHandInteractionInputAdapter(
@@ -732,17 +752,21 @@ namespace MouthOfTruth.Game.App
                 await waitForPresentationFrameAsync();
                 await captureScreenshotAsync(outputDirectoryPath, "07_answering.png");
 
+                mGameView.ShowAnalyzing();
+                await waitForPresentationFrameAsync();
+                await captureScreenshotAsync(outputDirectoryPath, "08_analyzing.png");
+
                 mGameView.ShowResult(EVerdictKind.True, string.Empty);
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "08_result_true.png");
+                await captureScreenshotAsync(outputDirectoryPath, "09_result_true.png");
 
                 mGameView.ShowResult(EVerdictKind.False, string.Empty);
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "09_result_false.png");
+                await captureScreenshotAsync(outputDirectoryPath, "10_result_false.png");
 
                 mGameView.ShowResult(EVerdictKind.Uncertain, string.Empty);
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "10_result_uncertain.png");
+                await captureScreenshotAsync(outputDirectoryPath, "11_result_uncertain.png");
             }
             finally
             {

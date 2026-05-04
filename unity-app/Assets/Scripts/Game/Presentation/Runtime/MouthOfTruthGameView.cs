@@ -105,10 +105,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mUseWorldEnvironmentLayout;
         private EUiActionTarget? mLastHoveredUiActionTarget;
         private bool mUseHeldHandPresentation;
+        private bool mIsAnsweringPresentationActive;
         private bool mIsAnalyzingPresentationActive;
         private float mHeldHandBaseProgress;
         private float mHeldHandPulseAmplitude;
         private float mHeldHandPulseSpeed;
+        private float mAnsweringPresentationStartedAtSeconds;
         private float mAnalyzingPresentationStartedAtSeconds;
 
         private bool mStartRequested;
@@ -134,7 +136,28 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void LateUpdate()
         {
             updateHeldHandPresentation();
+            updateAnsweringPresentation();
             updateAnalyzingPresentation();
+        }
+
+        private void updateAnsweringPresentation()
+        {
+            if (mIsAnsweringPresentationActive == false || mQuestionText == null)
+            {
+                return;
+            }
+
+            float elapsedSeconds = Time.unscaledTime - mAnsweringPresentationStartedAtSeconds;
+            int dotCount = 1 + (Mathf.FloorToInt(elapsedSeconds * 2.0f) % 3);
+            setText(mQuestionText, "답변을 듣고 있습니다" + new string('.', dotCount));
+
+            if (mQuestionPanelImage == null)
+            {
+                return;
+            }
+
+            float pulse = (Mathf.Sin(elapsedSeconds * 3.0f) + 1.0f) * 0.5f;
+            mQuestionPanelImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.86f, 1.0f, pulse));
         }
 
         private void updateHeldHandPresentation()
@@ -173,6 +196,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowStartScreen()
         {
+            disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyStartScreenLayout();
@@ -213,6 +237,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
         {
+            disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyCardSelectionLayout();
@@ -372,6 +397,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowNarratingQuestion(string questionText)
         {
+            disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyNarrationLayout();
@@ -398,6 +424,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAwaitingHandInsertion()
         {
+            disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyAwaitingHandInsertionLayout();
@@ -429,6 +456,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task AnimateHandInsertionAsync()
         {
+            disableAnsweringPresentation();
             disableHeldHandPresentation();
             applyAnswerStageLayout();
             setObjectActive(mPointerImage, false);
@@ -448,6 +476,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task AnimateHandRemovalAsync()
         {
+            disableAnsweringPresentation();
             disableHeldHandPresentation();
             playInterfaceCue(mHandPauseClip, 0.9f);
             await animateOverTimeAsync(
@@ -472,15 +501,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
-            setObjectActive(mAnswerTimerText, false);
-            setText(mQuestionText, "천천히 답해주세요. 손은 입 안에 그대로 두면 됩니다.");
+            setObjectActive(mAnswerTimerText, true);
+            setText(mQuestionText, "답변을 듣고 있습니다.");
+            setText(mAnswerTimerText, "<color=#D64A3A>●</color> REC 0.0s");
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             enableHeldHandPresentation(baseProgress: 0.78f, pulseAmplitude: 0.007f, pulseSpeed: 1.3f);
+            enableAnsweringPresentation();
         }
 
         public void ShowAnswerPaused()
         {
+            disableAnsweringPresentation();
             disableAnalyzingPresentation();
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
@@ -506,6 +538,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnalyzing()
         {
+            disableAnsweringPresentation();
             disableHeldHandPresentation();
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
@@ -523,7 +556,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            setText(mQuestionText, "진실의 입이 답을 가늠하고 있습니다.");
+            setText(mQuestionText, "진실의 입이 답을 살피고 있습니다.");
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             setHandVisual(0.82f);
@@ -554,6 +587,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
+            disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyResultLayout(verdictKind);
@@ -602,7 +636,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void UpdateAnswerMetrics(float elapsedAnswerSeconds, float elapsedSilenceSeconds)
         {
-            setText(mAnswerTimerText, $"답변 {elapsedAnswerSeconds:0.0}s / 무음 {elapsedSilenceSeconds:0.0}s");
+            _ = elapsedSilenceSeconds;
+            setText(mAnswerTimerText, $"<color=#D64A3A>●</color> REC {elapsedAnswerSeconds:0.0}s");
         }
 
         public EQuestionCardSlot? GetHoveredQuestionCardSlot(Vector2? pointerScreenPosition)
@@ -2001,6 +2036,27 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mHeldHandBaseProgress = 0.0f;
             mHeldHandPulseAmplitude = 0.0f;
             mHeldHandPulseSpeed = 0.0f;
+        }
+
+        private void enableAnsweringPresentation()
+        {
+            mIsAnsweringPresentationActive = true;
+            mAnsweringPresentationStartedAtSeconds = Time.unscaledTime;
+
+            if (mQuestionPanelImage != null)
+            {
+                mQuestionPanelImage.color = Color.white;
+            }
+        }
+
+        private void disableAnsweringPresentation()
+        {
+            mIsAnsweringPresentationActive = false;
+
+            if (mQuestionPanelImage != null)
+            {
+                mQuestionPanelImage.color = Color.white;
+            }
         }
 
         private void enableAnalyzingPresentation()

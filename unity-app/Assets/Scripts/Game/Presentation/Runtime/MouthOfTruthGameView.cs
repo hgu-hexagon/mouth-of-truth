@@ -604,7 +604,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
             applyResultLayout(verdictKind);
-            configureExitButtonAsEndGameButton();
+            configureExitButtonAsTopLeftIcon();
             setCardsVisible(false);
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
@@ -1501,10 +1501,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mTryAgainButton.GetComponent<RectTransform>(),
                 new Vector2(0.5f, 0.225f),
                 new Vector2(360.0f, 100.0f));
-            setRectTransformLayout(
-                mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.145f),
-                new Vector2(360.0f, 100.0f));
+            applyTopLeftExitButtonLayout();
         }
 
         private void applyTopLeftExitButtonLayout()

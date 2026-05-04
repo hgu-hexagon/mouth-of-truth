@@ -20,6 +20,8 @@ namespace MouthOfTruth.Game.App
     [DisallowMultipleComponent]
     public class MouthOfTruthAppController : MonoBehaviour
     {
+        private const float CARD_SELECTION_DWELL_SECONDS = 1.4f;
+        private const float UI_ACTION_DWELL_SECONDS = 0.7f;
         private const float ANSWER_HOLD_LOSS_GRACE_SECONDS = 0.65f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
@@ -166,9 +168,9 @@ namespace MouthOfTruth.Game.App
                 "question_pool.json");
             IReadOnlyList<QuestionDefinition> questionDefinitions = QuestionPoolLoader.LoadQuestionDefinitions(questionPoolFilePath);
             QuestionDeckService questionDeckService = new QuestionDeckService(questionDefinitions);
-            CardDwellSelectionTracker cardDwellSelectionTracker = new CardDwellSelectionTracker();
+            CardDwellSelectionTracker cardDwellSelectionTracker = new CardDwellSelectionTracker(CARD_SELECTION_DWELL_SECONDS);
             AnswerCollectionPolicy answerCollectionPolicy = new AnswerCollectionPolicy();
-            mUiActionDwellSelectionTracker = new UiActionDwellSelectionTracker();
+            mUiActionDwellSelectionTracker = new UiActionDwellSelectionTracker(UI_ACTION_DWELL_SECONDS);
 
             mGameStateMachine = new MouthOfTruthGameStateMachine(
                 questionDeckService,
@@ -219,7 +221,7 @@ namespace MouthOfTruth.Game.App
             float hoverProgress = hoveredQuestionCardSlot == null
                 || snapshot.CurrentState != EGameFlowState.AwaitingCardSelection
                 ? 0.0f
-                : Mathf.Clamp01(snapshot.HoveredCardDwellSeconds / 0.7f);
+                : Mathf.Clamp01(snapshot.HoveredCardDwellSeconds / CARD_SELECTION_DWELL_SECONDS);
 
             mGameView.UpdateCardHoverVisual(hoveredQuestionCardSlot, hoverProgress);
 
@@ -292,21 +294,13 @@ namespace MouthOfTruth.Game.App
 
         private bool updateUiActionSelection(Vector2? pointerScreenPosition)
         {
-            if (mGameStateMachine.CurrentState != EGameFlowState.StartScreen
-                && mGameStateMachine.CurrentState != EGameFlowState.AwaitingCardSelection
-                && mGameStateMachine.CurrentState != EGameFlowState.ShowingResult)
-            {
-                mUiActionDwellSelectionTracker?.Reset();
-                mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
-                return false;
-            }
-
             EUiActionTarget? hoveredUiActionTarget = mGameView.GetHoveredUiActionTarget(pointerScreenPosition);
+            hoveredUiActionTarget = isUiActionAllowedForCurrentState(hoveredUiActionTarget) ? hoveredUiActionTarget : null;
             EUiActionTarget? confirmedUiActionTarget = mUiActionDwellSelectionTracker
                 .UpdateHoveredTarget(hoveredUiActionTarget, Time.deltaTime);
             float hoverProgress = hoveredUiActionTarget == null
                 ? 0.0f
-                : Mathf.Clamp01(mUiActionDwellSelectionTracker.HoveredDurationSeconds / 0.7f);
+                : Mathf.Clamp01(mUiActionDwellSelectionTracker.HoveredDurationSeconds / UI_ACTION_DWELL_SECONDS);
 
             mGameView.UpdateActionButtonHoverVisual(hoveredUiActionTarget, hoverProgress);
 
@@ -339,6 +333,23 @@ namespace MouthOfTruth.Game.App
                 default:
                     return false;
             }
+        }
+
+        private bool isUiActionAllowedForCurrentState(EUiActionTarget? uiActionTarget)
+        {
+            if (uiActionTarget == null)
+            {
+                return false;
+            }
+
+            return uiActionTarget.Value switch
+            {
+                EUiActionTarget.ExitGame => true,
+                EUiActionTarget.StartGame => mGameStateMachine.CurrentState == EGameFlowState.StartScreen,
+                EUiActionTarget.TryAgain => mGameStateMachine.CurrentState == EGameFlowState.ShowingResult,
+                EUiActionTarget.BackToTitle => mGameStateMachine.CurrentState == EGameFlowState.ShowingResult,
+                _ => false,
+            };
         }
 
         private void requestApplicationExit()

@@ -4,9 +4,9 @@ from collections import Counter, deque
 from typing import Any
 
 
-BASE_TENSE_WEIGHT = 0.65
-BASE_MEDIUM_WEIGHT = 0.25
-BASE_STABLE_WEIGHT = 0.30
+BASE_TENSE_WEIGHT = 0.82
+BASE_MEDIUM_WEIGHT = 0.52
+BASE_STABLE_WEIGHT = 0.18
 FINAL_BASE_WEIGHT = 0.60
 FINAL_CHANGE_WEIGHT = 0.40
 
@@ -60,7 +60,7 @@ def calculate_base_score(prob_dict: dict[str, float]) -> float:
     score = 100.0 * (
         (BASE_TENSE_WEIGHT * tense_probability)
         + (BASE_MEDIUM_WEIGHT * medium_probability)
-        - (BASE_STABLE_WEIGHT * stable_probability)
+        + (BASE_STABLE_WEIGHT * stable_probability)
     )
     return _clamp(score, 0.0, 100.0)
 

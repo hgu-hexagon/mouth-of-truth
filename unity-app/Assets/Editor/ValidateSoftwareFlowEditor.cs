@@ -216,14 +216,21 @@ namespace MouthOfTruth.Editor
 
             if (shouldFinishAnswer)
             {
-                throw new InvalidOperationException("Answer finished before the hesitation tolerance elapsed.");
+                throw new InvalidOperationException("Answer finished before the initial hesitation grace elapsed.");
             }
 
             shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(0.3f, isSpeechDetected: false);
 
+            if (shouldFinishAnswer)
+            {
+                throw new InvalidOperationException("Answer finished before the initial hesitation grace elapsed.");
+            }
+
+            shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(0.4f, isSpeechDetected: false);
+
             if (shouldFinishAnswer == false)
             {
-                throw new InvalidOperationException("Answer did not finish after silence timeout.");
+                throw new InvalidOperationException("Answer did not finish after the initial grace and silence timeout.");
             }
 
             assertState(gameStateMachine, EGameFlowState.AnalyzingAnswer, "analysis");

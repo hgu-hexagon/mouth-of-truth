@@ -571,7 +571,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             await animateOverTimeAsync(
-                0.45f,
+                0.16f,
                 progress =>
                 {
                     float easedProgress = easeOut(progress);

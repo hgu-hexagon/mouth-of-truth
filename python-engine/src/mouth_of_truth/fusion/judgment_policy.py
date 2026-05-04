@@ -8,7 +8,7 @@ from mouth_of_truth.fusion.multimodal_fusion import fuse_face_and_voice
 from mouth_of_truth.fusion.verdict_policy import get_face_only_verdict_from_score
 
 
-MIN_FACE_RECOGNITIONS_FOR_JUDGMENT = 4
+MIN_FACE_RECOGNITIONS_FOR_JUDGMENT = 3
 MIN_VOICE_SEGMENTS_FOR_JUDGMENT = 1
 INSUFFICIENT_FACE_DATA_REASON_CODE = "insufficient_face_data"
 INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data"

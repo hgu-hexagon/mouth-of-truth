@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from array import array
 from pathlib import Path
+import sys
 from typing import Any
+import wave
 
 import librosa
 import torch
@@ -38,8 +41,37 @@ def load_audio(audio_path: str) -> list[float]:
     if audio_file_path.exists() is False:
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
+    pcm_waveform = load_target_pcm_wav(audio_file_path)
+
+    if pcm_waveform is not None:
+        return pcm_waveform
+
     waveform, _ = librosa.load(audio_file_path, sr=TARGET_SAMPLE_RATE, mono=True)
     return waveform.tolist()
+
+
+def load_target_pcm_wav(audio_file_path: Path) -> list[float] | None:
+    """Loads one target-format PCM wav file without the heavier librosa path."""
+    try:
+        with wave.open(str(audio_file_path), "rb") as wave_file:
+            if (
+                wave_file.getnchannels() != 1
+                or wave_file.getsampwidth() != 2
+                or wave_file.getframerate() != TARGET_SAMPLE_RATE
+            ):
+                return None
+
+            raw_frames = wave_file.readframes(wave_file.getnframes())
+    except wave.Error:
+        return None
+
+    samples = array("h")
+    samples.frombytes(raw_frames)
+
+    if sys.byteorder == "big":
+        samples.byteswap()
+
+    return [sample / 32768.0 for sample in samples]
 
 
 def probs_to_dict(probs_data: list[float]) -> dict[str, float]:

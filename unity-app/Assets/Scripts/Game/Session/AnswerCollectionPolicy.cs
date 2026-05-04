@@ -5,9 +5,15 @@ namespace MouthOfTruth.Game.Session
     public class AnswerCollectionPolicy
     {
         public AnswerCollectionPolicy(
+            float initialSilenceGraceSeconds = 2.6f,
             float silenceTimeoutSeconds = 1.2f,
             float maximumAnswerDurationSeconds = 8.0f)
         {
+            if (initialSilenceGraceSeconds < 0.0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(initialSilenceGraceSeconds));
+            }
+
             if (silenceTimeoutSeconds <= 0.0f)
             {
                 throw new ArgumentOutOfRangeException(nameof(silenceTimeoutSeconds));
@@ -18,9 +24,12 @@ namespace MouthOfTruth.Game.Session
                 throw new ArgumentOutOfRangeException(nameof(maximumAnswerDurationSeconds));
             }
 
+            InitialSilenceGraceSeconds = initialSilenceGraceSeconds;
             SilenceTimeoutSeconds = silenceTimeoutSeconds;
             MaximumAnswerDurationSeconds = maximumAnswerDurationSeconds;
         }
+
+        public float InitialSilenceGraceSeconds { get; }
 
         public float SilenceTimeoutSeconds { get; }
 
@@ -42,7 +51,7 @@ namespace MouthOfTruth.Game.Session
                 ? 0.0f
                 : elapsedSilenceSeconds + deltaTimeSeconds;
 
-            bool shouldFinishForSilence = nextElapsedSilenceSeconds >= SilenceTimeoutSeconds;
+            bool shouldFinishForSilence = nextElapsedAnswerSeconds >= InitialSilenceGraceSeconds && nextElapsedSilenceSeconds >= SilenceTimeoutSeconds;
             bool shouldFinishForTimeout = nextElapsedAnswerSeconds >= MaximumAnswerDurationSeconds;
 
             return new AnswerCollectionTickResult(

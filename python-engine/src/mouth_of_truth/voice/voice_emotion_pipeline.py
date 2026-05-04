@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 from collections import deque
+import math
+import os
 from typing import Any
 
 import torch
 
-from mouth_of_truth.audio_signal import has_speech_signal
+from mouth_of_truth.audio_signal import (
+    DEFAULT_SPEECH_RMS_THRESHOLD,
+    calculate_window_rms,
+    has_speech_signal,
+)
 from mouth_of_truth.voice.infer_voice import (
     TARGET_SAMPLE_RATE,
+    VOICE_LABELS,
     load_audio,
     load_voice_model,
     probs_to_dict,
@@ -23,18 +30,46 @@ from mouth_of_truth.voice.voice_score_logic import (
 
 SEGMENT_SECONDS = 2.0
 SEGMENT_STRIDE_SECONDS = 1.0
-MAX_ANALYSIS_SEGMENT_COUNT = 2
+MAX_ANALYSIS_SEGMENT_COUNT = 1
 VOICE_HISTORY_SIZE = 10
+FAST_WINDOW_SECONDS = 0.20
+FAST_STRIDE_SECONDS = 0.10
+TRAINED_VOICE_MODEL_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL"
+
+
+def _clamp(value: float, min_value: float, max_value: float) -> float:
+    """Clamps one floating-point value to the provided range."""
+    return max(min_value, min(value, max_value))
 
 
 def run_voice_emotion_pipeline(audio_path: str) -> dict[str, Any]:
     """Runs one voice-emotion analysis pipeline on one recorded answer file."""
-    feature_extractor, model = load_voice_model()
     waveform = load_audio(audio_path)
 
     if has_speech_signal(waveform, TARGET_SAMPLE_RATE) is False:
         return build_empty_voice_analysis()
 
+    if should_use_trained_voice_model():
+        return run_trained_voice_emotion_pipeline(audio_path, waveform)
+
+    segment_result = build_fast_voice_segment_result(waveform, TARGET_SAMPLE_RATE)
+    return {
+        "audio_path": audio_path,
+        "segment_count": 1,
+        "segments": [segment_result],
+        "summary": summarize_voice_session([segment_result]),
+    }
+
+
+def should_use_trained_voice_model() -> bool:
+    """Returns whether to use the heavyweight trained voice-emotion model."""
+    configured_value = os.environ.get(TRAINED_VOICE_MODEL_ENVIRONMENT_VARIABLE_NAME, "")
+    return configured_value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def run_trained_voice_emotion_pipeline(audio_path: str, waveform: list[float]) -> dict[str, Any]:
+    """Runs the slower trained voice-emotion model for offline validation."""
+    feature_extractor, model = load_voice_model()
     segments = [
         segment_waveform
         for segment_waveform in split_audio_into_segments(waveform, TARGET_SAMPLE_RATE)
@@ -74,6 +109,99 @@ def run_voice_emotion_pipeline(audio_path: str) -> dict[str, Any]:
         "segment_count": len(segment_results),
         "segments": segment_results,
         "summary": summarize_voice_session(segment_results),
+    }
+
+
+def build_fast_voice_segment_result(
+    waveform: list[float],
+    sample_rate: int,
+) -> dict[str, Any]:
+    """Builds one quick voice-instability summary from waveform dynamics."""
+    rms_values = calculate_rms_windows(waveform, sample_rate)
+    speech_rms_values = [
+        rms_value
+        for rms_value in rms_values
+        if rms_value >= DEFAULT_SPEECH_RMS_THRESHOLD
+    ]
+
+    if not speech_rms_values:
+        probability_dict = build_fast_voice_probability_dict(0.0)
+        return {
+            "segment_index": 0,
+            "label": "neu",
+            "confidence": probability_dict["neu"],
+            "change_score": 0.0,
+            "base_score": 0.0,
+            "suspicion_score": 0.0,
+            "status_text": get_voice_status_text(0.0),
+            "prob_dict": probability_dict,
+            "probs": [probability_dict[label] for label in VOICE_LABELS],
+        }
+
+    average_rms = sum(speech_rms_values) / len(speech_rms_values)
+    max_rms = max(speech_rms_values)
+    energy_variance = sum((rms_value - average_rms) ** 2 for rms_value in speech_rms_values)
+    energy_deviation = math.sqrt(energy_variance / len(speech_rms_values))
+    speech_density = len(speech_rms_values) / max(1, len(rms_values))
+    change_score = _clamp((energy_deviation / max(average_rms, 0.0001)) * 45.0, 0.0, 45.0)
+    gap_score = _clamp((1.0 - speech_density) * 30.0, 0.0, 30.0)
+    spike_score = _clamp(((max_rms / max(average_rms, 0.0001)) - 1.0) * 12.0, 0.0, 25.0)
+    base_score = _clamp(gap_score + spike_score + (average_rms * 160.0), 0.0, 100.0)
+    suspicion_score = _clamp((0.55 * base_score) + (0.45 * change_score), 0.0, 100.0)
+    probability_dict = build_fast_voice_probability_dict(suspicion_score)
+    probabilities_data = [probability_dict[label] for label in VOICE_LABELS]
+    top_label = max(probability_dict, key=probability_dict.get)
+
+    return {
+        "segment_index": 0,
+        "label": top_label,
+        "confidence": probability_dict[top_label],
+        "change_score": change_score,
+        "base_score": base_score,
+        "suspicion_score": suspicion_score,
+        "status_text": get_voice_status_text(suspicion_score),
+        "prob_dict": probability_dict,
+        "probs": probabilities_data,
+    }
+
+
+def calculate_rms_windows(waveform: list[float], sample_rate: int) -> list[float]:
+    """Calculates RMS values for short overlapping windows."""
+    window_sample_count = max(1, math.ceil(sample_rate * FAST_WINDOW_SECONDS))
+    stride_sample_count = max(1, math.ceil(sample_rate * FAST_STRIDE_SECONDS))
+
+    if len(waveform) <= window_sample_count:
+        return [calculate_window_rms(waveform, 0, len(waveform))]
+
+    rms_values: list[float] = []
+    start_sample_index = 0
+
+    while start_sample_index + window_sample_count <= len(waveform):
+        rms_values.append(
+            calculate_window_rms(waveform, start_sample_index, window_sample_count)
+        )
+        start_sample_index += stride_sample_count
+
+    return rms_values
+
+
+def build_fast_voice_probability_dict(suspicion_score: float) -> dict[str, float]:
+    """Maps one acoustic instability score onto the existing voice labels."""
+    tension = _clamp(suspicion_score / 100.0, 0.05, 0.85)
+    stable = _clamp(1.0 - tension, 0.10, 0.80)
+    medium = _clamp(1.0 - stable - tension, 0.05, 0.30)
+    raw_probabilities = {
+        "ang": tension * 0.42,
+        "hap": stable * 0.22,
+        "exc": medium * 0.55,
+        "neu": stable * 0.78,
+        "sad": medium * 0.45,
+        "fru": tension * 0.58,
+    }
+    probability_sum = sum(raw_probabilities.values())
+    return {
+        label: raw_probabilities[label] / probability_sum
+        for label in VOICE_LABELS
     }
 
 

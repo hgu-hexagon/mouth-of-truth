@@ -83,10 +83,10 @@ def run_worker() -> int:
 def _prewarm_models() -> None:
     """Loads heavyweight models before the first answer reaches analysis."""
     with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = [
-            executor.submit(_prewarm_face_model),
-            executor.submit(_prewarm_voice_model),
-        ]
+        futures = [executor.submit(_prewarm_face_model)]
+
+        if _should_prewarm_trained_voice_model():
+            futures.append(executor.submit(_prewarm_voice_model))
 
         for future in futures:
             future.result()
@@ -110,6 +110,13 @@ def _prewarm_voice_model() -> None:
         load_voice_model,
         "Voice model prewarm failed. The worker will still handle requests with fallback logic.",
     )
+
+
+def _should_prewarm_trained_voice_model() -> bool:
+    """Returns whether the optional trained voice model should be prewarmed."""
+    from mouth_of_truth.voice.voice_emotion_pipeline import should_use_trained_voice_model
+
+    return should_use_trained_voice_model()
 
 
 def _prewarm_model(load_model: Callable[[], object], failure_message: str) -> None:

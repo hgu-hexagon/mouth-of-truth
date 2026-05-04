@@ -18,10 +18,10 @@ namespace MouthOfTruth.Game.Input.Leap
 #endif
 
         private const string RUNTIME_OBJECT_NAME = "LeapHandTrackingRuntime";
-        private const float DEFAULT_POINTER_MIN_X = -180.0f;
-        private const float DEFAULT_POINTER_MAX_X = 180.0f;
-        private const float DEFAULT_POINTER_MIN_Y = 50.0f;
-        private const float DEFAULT_POINTER_MAX_Y = 340.0f;
+        private const float DEFAULT_POINTER_MIN_X = -0.18f;
+        private const float DEFAULT_POINTER_MAX_X = 0.18f;
+        private const float DEFAULT_POINTER_MIN_Y = 0.05f;
+        private const float DEFAULT_POINTER_MAX_Y = 0.34f;
         private const float DEFAULT_POINTER_SMOOTHING = 18.0f;
         private const float DEFAULT_POINTER_LOSS_GRACE_SECONDS = 0.55f;
 

@@ -98,7 +98,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingAudioPath("ui/button_confirm.wav");
 
         public static string CardHoverPath =>
-            GetStreamingAudioPath("cards/card_hover.ogg");
+            GetStreamingAudioPath("cards/card_hover.wav");
 
         public static string CardSelectPath =>
             GetStreamingAudioPath("cards/card_select.wav");

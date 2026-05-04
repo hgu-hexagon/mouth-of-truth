@@ -290,7 +290,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 if (hoveredQuestionCardSlot.HasValue)
                 {
-                    playInterfaceCue(mCardHoverClip, 0.65f);
+                    playInterfaceCue(mCardHoverClip, 0.52f);
                 }
 
                 mLastAudibleHoveredCardSlot = hoveredQuestionCardSlot;
@@ -324,7 +324,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mQuestionText, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.12f);
-            playInterfaceCue(mCardSelectClip, 0.90f);
+            playInterfaceCue(mCardSelectClip, 0.72f);
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -349,7 +349,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 });
 
             selectedCardView.SetFront(mCardFrontSprite, questionDefinition.Text);
-            playInterfaceCue(mCardRevealClip, 0.85f);
+            playInterfaceCue(mCardRevealClip, 0.72f);
 
             await animateOverTimeAsync(
                 0.16f,
@@ -2128,7 +2128,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 _ => mResultUncertainClip,
             };
 
-            playInterfaceCue(verdictClip, 0.95f);
+            playInterfaceCue(verdictClip, 0.78f);
         }
 
         private void addTextShadow(GameObject textObject)

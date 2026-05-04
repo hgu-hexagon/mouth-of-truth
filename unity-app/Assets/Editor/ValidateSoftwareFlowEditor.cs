@@ -25,6 +25,8 @@ namespace MouthOfTruth.Editor
 
             validateStep("question deck cycling", validateQuestionDeckCycle, errors);
             validateStep("state machine flow", validateStateMachineFlow, errors);
+            validateStep("selection dwell timing", validateSelectionDwellTiming, errors);
+            validateStep("input fallback gate", validateInputFallbackGate, errors);
             validateStep("answer timeout behavior", validateAnswerTimeoutFlow, errors);
             validateStep("mouth hand anchor targeting", validateHandAnchorTargeting, errors);
             validateStep("leap intent targeting", validateLeapIntentTargeting, errors);
@@ -285,6 +287,75 @@ namespace MouthOfTruth.Editor
             assertCondition(
                 gameStateMachine.CreateSnapshot().CurrentRoundSelection != null,
                 "Try Again did not prepare the next round.");
+        }
+
+        private static void validateSelectionDwellTiming()
+        {
+            CardDwellSelectionTracker cardDwellSelectionTracker = new CardDwellSelectionTracker(2.1f);
+            EQuestionCardSlot? earlyCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(
+                EQuestionCardSlot.CenterCard,
+                1.4f);
+
+            if (earlyCardSelection != null)
+            {
+                throw new InvalidOperationException("Card dwell confirmed before the extended hold time.");
+            }
+
+            EQuestionCardSlot? confirmedCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(
+                EQuestionCardSlot.CenterCard,
+                0.7f);
+
+            if (confirmedCardSelection != EQuestionCardSlot.CenterCard)
+            {
+                throw new InvalidOperationException("Card dwell did not confirm after the extended hold time.");
+            }
+
+            UiActionDwellSelectionTracker uiActionDwellSelectionTracker = new UiActionDwellSelectionTracker(1.05f);
+            EUiActionTarget? earlyUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(
+                EUiActionTarget.StartGame,
+                0.7f);
+
+            if (earlyUiAction != null)
+            {
+                throw new InvalidOperationException("UI action dwell confirmed before the extended hold time.");
+            }
+
+            EUiActionTarget? confirmedUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(
+                EUiActionTarget.StartGame,
+                0.35f);
+
+            if (confirmedUiAction != EUiActionTarget.StartGame)
+            {
+                throw new InvalidOperationException("UI action dwell did not confirm after the extended hold time.");
+            }
+        }
+
+        private static void validateInputFallbackGate()
+        {
+            CompositeHandInteractionInputAdapter blockedCompositeAdapter =
+                new CompositeHandInteractionInputAdapter(
+                    new BlockingFallbackInputAdapter(),
+                    new StaticPointerInputAdapter());
+
+            if (blockedCompositeAdapter.TryGetPointerScreenPosition(out _))
+            {
+                throw new InvalidOperationException("Fallback pointer input was not blocked by the primary adapter.");
+            }
+
+            CompositeHandInteractionInputAdapter openCompositeAdapter =
+                new CompositeHandInteractionInputAdapter(
+                    new OpenFallbackInputAdapter(),
+                    new StaticPointerInputAdapter());
+
+            if (openCompositeAdapter.TryGetPointerScreenPosition(out Vector2 screenPosition) == false)
+            {
+                throw new InvalidOperationException("Fallback pointer input did not activate when the primary adapter allowed it.");
+            }
+
+            if (screenPosition != new Vector2(42.0f, 24.0f))
+            {
+                throw new InvalidOperationException("Fallback pointer input returned an unexpected screen position.");
+            }
         }
 
         private static void validateDeterministicAnalysis()
@@ -699,6 +770,52 @@ namespace MouthOfTruth.Editor
             if (condition == false)
             {
                 throw new InvalidOperationException(message);
+            }
+        }
+
+        private sealed class BlockingFallbackInputAdapter : IHandInteractionInputAdapter, IHandInteractionFallbackGate
+        {
+            public bool ShouldSuppressFallbackInput => true;
+
+            public bool TryGetPointerScreenPosition(out Vector2 screenPosition)
+            {
+                screenPosition = default;
+                return false;
+            }
+
+            public bool WasReturnToTitleTriggeredThisFrame()
+            {
+                return false;
+            }
+        }
+
+        private sealed class OpenFallbackInputAdapter : IHandInteractionInputAdapter, IHandInteractionFallbackGate
+        {
+            public bool ShouldSuppressFallbackInput => false;
+
+            public bool TryGetPointerScreenPosition(out Vector2 screenPosition)
+            {
+                screenPosition = default;
+                return false;
+            }
+
+            public bool WasReturnToTitleTriggeredThisFrame()
+            {
+                return false;
+            }
+        }
+
+        private sealed class StaticPointerInputAdapter : IHandInteractionInputAdapter
+        {
+            public bool TryGetPointerScreenPosition(out Vector2 screenPosition)
+            {
+                screenPosition = new Vector2(42.0f, 24.0f);
+                return true;
+            }
+
+            public bool WasReturnToTitleTriggeredThisFrame()
+            {
+                return false;
             }
         }
     }

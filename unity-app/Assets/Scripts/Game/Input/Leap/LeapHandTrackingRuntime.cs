@@ -61,6 +61,11 @@ namespace MouthOfTruth.Game.Input.Leap
 
         public bool IsTrackingDeviceConnected { get; private set; }
 
+        public bool ShouldOwnPointerInput =>
+            IsTrackingDeviceConnected
+            || mHasTrackedPointer
+            || Time.realtimeSinceStartup - mLastTrackedPointerRealtime <= mPointerLossGraceSeconds;
+
         public string LastTrackingMessage { get; private set; } =
             "Leap hand tracking runtime is idle.";
 

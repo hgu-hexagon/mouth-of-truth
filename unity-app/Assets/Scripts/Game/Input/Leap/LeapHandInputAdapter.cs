@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MouthOfTruth.Game.Input.Leap
 {
-    public class LeapHandInputAdapter : IHandInteractionInputAdapter
+    public class LeapHandInputAdapter : IHandInteractionInputAdapter, IHandInteractionFallbackGate
     {
         private readonly LeapHandTrackingRuntime mLeapHandTrackingRuntime;
 
@@ -10,6 +10,9 @@ namespace MouthOfTruth.Game.Input.Leap
         {
             mLeapHandTrackingRuntime = LeapHandTrackingRuntime.EnsureInstance();
         }
+
+        public bool ShouldSuppressFallbackInput =>
+            mLeapHandTrackingRuntime != null && mLeapHandTrackingRuntime.ShouldOwnPointerInput;
 
         public bool TryGetPointerScreenPosition(out Vector2 screenPosition)
         {

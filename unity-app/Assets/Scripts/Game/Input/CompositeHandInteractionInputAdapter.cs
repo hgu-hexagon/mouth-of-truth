@@ -26,6 +26,13 @@ namespace MouthOfTruth.Game.Input
                 {
                     return true;
                 }
+
+                if (inputAdapter is IHandInteractionFallbackGate fallbackGate
+                    && fallbackGate.ShouldSuppressFallbackInput)
+                {
+                    screenPosition = default;
+                    return false;
+                }
             }
 
             screenPosition = default;

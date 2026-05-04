@@ -157,6 +157,11 @@ namespace MouthOfTruth.Game.Session
             mCurrentAnswerTranscript = answerTranscript ?? string.Empty;
         }
 
+        public void ResetCardSelectionHover()
+        {
+            mCardDwellSelectionTracker.Reset();
+        }
+
         public void CompleteAnalysis(AnswerAnalysisResult answerAnalysisResult)
         {
             ensureCurrentState(EGameFlowState.AnalyzingAnswer);

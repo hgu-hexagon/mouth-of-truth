@@ -20,9 +20,10 @@ namespace MouthOfTruth.Game.App
     [DisallowMultipleComponent]
     public class MouthOfTruthAppController : MonoBehaviour
     {
-        private const float CARD_SELECTION_DWELL_SECONDS = 1.4f;
-        private const float UI_ACTION_DWELL_SECONDS = 0.7f;
+        private const float CARD_SELECTION_DWELL_SECONDS = 2.1f;
+        private const float UI_ACTION_DWELL_SECONDS = 1.05f;
         private const float ANSWER_HOLD_LOSS_GRACE_SECONDS = 0.65f;
+        private const float POINTER_REACQUIRE_GUARD_SECONDS = 0.45f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
 
@@ -39,7 +40,9 @@ namespace MouthOfTruth.Game.App
         private bool mIsInitialized;
         private bool mIsTransitionBusy;
         private bool mIsPresentationCaptureRunning;
+        private bool mWasPointerAvailableLastFrame;
         private float mAnswerHoldLossElapsedSeconds;
+        private float mPointerReacquireGuardRemainingSeconds;
         private string mLastObservedTranscript = string.Empty;
         private EHandAnchorState mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
 
@@ -75,8 +78,10 @@ namespace MouthOfTruth.Game.App
 
             Vector2? pointerScreenPosition = tryGetPointerScreenPosition();
             updatePointerPresentation(pointerScreenPosition);
+            bool canAcceptPointerActivation = updatePointerActivationGuard(pointerScreenPosition);
+            Vector2? activatablePointerScreenPosition = canAcceptPointerActivation ? pointerScreenPosition : null;
 
-            if (updateUiActionSelection(pointerScreenPosition))
+            if (updateUiActionSelection(activatablePointerScreenPosition))
             {
                 return;
             }
@@ -114,12 +119,12 @@ namespace MouthOfTruth.Game.App
             switch (mGameStateMachine.CurrentState)
             {
                 case EGameFlowState.AwaitingCardSelection:
-                    updateCardSelection(pointerScreenPosition);
+                    updateCardSelection(activatablePointerScreenPosition);
                     break;
 
                 case EGameFlowState.AwaitingHandInsertion:
                 case EGameFlowState.AnswerPaused:
-                    updateHandInsertion(pointerScreenPosition);
+                    updateHandInsertion(activatablePointerScreenPosition);
                     break;
 
                 case EGameFlowState.Answering:
@@ -390,6 +395,50 @@ namespace MouthOfTruth.Game.App
             mGameView.UpdatePointerVisual(shouldShowPointer, pointerScreenPosition);
         }
 
+        private bool updatePointerActivationGuard(Vector2? pointerScreenPosition)
+        {
+            if (pointerScreenPosition.HasValue == false)
+            {
+                mWasPointerAvailableLastFrame = false;
+                mPointerReacquireGuardRemainingSeconds = 0.0f;
+                resetPointerActivationDwellState();
+                return false;
+            }
+
+            if (mWasPointerAvailableLastFrame == false)
+            {
+                mPointerReacquireGuardRemainingSeconds = POINTER_REACQUIRE_GUARD_SECONDS;
+                resetPointerActivationDwellState();
+            }
+
+            mWasPointerAvailableLastFrame = true;
+
+            if (mPointerReacquireGuardRemainingSeconds <= 0.0f)
+            {
+                return true;
+            }
+
+            mPointerReacquireGuardRemainingSeconds = Mathf.Max(
+                0.0f,
+                mPointerReacquireGuardRemainingSeconds - Time.deltaTime);
+            resetPointerActivationDwellState();
+            return false;
+        }
+
+        private void resetPointerActivationDwellState()
+        {
+            mUiActionDwellSelectionTracker?.Reset();
+
+            if (mGameStateMachine?.CurrentState == EGameFlowState.AwaitingCardSelection)
+            {
+                mGameStateMachine.ResetCardSelectionHover();
+            }
+
+            mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
+            mGameView?.UpdateCardHoverVisual(null, 0.0f);
+            mGameView?.UpdateActionButtonHoverVisual(null, 0.0f);
+        }
+
         private static void applyRuntimeCursorPresentation(bool isFocused)
         {
             Cursor.visible = isFocused == false;
@@ -563,6 +612,9 @@ namespace MouthOfTruth.Game.App
             mUiActionDwellSelectionTracker?.Reset();
             mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
             mAnswerHoldLossElapsedSeconds = 0.0f;
+            mWasPointerAvailableLastFrame = false;
+            mPointerReacquireGuardRemainingSeconds = 0.0f;
+            mGameStateMachine?.ResetCardSelectionHover();
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
         }
 

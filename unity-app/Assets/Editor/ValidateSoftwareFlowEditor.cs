@@ -213,7 +213,7 @@ namespace MouthOfTruth.Editor
             assertState(gameStateMachine, EGameFlowState.Answering, "answer resume");
 
             shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(
-                1.9f,
+                2.9f,
                 isSpeechDetected: false);
 
             if (shouldFinishAnswer == false)

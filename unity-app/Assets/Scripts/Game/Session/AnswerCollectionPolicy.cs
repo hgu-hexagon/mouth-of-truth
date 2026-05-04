@@ -5,7 +5,7 @@ namespace MouthOfTruth.Game.Session
     public class AnswerCollectionPolicy
     {
         public AnswerCollectionPolicy(
-            float silenceTimeoutSeconds = 1.8f,
+            float silenceTimeoutSeconds = 2.8f,
             float maximumAnswerDurationSeconds = 8.0f)
         {
             if (silenceTimeoutSeconds <= 0.0f)

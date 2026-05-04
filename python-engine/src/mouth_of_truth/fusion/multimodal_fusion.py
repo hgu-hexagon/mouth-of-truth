@@ -9,8 +9,8 @@ from mouth_of_truth.fusion.verdict_policy import (
 )
 
 
-FACE_WEIGHT = 0.75
-VOICE_WEIGHT = 0.25
+FACE_WEIGHT = 0.80
+VOICE_WEIGHT = 0.20
 AMBIGUOUS_MULTIMODAL_SIGNAL_REASON_CODE = "ambiguous_multimodal_signal"
 DISCORDANT_MULTIMODAL_SIGNAL_REASON_CODE = "discordant_multimodal_signal"
 EmotionSummary = dict[str, Any]

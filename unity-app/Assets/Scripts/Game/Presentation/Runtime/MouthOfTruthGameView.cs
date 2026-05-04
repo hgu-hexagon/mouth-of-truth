@@ -449,7 +449,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mResultPanelImage, false);
             mAnswerInputField.text = string.Empty;
             mAnswerInputField.interactable = false;
-            setText(mQuestionText, "“손을 내밀고, 진실을 담하라.”");
+            setText(mQuestionText, "“손을 내밀고, 진실을 답하라.”");
             applyMouthAnchoredLayout();
             setHandVisual(0.0f);
         }
@@ -501,9 +501,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
-            setObjectActive(mAnswerTimerText, true);
+            setObjectActive(mAnswerTimerText, false);
             setText(mQuestionText, "답변을 듣고 있습니다.");
-            setText(mAnswerTimerText, "<color=#D64A3A>●</color> REC 0.0s");
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             enableHeldHandPresentation(baseProgress: 0.78f, pulseAmplitude: 0.007f, pulseSpeed: 1.3f);
@@ -636,8 +635,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void UpdateAnswerMetrics(float elapsedAnswerSeconds, float elapsedSilenceSeconds)
         {
+            _ = elapsedAnswerSeconds;
             _ = elapsedSilenceSeconds;
-            setText(mAnswerTimerText, $"<color=#D64A3A>●</color> REC {elapsedAnswerSeconds:0.0}s");
         }
 
         public EQuestionCardSlot? GetHoveredQuestionCardSlot(Vector2? pointerScreenPosition)
@@ -1361,7 +1360,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.rectTransform.localScale = Vector3.one;
             setRectTransformLayout(
                 mVerdictImage.rectTransform,
-                new Vector2(0.5f, 0.58f),
+                new Vector2(0.5f, 0.54f),
                 verdictKind == EVerdictKind.Uncertain
                     ? new Vector2(1320.0f, 306.0f)
                     : new Vector2(1040.0f, 270.0f));
@@ -1371,11 +1370,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(280.0f, 380.0f));
             setRectTransformLayout(
                 mTryAgainButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.25f),
+                new Vector2(0.5f, 0.225f),
                 new Vector2(360.0f, 100.0f));
             setRectTransformLayout(
                 mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.125f),
+                new Vector2(0.5f, 0.145f),
                 new Vector2(360.0f, 100.0f));
         }
 

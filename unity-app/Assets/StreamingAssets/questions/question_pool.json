@@ -2,84 +2,84 @@
   "questions": [
     {
       "id": "Q0001",
-      "text": "사실 아직도 조금 어색한 사람이 이 방 안에 있다?",
+      "text": "사실 아직도\n조금 어색한 사람이\n이 방 안에 있다?",
       "category": "social",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0002",
-      "text": "누군가에게 먼저 다가가고 싶었는데 타이밍 놓친 적 있다?",
+      "text": "누군가에게 먼저\n다가가고 싶었는데\n타이밍 놓친 적이 있다?",
       "category": "social",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0003",
-      "text": "혼자 있을 때의 내가 더 진짜 나 같다고 느낀 적 있다?",
+      "text": "혼자 있을 때의 내가\n더 진짜 나 같다고\n느낀 적이 있다?",
       "category": "identity",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0004",
-      "text": "괜찮은 척했지만 사실 서운했던 일이 최근에 있었다?",
+      "text": "괜찮은 척했지만\n사실 서운했던 일이\n최근에 있었다?",
       "category": "emotion",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0005",
-      "text": "누군가의 말 한마디를 하루 종일 곱씹은 적 있다?",
+      "text": "누군가의 말 한마디를\n하루 종일 곱씹은 적 있다?",
       "category": "emotion",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0006",
-      "text": "친해지고 싶은 사람이 생기면 은근히 그 사람 반응 신경 쓰는 편이다?",
+      "text": "친해지고 싶은 사람이 생기면\n은근히 그 사람의 반응을\n신경쓰는 편이다?",
       "category": "social",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0007",
-      "text": "요즘 나 자신이 조금 지쳐 있다고 느낀 적 있다?",
+      "text": "요즘 나 자신이\n조금 지쳐 있다고\n느낀 적이 있다?",
       "category": "emotion",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0008",
-      "text": "나를 사람들이 생각하는 모습과 실제 내 모습은 좀 다르다고 느낀다?",
+      "text": "나에 대해 사람들이\n생각하는 모습과\n실제 내 모습은\n좀 다르다고 느낀다?",
       "category": "identity",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0009",
-      "text": "사실 누군가가 먼저 나를 챙겨주길 바란 적 있다?",
+      "text": "사실 누군가가\n먼저 나를 챙겨 주길\n바란 적이 있다?",
       "category": "emotion",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0010",
-      "text": "누군가에게 진심으로 고맙다고 말 못 하고 지나간 적 있다?",
+      "text": "누군가에게 진심으로\n고맙다고 말 못 하고\n지나간 적이 있다?",
       "category": "relationship",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0011",
-      "text": "최근에 혼자 끙끙 앓다가 말 안 한 고민이 있다?",
+      "text": "최근에 혼자\n끙끙 앓다가\n말 안 한 고민이 있다?",
       "category": "emotion",
       "difficulty": 2,
       "enabled": true
     },
     {
       "id": "Q0012",
-      "text": "지금보다 더 솔직하게 살아보고 싶다고 느낀 적 있다?",
+      "text": "지금보다 더 솔직하게\n살아보고 싶다고\n느낀 적이 있다?",
       "category": "identity",
       "difficulty": 2,
       "enabled": true

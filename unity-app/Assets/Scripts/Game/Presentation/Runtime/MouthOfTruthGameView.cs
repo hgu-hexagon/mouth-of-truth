@@ -487,8 +487,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableHeldHandPresentation();
             applyAnswerStageLayout();
-            setObjectActive(mPointerImage, false);
-            setObjectActive(mHandImage, true);
+            setObjectActive(mHandImage, false);
             playInterfaceCue(mHandInsertClip, 0.68f);
 
             await animateOverTimeAsync(
@@ -496,7 +495,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
-                    setHandVisual(Mathf.Lerp(0.0f, 1.0f, easedProgress));
                     mMouthImage.rectTransform.localScale =
                         Vector3.one * Mathf.Lerp(1.0f, 1.08f, easedProgress);
                 });
@@ -506,10 +504,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             disableAnsweringPresentation();
             disableHeldHandPresentation();
+            setObjectActive(mHandImage, false);
             playInterfaceCue(mHandPauseClip, 0.68f);
-            await animateOverTimeAsync(
-                0.35f,
-                progress => setHandVisual(Mathf.Lerp(1.0f, 0.0f, easeOut(progress))));
+            await animateOverTimeAsync(0.18f, _ => { });
         }
 
         public void ShowAnswering()
@@ -531,9 +528,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
             setText(mQuestionText, "답변을 듣고 있습니다.");
-            setObjectActive(mPointerImage, false);
+            setObjectActive(mHandImage, false);
             applyMouthAnchoredLayout();
-            enableHeldHandPresentation(baseProgress: 0.78f, pulseAmplitude: 0.007f, pulseSpeed: 1.3f);
+            disableHeldHandPresentation();
             enableAnsweringPresentation();
         }
 
@@ -586,8 +583,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setText(mQuestionText, "진실의 입이 답을 살피고 있습니다.");
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
-            setHandVisual(0.82f);
-            setObjectActive(mHandImage, true);
+            setObjectActive(mHandImage, false);
             enableAnalyzingPresentation();
         }
 

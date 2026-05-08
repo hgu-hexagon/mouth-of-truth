@@ -390,7 +390,8 @@ namespace MouthOfTruth.Game.App
                     || mGameStateMachine.CurrentState == EGameFlowState.AwaitingCardSelection
                     || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult
                     || mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion
-                    || mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused);
+                    || mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused
+                    || mGameStateMachine.CurrentState == EGameFlowState.Answering);
 
             mGameView.UpdatePointerVisual(shouldShowPointer, pointerScreenPosition);
         }
@@ -474,7 +475,6 @@ namespace MouthOfTruth.Game.App
         private async Task insertHandAsync()
         {
             mIsTransitionBusy = true;
-            mGameView.UpdatePointerVisual(false, null);
             bool isResumingAnswer = mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused;
 
             if (mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion)

@@ -18,6 +18,7 @@ namespace MouthOfTruth.Editor
         private const string APPLICATION_NAME = "MouthOfTruth.app";
         private const string PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PYTHON_RUNTIME_ROOT";
         private const string PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH = "python-engine/scripts/package_python_runtime.sh";
+        private const string BURST_DEBUG_INFORMATION_DIRECTORY_SUFFIX = "_BurstDebugInformation_DoNotShip";
         private static readonly string[] DISTRIBUTION_FILE_NAMES_TO_REMOVE =
         {
             ".DS_Store",
@@ -266,6 +267,11 @@ namespace MouthOfTruth.Editor
 
         private static bool shouldRemoveDistributionDirectory(string directoryName)
         {
+            if (directoryName.EndsWith(BURST_DEBUG_INFORMATION_DIRECTORY_SUFFIX, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
             foreach (string candidateName in DISTRIBUTION_DIRECTORY_NAMES_TO_REMOVE)
             {
                 if (string.Equals(directoryName, candidateName, StringComparison.Ordinal))

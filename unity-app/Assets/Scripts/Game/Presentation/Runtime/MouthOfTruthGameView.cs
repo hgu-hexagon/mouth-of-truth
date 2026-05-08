@@ -50,6 +50,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float INTERFACE_AUDIO_OVERLAP_DUCK_SCALE = 0.72f;
         private const int POINTER_CURSOR_TEXTURE_SIZE = 64;
         private static readonly Vector2 POINTER_CURSOR_SIZE_PIXELS = new Vector2(46.0f, 46.0f);
+        private static readonly Vector2 HELD_POINTER_CURSOR_SIZE_PIXELS = new Vector2(58.0f, 58.0f);
         private static readonly Color POINTER_CURSOR_FILL_COLOR = new Color(0.62f, 0.64f, 0.66f, 0.54f);
         private static readonly Color POINTER_CURSOR_RING_COLOR = new Color(0.90f, 0.91f, 0.92f, 0.86f);
 
@@ -91,7 +92,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mTryAgainButtonSprite;
         private Sprite mEndGameButtonSprite;
         private Sprite mExitIconButtonSprite;
-        private Sprite mHandCursorSprite;
         private Sprite mPointerCursorSprite;
         private Sprite mVerdictTrueSprite;
         private Sprite mVerdictFalseSprite;
@@ -1098,9 +1098,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mExitIconButtonSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.ExitIconButtonPath)
                 ?? mButtonFrameSprite;
-            mHandCursorSprite =
-                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.HandPointerPath)
-                ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.88f, 0.64f, 0.72f, 1.0f));
             mPointerCursorSprite = createPointerCursorSprite();
             mVerdictTrueSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TrueVerdictPath)
@@ -1199,7 +1196,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mLogoImage.raycastTarget = false;
             mMouthImage.preserveAspect = true;
             mMouthImage.raycastTarget = false;
-            mHandImage.sprite = mHandCursorSprite;
+            mHandImage.sprite = mPointerCursorSprite;
             mHandImage.preserveAspect = true;
             mHandImage.raycastTarget = false;
             mPointerImage.sprite = mPointerCursorSprite;
@@ -1471,7 +1468,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.22f),
-                new Vector2(250.0f, 320.0f));
+                HELD_POINTER_CURSOR_SIZE_PIXELS);
             mQuestionText.fontSize = 30;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
@@ -1495,7 +1492,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.21f),
-                new Vector2(220.0f, 300.0f));
+                HELD_POINTER_CURSOR_SIZE_PIXELS);
             mQuestionText.fontSize = 30;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
@@ -1516,7 +1513,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.18f),
-                new Vector2(280.0f, 380.0f));
+                HELD_POINTER_CURSOR_SIZE_PIXELS);
             setRectTransformLayout(
                 mTryAgainButton.GetComponent<RectTransform>(),
                 new Vector2(0.5f, 0.225f),
@@ -1692,12 +1689,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(430.0f, 430.0f),
                 Color.white);
             mHandImage = createImage(
-                "Hand",
+                "HeldPointer",
                 mCanvasRootTransform,
                 new Vector2(0.5f, 0.22f),
                 new Vector2(0.5f, 0.22f),
                 new Vector2(0.0f, 0.0f),
-                new Vector2(180.0f, 220.0f),
+                HELD_POINTER_CURSOR_SIZE_PIXELS,
                 Color.white);
             mPointerImage = createImage(
                 "InputPointer",
@@ -2252,10 +2249,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 innerPosition,
                 easedProgress)
                 + new Vector2(lateralArcOffset, 0.0f);
-            handRectTransform.localRotation =
-                Quaternion.Euler(0.0f, 0.0f, Mathf.Lerp(-3.0f, 1.5f, easedProgress));
-            handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.98f, 0.74f, easedProgress);
-            mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.98f, 0.90f, easedProgress));
+            handRectTransform.localRotation = Quaternion.identity;
+            handRectTransform.localScale = Vector3.one * Mathf.Lerp(1.05f, 0.86f, easedProgress);
+            mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.94f, 0.82f, easedProgress));
         }
 
         private void enableHeldHandPresentation(

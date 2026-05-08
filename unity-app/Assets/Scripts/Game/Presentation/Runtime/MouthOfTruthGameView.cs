@@ -51,7 +51,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const int POINTER_CURSOR_TEXTURE_SIZE = 64;
         private static readonly Vector2 POINTER_CURSOR_SIZE_PIXELS = new Vector2(46.0f, 46.0f);
         private static readonly Vector2 HELD_POINTER_CURSOR_SIZE_PIXELS = new Vector2(58.0f, 58.0f);
-        private static readonly Vector2 RITUAL_HAND_SIZE_PIXELS = new Vector2(260.0f, 286.0f);
+        private static readonly Vector2 RITUAL_HAND_SIZE_PIXELS = new Vector2(340.0f, 380.0f);
         private static readonly Color SCENE_OVERLAY_COLOR = new Color(0.03f, 0.02f, 0.02f, 1.0f);
         private static readonly Color POINTER_CURSOR_FILL_COLOR = new Color(0.62f, 0.64f, 0.66f, 0.54f);
         private static readonly Color POINTER_CURSOR_RING_COLOR = new Color(0.90f, 0.91f, 0.92f, 0.86f);
@@ -498,38 +498,39 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, true);
             playInterfaceCue(mHandInsertClip, 0.68f);
-            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -190.0f);
-            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -38.0f);
-            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -4.0f);
+            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -240.0f);
+            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -48.0f);
+            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -2.0f);
 
             await animateOverTimeAsync(
-                0.88f,
+                1.04f,
                 progress =>
                 {
                     float easedProgress = easeInOut(progress);
-                    float approachProgress = Mathf.Clamp01(easedProgress / 0.34f);
-                    float insertionProgress = Mathf.Clamp01((easedProgress - 0.25f) / 0.75f);
-                    Vector2 handPosition = easedProgress < 0.34f
+                    float approachProgress = Mathf.Clamp01(easedProgress / 0.40f);
+                    float insertionProgress = Mathf.Clamp01((easedProgress - 0.34f) / 0.66f);
+                    Vector2 handPosition = easedProgress < 0.40f
                         ? Vector2.Lerp(startPosition, frontPosition, easeOut(approachProgress))
                         : Vector2.Lerp(frontPosition, innerPosition, easeInOut(insertionProgress));
-                    float handAlpha = easedProgress < 0.72f
-                        ? Mathf.Lerp(0.0f, 0.96f, easeOut(Mathf.Clamp01(easedProgress / 0.28f)))
-                        : Mathf.Lerp(0.96f, 0.22f, Mathf.Clamp01((easedProgress - 0.72f) / 0.28f));
-                    float arc = Mathf.Sin(easedProgress * Mathf.PI) * 16.0f;
-                    float handScale = easedProgress < 0.50f
-                        ? Mathf.Lerp(0.84f, 1.08f, easeOut(easedProgress * 2.0f))
-                        : Mathf.Lerp(1.08f, 0.44f, easeInOut((easedProgress - 0.50f) * 2.0f));
+                    float handAlpha = easedProgress < 0.80f
+                        ? Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(easedProgress / 0.24f)))
+                        : Mathf.Lerp(1.0f, 0.16f, Mathf.Clamp01((easedProgress - 0.80f) / 0.20f));
+                    float arc = Mathf.Sin(easedProgress * Mathf.PI) * 22.0f;
+                    float handScale = easedProgress < 0.54f
+                        ? Mathf.Lerp(0.76f, 1.24f, easeOut(easedProgress / 0.54f))
+                        : Mathf.Lerp(1.24f, 0.34f, easeInOut((easedProgress - 0.54f) / 0.46f));
                     float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
+                    float mouthPull = Mathf.Clamp01((easedProgress - 0.40f) / 0.60f);
 
                     setRitualHandVisual(
                         handPosition + new Vector2(arc, 0.0f),
                         RITUAL_HAND_SIZE_PIXELS,
                         handAlpha,
                         handScale,
-                        Mathf.Lerp(-4.0f, 2.5f, easedProgress));
-                    setOverlayAlpha(Mathf.Lerp(0.28f, 0.40f, mouthPulse));
+                        Mathf.Lerp(-7.0f, 3.5f, easedProgress));
+                    setOverlayAlpha(Mathf.Lerp(0.30f, 0.48f, mouthPulse));
                     mMouthImage.rectTransform.localScale =
-                        Vector3.one * Mathf.Lerp(1.0f, 1.085f, mouthPulse);
+                        Vector3.one * (1.0f + (mouthPulse * 0.08f) + (mouthPull * 0.035f));
                 });
 
             setObjectActive(mRitualHandImage, false);

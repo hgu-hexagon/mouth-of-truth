@@ -8,6 +8,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
     public class QuestionCardView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         private const float HOVER_MAX_SCALE = 1.06f;
+        private const int QUESTION_TEXT_MAXIMUM_FONT_SIZE = 26;
+        private const int QUESTION_TEXT_MINIMUM_FONT_SIZE = 20;
+        private const float QUESTION_TEXT_LINE_SPACING = 1.2f;
 
         private Image mCardImage;
         private Image mGlowImage;
@@ -91,14 +94,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText = textObject.AddComponent<Text>();
             mQuestionText.font = mPrimaryUiFont;
             mQuestionText.alignment = TextAnchor.MiddleCenter;
-            mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            mQuestionText.horizontalOverflow = HorizontalWrapMode.Overflow;
             mQuestionText.verticalOverflow = VerticalWrapMode.Truncate;
             mQuestionText.color = Color.black;
-            mQuestionText.fontSize = 26;
+            mQuestionText.fontSize = QUESTION_TEXT_MAXIMUM_FONT_SIZE;
             mQuestionText.fontStyle = FontStyle.Bold;
-            mQuestionText.resizeTextForBestFit = true;
-            mQuestionText.resizeTextMinSize = 16;
-            mQuestionText.resizeTextMaxSize = 26;
+            mQuestionText.lineSpacing = QUESTION_TEXT_LINE_SPACING;
+            mQuestionText.resizeTextForBestFit = false;
+            mQuestionText.resizeTextMinSize = QUESTION_TEXT_MINIMUM_FONT_SIZE;
+            mQuestionText.resizeTextMaxSize = QUESTION_TEXT_MAXIMUM_FONT_SIZE;
             mQuestionText.raycastTarget = false;
             setQuestionText(string.Empty);
         }
@@ -131,6 +135,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCardImage.color = new Color(0.96f, 0.93f, 0.88f, 1.0f);
             mQuestionText.enabled = true;
             setQuestionText(questionText);
+            applyQuestionTextLayout(questionText);
         }
 
         public void SetVisualState(
@@ -197,6 +202,75 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mQuestionText.font = containsHangul(questionText) ? mKoreanFallbackFont : mPrimaryUiFont;
             mQuestionText.text = questionText;
+        }
+
+        private void applyQuestionTextLayout(string questionText)
+        {
+            mQuestionText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            mQuestionText.verticalOverflow = VerticalWrapMode.Truncate;
+            mQuestionText.lineSpacing = QUESTION_TEXT_LINE_SPACING;
+            mQuestionText.resizeTextForBestFit = false;
+            mQuestionText.fontSize = calculateFittingQuestionTextFontSize(questionText);
+        }
+
+        private int calculateFittingQuestionTextFontSize(string questionText)
+        {
+            if (string.IsNullOrWhiteSpace(questionText))
+            {
+                return QUESTION_TEXT_MAXIMUM_FONT_SIZE;
+            }
+
+            RectTransform textRectTransform = mQuestionText.rectTransform;
+            Vector2 availableTextSize = textRectTransform.rect.size;
+
+            if (availableTextSize.x <= 0.0f || availableTextSize.y <= 0.0f)
+            {
+                Vector2 anchorRange = textRectTransform.anchorMax - textRectTransform.anchorMin;
+                availableTextSize = new Vector2(
+                    mRectTransform.rect.width * anchorRange.x,
+                    mRectTransform.rect.height * anchorRange.y);
+            }
+
+            if (availableTextSize.x <= 0.0f || availableTextSize.y <= 0.0f)
+            {
+                return QUESTION_TEXT_MAXIMUM_FONT_SIZE;
+            }
+
+            for (int fontSize = QUESTION_TEXT_MAXIMUM_FONT_SIZE; fontSize >= QUESTION_TEXT_MINIMUM_FONT_SIZE; fontSize -= 1)
+            {
+                if (canQuestionTextFitAtFontSize(questionText, availableTextSize, fontSize))
+                {
+                    return fontSize;
+                }
+            }
+
+            return QUESTION_TEXT_MINIMUM_FONT_SIZE;
+        }
+
+        private bool canQuestionTextFitAtFontSize(
+            string questionText,
+            Vector2 availableTextSize,
+            int fontSize)
+        {
+            mQuestionText.fontSize = fontSize;
+            TextGenerationSettings textGenerationSettings = mQuestionText.GetGenerationSettings(availableTextSize);
+
+            foreach (string questionLine in questionText.Split('\n'))
+            {
+                float lineWidth = mQuestionText.cachedTextGeneratorForLayout.GetPreferredWidth(
+                    questionLine,
+                    textGenerationSettings) / mQuestionText.pixelsPerUnit;
+
+                if (lineWidth > availableTextSize.x)
+                {
+                    return false;
+                }
+            }
+
+            float textHeight = mQuestionText.cachedTextGeneratorForLayout.GetPreferredHeight(
+                questionText,
+                textGenerationSettings) / mQuestionText.pixelsPerUnit;
+            return textHeight <= availableTextSize.y;
         }
 
         private static bool containsHangul(string text)

@@ -85,6 +85,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public static string HandPointerPath =>
             GetStreamingArtPath("input/hand_pointer_cursor.png");
 
+        public static string RitualHandInsertPath =>
+            GetStreamingArtPath("input/ritual_hand_insert.png");
+
         public static string CardSelectionGlowPath =>
             GetStreamingArtPath("effects/card_selection_glow.png");
 

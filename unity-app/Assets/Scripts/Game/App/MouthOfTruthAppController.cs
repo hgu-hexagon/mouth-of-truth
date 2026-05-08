@@ -390,14 +390,18 @@ namespace MouthOfTruth.Game.App
 
         private void updatePointerPresentation(Vector2? pointerScreenPosition)
         {
+            bool isCinematicTransition = mIsTransitionBusy
+                && (
+                    mGameStateMachine.CurrentState == EGameFlowState.InsertingHand
+                    || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult);
             bool shouldShowPointer = pointerScreenPosition.HasValue
+                && isCinematicTransition == false
                 && (
                     mGameStateMachine.CurrentState == EGameFlowState.StartScreen
                     || mGameStateMachine.CurrentState == EGameFlowState.AwaitingCardSelection
                     || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult
                     || mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion
                     || mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused
-                    || mGameStateMachine.CurrentState == EGameFlowState.InsertingHand
                     || mGameStateMachine.CurrentState == EGameFlowState.Answering);
 
             mGameView.UpdatePointerVisual(shouldShowPointer, pointerScreenPosition);
@@ -582,6 +586,7 @@ namespace MouthOfTruth.Game.App
             snapshot = mGameStateMachine.CreateSnapshot();
             mGameStateMachine.CompleteAnalysis(answerAnalysisResult);
             mGameView.ShowResult(answerAnalysisResult.VerdictKind, snapshot.CurrentAnswerTranscript);
+            await mGameView.PlayResultRevealAnimationAsync(answerAnalysisResult.VerdictKind);
             mIsTransitionBusy = false;
         }
 

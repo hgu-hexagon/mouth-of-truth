@@ -51,6 +51,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const int POINTER_CURSOR_TEXTURE_SIZE = 64;
         private static readonly Vector2 POINTER_CURSOR_SIZE_PIXELS = new Vector2(46.0f, 46.0f);
         private static readonly Vector2 HELD_POINTER_CURSOR_SIZE_PIXELS = new Vector2(58.0f, 58.0f);
+        private static readonly Vector2 RITUAL_HAND_SIZE_PIXELS = new Vector2(260.0f, 286.0f);
+        private static readonly Color SCENE_OVERLAY_COLOR = new Color(0.03f, 0.02f, 0.02f, 1.0f);
         private static readonly Color POINTER_CURSOR_FILL_COLOR = new Color(0.62f, 0.64f, 0.66f, 0.54f);
         private static readonly Color POINTER_CURSOR_RING_COLOR = new Color(0.90f, 0.91f, 0.92f, 0.86f);
 
@@ -78,6 +80,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private InputField mAnswerInputField;
         private Image mMouthImage;
         private Image mHandImage;
+        private Image mRitualHandImage;
         private Image mPointerImage;
         private Image mVerdictImage;
         private Text mVerdictText;
@@ -93,6 +96,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mEndGameButtonSprite;
         private Sprite mExitIconButtonSprite;
         private Sprite mPointerCursorSprite;
+        private Sprite mRitualHandSprite;
         private Sprite mVerdictTrueSprite;
         private Sprite mVerdictFalseSprite;
         private Sprite mVerdictUncertainSprite;
@@ -243,6 +247,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerInputField, false);
             setObjectActive(mMouthImage, false);
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             setObjectActive(mPointerImage, false);
             setObjectActive(mVerdictImage, false);
             setObjectActive(mVerdictText, false);
@@ -285,6 +290,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerInputField, false);
             setObjectActive(mMouthImage, false);
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             setObjectActive(mPointerImage, false);
             setObjectActive(mVerdictImage, false);
             setObjectActive(mVerdictText, false);
@@ -445,6 +451,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerTimerText, false);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             setObjectActive(mPointerImage, false);
             setText(mQuestionText, questionText);
             applyMouthAnchoredLayout();
@@ -466,6 +473,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mExitButton, true);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             setObjectActive(mPointerImage, false);
             setObjectActive(mAnswerInputField, false);
             setObjectActive(mAnswerTimerText, false);
@@ -488,16 +496,45 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableHeldHandPresentation();
             applyAnswerStageLayout();
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, true);
             playInterfaceCue(mHandInsertClip, 0.68f);
+            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -190.0f);
+            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -38.0f);
+            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -4.0f);
 
             await animateOverTimeAsync(
-                0.28f,
+                0.88f,
                 progress =>
                 {
-                    float easedProgress = easeOut(progress);
+                    float easedProgress = easeInOut(progress);
+                    float approachProgress = Mathf.Clamp01(easedProgress / 0.34f);
+                    float insertionProgress = Mathf.Clamp01((easedProgress - 0.25f) / 0.75f);
+                    Vector2 handPosition = easedProgress < 0.34f
+                        ? Vector2.Lerp(startPosition, frontPosition, easeOut(approachProgress))
+                        : Vector2.Lerp(frontPosition, innerPosition, easeInOut(insertionProgress));
+                    float handAlpha = easedProgress < 0.72f
+                        ? Mathf.Lerp(0.0f, 0.96f, easeOut(Mathf.Clamp01(easedProgress / 0.28f)))
+                        : Mathf.Lerp(0.96f, 0.22f, Mathf.Clamp01((easedProgress - 0.72f) / 0.28f));
+                    float arc = Mathf.Sin(easedProgress * Mathf.PI) * 16.0f;
+                    float handScale = easedProgress < 0.50f
+                        ? Mathf.Lerp(0.84f, 1.08f, easeOut(easedProgress * 2.0f))
+                        : Mathf.Lerp(1.08f, 0.44f, easeInOut((easedProgress - 0.50f) * 2.0f));
+                    float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
+
+                    setRitualHandVisual(
+                        handPosition + new Vector2(arc, 0.0f),
+                        RITUAL_HAND_SIZE_PIXELS,
+                        handAlpha,
+                        handScale,
+                        Mathf.Lerp(-4.0f, 2.5f, easedProgress));
+                    setOverlayAlpha(Mathf.Lerp(0.28f, 0.40f, mouthPulse));
                     mMouthImage.rectTransform.localScale =
-                        Vector3.one * Mathf.Lerp(1.0f, 1.08f, easedProgress);
+                        Vector3.one * Mathf.Lerp(1.0f, 1.085f, mouthPulse);
                 });
+
+            setObjectActive(mRitualHandImage, false);
+            setOverlayAlpha(0.28f);
+            mMouthImage.rectTransform.localScale = Vector3.one;
         }
 
         public async Task AnimateHandRemovalAsync()
@@ -505,6 +542,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableHeldHandPresentation();
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             playInterfaceCue(mHandPauseClip, 0.68f);
             await animateOverTimeAsync(0.18f, _ => { });
         }
@@ -529,6 +567,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerTimerText, false);
             setText(mQuestionText, "답변을 듣고 있습니다.");
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             applyMouthAnchoredLayout();
             disableHeldHandPresentation();
             enableAnsweringPresentation();
@@ -556,6 +595,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerTimerText, false);
             setText(mQuestionText, "손을 다시 올리면 답변이 이어집니다.");
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             applyMouthAnchoredLayout();
             disableHeldHandPresentation();
         }
@@ -584,6 +624,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mPointerImage, false);
             applyMouthAnchoredLayout();
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             enableAnalyzingPresentation();
         }
 
@@ -628,6 +669,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mMouthImage, true);
             setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
             setObjectActive(mVerdictImage, true);
             setObjectActive(mVerdictText, false);
             setObjectActive(mResultPanelImage, false);
@@ -654,7 +696,134 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             };
             setText(mVerdictText, verdictText);
             applyMouthAnchoredLayout();
+            mMouthImage.color = Color.white;
+            mMouthImage.rectTransform.localScale = Vector3.one;
+            mVerdictImage.color = Color.white;
+            mVerdictImage.rectTransform.localRotation = Quaternion.identity;
+            mVerdictImage.rectTransform.localScale = Vector3.one;
             playVerdictCue(verdictKind);
+        }
+
+        public async Task PlayResultRevealAnimationAsync(EVerdictKind verdictKind)
+        {
+            setObjectActive(mTryAgainButton, false);
+            setObjectActive(mRitualHandImage, true);
+
+            if (verdictKind == EVerdictKind.True)
+            {
+                await playTrueRevealAnimationAsync();
+            }
+            else if (verdictKind == EVerdictKind.False)
+            {
+                await playFalseRevealAnimationAsync();
+            }
+            else
+            {
+                await playUncertainRevealAnimationAsync();
+            }
+
+            setObjectActive(mRitualHandImage, false);
+            setObjectActive(mTryAgainButton, true);
+            setOverlayAlpha(0.38f);
+            mMouthImage.color = Color.white;
+            mMouthImage.rectTransform.localScale = Vector3.one;
+            mVerdictImage.color = Color.white;
+            mVerdictImage.rectTransform.localRotation = Quaternion.identity;
+            mVerdictImage.rectTransform.localScale = Vector3.one;
+        }
+
+        private async Task playTrueRevealAnimationAsync()
+        {
+            Vector2 handStartPosition = getHandInnerPosition() + new Vector2(0.0f, -22.0f);
+            Vector2 handEndPosition = getHandFrontPosition() + new Vector2(0.0f, -138.0f);
+            mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+
+            await animateOverTimeAsync(
+                0.68f,
+                progress =>
+                {
+                    float easedProgress = easeOut(progress);
+                    float glow = Mathf.Sin(easedProgress * Mathf.PI);
+                    setOverlayTint(new Color(0.05f, 0.11f, 0.06f, 1.0f), Mathf.Lerp(0.46f, 0.32f, easedProgress));
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.025f, 1.0f, easedProgress);
+                    mMouthImage.color = new Color(0.88f, 1.0f, 0.82f, Mathf.Lerp(0.86f, 1.0f, easedProgress));
+                    setRitualHandVisual(
+                        Vector2.Lerp(handStartPosition, handEndPosition, easedProgress),
+                        RITUAL_HAND_SIZE_PIXELS,
+                        Mathf.Lerp(0.48f, 0.0f, easedProgress),
+                        Mathf.Lerp(0.48f, 0.78f, easedProgress),
+                        Mathf.Lerp(2.0f, -3.0f, easedProgress));
+                    mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);
+                    mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.90f, 1.0f + (glow * 0.02f), easedProgress);
+                });
+        }
+
+        private async Task playFalseRevealAnimationAsync()
+        {
+            Vector2 bitePosition = getHandInnerPosition() + new Vector2(0.0f, -8.0f);
+            Vector2 recoilPosition = getHandFrontPosition() + new Vector2(0.0f, -112.0f);
+            mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+
+            await animateOverTimeAsync(
+                0.22f,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    setOverlayTint(new Color(0.24f, 0.015f, 0.012f, 1.0f), Mathf.Lerp(0.38f, 0.58f, easedProgress));
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.12f, easedProgress);
+                    setRitualHandVisual(
+                        bitePosition + new Vector2(Mathf.Sin(progress * Mathf.PI * 5.0f) * 4.0f, 0.0f),
+                        RITUAL_HAND_SIZE_PIXELS,
+                        0.82f,
+                        Mathf.Lerp(0.44f, 0.38f, easedProgress),
+                        Mathf.Lerp(0.0f, -5.0f, easedProgress));
+                });
+
+            await animateOverTimeAsync(
+                0.46f,
+                progress =>
+                {
+                    float easedProgress = easeOut(progress);
+                    float shake = Mathf.Sin(progress * Mathf.PI * 10.0f) * (1.0f - easedProgress);
+                    setOverlayTint(new Color(0.18f, 0.01f, 0.01f, 1.0f), Mathf.Lerp(0.58f, 0.40f, easedProgress));
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.12f, 1.0f, easedProgress);
+                    setRitualHandVisual(
+                        Vector2.Lerp(bitePosition, recoilPosition, easedProgress) + new Vector2(shake * 14.0f, 0.0f),
+                        RITUAL_HAND_SIZE_PIXELS,
+                        Mathf.Lerp(0.82f, 0.0f, easedProgress),
+                        Mathf.Lerp(0.38f, 0.72f, easedProgress),
+                        Mathf.Lerp(-5.0f, 7.0f, easedProgress));
+                    mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);
+                    mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.18f, 1.0f, easedProgress);
+                });
+        }
+
+        private async Task playUncertainRevealAnimationAsync()
+        {
+            Vector2 handPosition = getHandInnerPosition() + new Vector2(0.0f, -42.0f);
+            mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+
+            await animateOverTimeAsync(
+                0.72f,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    float wobble = Mathf.Sin(progress * Mathf.PI * 7.0f) * (1.0f - easedProgress);
+                    float flickerAlpha = Mathf.Lerp(0.25f, 1.0f, easedProgress)
+                        + (Mathf.Sin(progress * Mathf.PI * 9.0f) * 0.08f * (1.0f - easedProgress));
+                    setOverlayTint(new Color(0.055f, 0.055f, 0.075f, 1.0f), Mathf.Lerp(0.48f, 0.40f, easedProgress));
+                    mMouthImage.color = new Color(0.74f, 0.76f, 0.82f, Mathf.Lerp(0.74f, 1.0f, easedProgress));
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.985f, 1.0f, easedProgress);
+                    setRitualHandVisual(
+                        handPosition + new Vector2(wobble * 18.0f, Mathf.Sin(progress * Mathf.PI * 3.0f) * 10.0f),
+                        RITUAL_HAND_SIZE_PIXELS,
+                        Mathf.Lerp(0.34f, 0.0f, easedProgress),
+                        Mathf.Lerp(0.56f, 0.62f, easedProgress),
+                        wobble * 5.0f);
+                    mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(flickerAlpha));
+                    mVerdictImage.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, wobble * 2.5f);
+                    mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.96f, 1.0f, easedProgress);
+                });
         }
 
         public void UpdateAnswerMetrics(float elapsedAnswerSeconds, float elapsedSilenceSeconds)
@@ -1095,6 +1264,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.ExitIconButtonPath)
                 ?? mButtonFrameSprite;
             mPointerCursorSprite = createPointerCursorSprite();
+            mRitualHandSprite =
+                await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.RitualHandInsertPath)
+                ?? mPointerCursorSprite;
             mVerdictTrueSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TrueVerdictPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.45f, 0.80f, 0.54f, 1.0f));
@@ -1181,7 +1353,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mBackgroundImage.type = Image.Type.Sliced;
             mBackgroundImage.preserveAspect = true;
-            mSceneOverlayImage.color = new Color(0.03f, 0.02f, 0.02f, 0.0f);
+            mSceneOverlayImage.color = new Color(SCENE_OVERLAY_COLOR.r, SCENE_OVERLAY_COLOR.g, SCENE_OVERLAY_COLOR.b, 0.0f);
             mSceneOverlayImage.raycastTarget = false;
             mCarpetImage.preserveAspect = true;
             mCarpetImage.raycastTarget = false;
@@ -1195,6 +1367,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mHandImage.sprite = mPointerCursorSprite;
             mHandImage.preserveAspect = true;
             mHandImage.raycastTarget = false;
+            mRitualHandImage.sprite = mRitualHandSprite;
+            mRitualHandImage.preserveAspect = true;
+            mRitualHandImage.raycastTarget = false;
             mPointerImage.sprite = mPointerCursorSprite;
             mPointerImage.preserveAspect = true;
             mPointerImage.raycastTarget = false;
@@ -1410,6 +1585,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mQuestionText, false);
             setObjectActive(mMouthImage, true);
+            setObjectActive(mRitualHandImage, false);
             applyMouthAnchoredLayout();
             mMouthImage.rectTransform.localScale = Vector3.one * 0.94f;
         }
@@ -1527,14 +1703,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void setOverlayAlpha(float alpha)
         {
+            setOverlayTint(SCENE_OVERLAY_COLOR, alpha);
+        }
+
+        private void setOverlayTint(Color tintColor, float alpha)
+        {
             if (mSceneOverlayImage == null)
             {
                 return;
             }
 
-            Color overlayColor = mSceneOverlayImage.color;
-            overlayColor.a = Mathf.Clamp01(alpha);
-            mSceneOverlayImage.color = overlayColor;
+            mSceneOverlayImage.color = new Color(
+                tintColor.r,
+                tintColor.g,
+                tintColor.b,
+                Mathf.Clamp01(alpha));
         }
 
         private void setBackgroundTint(Color tintColor)
@@ -1691,6 +1874,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.5f, 0.22f),
                 new Vector2(0.0f, 0.0f),
                 HELD_POINTER_CURSOR_SIZE_PIXELS,
+                Color.white);
+            mRitualHandImage = createImage(
+                "RitualHand",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.22f),
+                new Vector2(0.5f, 0.22f),
+                Vector2.zero,
+                RITUAL_HAND_SIZE_PIXELS,
                 Color.white);
             mPointerImage = createImage(
                 "InputPointer",
@@ -2229,6 +2420,34 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             float inverse = 1.0f - progress;
             return 1.0f - (inverse * inverse * inverse);
+        }
+
+        private float easeInOut(float progress)
+        {
+            float clampedProgress = Mathf.Clamp01(progress);
+            return clampedProgress * clampedProgress * (3.0f - (2.0f * clampedProgress));
+        }
+
+        private void setRitualHandVisual(
+            Vector2 anchoredPosition,
+            Vector2 sizeDelta,
+            float alpha,
+            float scale,
+            float rotationDegrees)
+        {
+            if (mRitualHandImage == null)
+            {
+                return;
+            }
+
+            RectTransform ritualHandRectTransform = mRitualHandImage.rectTransform;
+            ritualHandRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            ritualHandRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            ritualHandRectTransform.anchoredPosition = anchoredPosition;
+            ritualHandRectTransform.sizeDelta = sizeDelta;
+            ritualHandRectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, rotationDegrees);
+            ritualHandRectTransform.localScale = Vector3.one * Mathf.Max(0.0f, scale);
+            mRitualHandImage.color = new Color(1.0f, 0.91f, 0.78f, Mathf.Clamp01(alpha));
         }
 
         private void setHandVisual(float insertionProgress)

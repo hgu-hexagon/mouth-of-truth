@@ -71,13 +71,19 @@ namespace MouthOfTruth.Game.App
 
         private void Update()
         {
-            if (mIsInitialized == false || mIsTransitionBusy || mIsPresentationCaptureRunning)
+            if (mIsInitialized == false)
             {
                 return;
             }
 
             Vector2? pointerScreenPosition = tryGetPointerScreenPosition();
             updatePointerPresentation(pointerScreenPosition);
+
+            if (mIsTransitionBusy || mIsPresentationCaptureRunning)
+            {
+                return;
+            }
+
             bool canAcceptPointerActivation = updatePointerActivationGuard(pointerScreenPosition);
             Vector2? activatablePointerScreenPosition = canAcceptPointerActivation ? pointerScreenPosition : null;
 
@@ -391,6 +397,7 @@ namespace MouthOfTruth.Game.App
                     || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult
                     || mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion
                     || mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused
+                    || mGameStateMachine.CurrentState == EGameFlowState.InsertingHand
                     || mGameStateMachine.CurrentState == EGameFlowState.Answering);
 
             mGameView.UpdatePointerVisual(shouldShowPointer, pointerScreenPosition);

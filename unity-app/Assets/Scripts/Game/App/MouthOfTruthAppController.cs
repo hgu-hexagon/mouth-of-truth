@@ -460,7 +460,7 @@ namespace MouthOfTruth.Game.App
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
             await mGameView.PlayQuestionRevealAsync(selectedQuestionCardSlot, selectedQuestionDefinition);
             mGameStateMachine.MarkQuestionRevealCompleted();
-            mGameView.ShowNarratingQuestion(selectedQuestionDefinition.Text);
+            mGameView.ShowNarratingQuestion(buildNarrationDisplayQuestionText(selectedQuestionDefinition.Text));
             await mQuestionNarrationService.SpeakQuestionAsync(
                 selectedQuestionDefinition,
                 mLifecycleCancellationTokenSource.Token);
@@ -801,7 +801,7 @@ namespace MouthOfTruth.Game.App
 
                 mGameStateMachine.UpdateCardSelection(EQuestionCardSlot.CenterCard, 0.7f);
                 mGameStateMachine.MarkQuestionRevealCompleted();
-                mGameView.ShowNarratingQuestion(selectedQuestionDefinition.Text);
+                mGameView.ShowNarratingQuestion(buildNarrationDisplayQuestionText(selectedQuestionDefinition.Text));
                 await waitForPresentationFrameAsync();
                 await captureScreenshotAsync(outputDirectoryPath, "05_question_narration.png");
 
@@ -855,6 +855,29 @@ namespace MouthOfTruth.Game.App
             string screenshotFilePath = Path.Combine(outputDirectoryPath, fileName);
             ScreenCapture.CaptureScreenshot(screenshotFilePath, superSize: 1);
             await Task.Delay(520);
+        }
+
+        private static string buildNarrationDisplayQuestionText(string questionText)
+        {
+            if (string.IsNullOrWhiteSpace(questionText))
+            {
+                return string.Empty;
+            }
+
+            List<string> normalizedQuestionTextParts = new List<string>();
+            string[] questionTextParts = questionText.Split(new[] { '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string questionTextPart in questionTextParts)
+            {
+                string trimmedQuestionTextPart = questionTextPart.Trim();
+
+                if (string.IsNullOrWhiteSpace(trimmedQuestionTextPart) == false)
+                {
+                    normalizedQuestionTextParts.Add(trimmedQuestionTextPart);
+                }
+            }
+
+            return string.Join(" ", normalizedQuestionTextParts);
         }
     }
 }

@@ -48,6 +48,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float CARD_HOVER_AUDIO_COOLDOWN_SECONDS = 0.22f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
         private const float INTERFACE_AUDIO_OVERLAP_DUCK_SCALE = 0.72f;
+        private const int POINTER_CURSOR_TEXTURE_SIZE = 64;
+        private static readonly Vector2 POINTER_CURSOR_SIZE_PIXELS = new Vector2(46.0f, 46.0f);
+        private static readonly Color POINTER_CURSOR_FILL_COLOR = new Color(0.62f, 0.64f, 0.66f, 0.54f);
+        private static readonly Color POINTER_CURSOR_RING_COLOR = new Color(0.90f, 0.91f, 0.92f, 0.86f);
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -88,6 +92,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mEndGameButtonSprite;
         private Sprite mExitIconButtonSprite;
         private Sprite mHandCursorSprite;
+        private Sprite mPointerCursorSprite;
         private Sprite mVerdictTrueSprite;
         private Sprite mVerdictFalseSprite;
         private Sprite mVerdictUncertainSprite;
@@ -993,7 +998,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             RectTransform pointerRectTransform = mPointerImage.rectTransform;
             pointerRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             pointerRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            pointerRectTransform.anchoredPosition = anchoredPosition + new Vector2(0.0f, -58.0f);
+            pointerRectTransform.sizeDelta = POINTER_CURSOR_SIZE_PIXELS;
+            pointerRectTransform.anchoredPosition = anchoredPosition;
         }
 
         public string GetAnswerTranscript()
@@ -1095,6 +1101,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mHandCursorSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.HandPointerPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.88f, 0.64f, 0.72f, 1.0f));
+            mPointerCursorSprite = createPointerCursorSprite();
             mVerdictTrueSprite =
                 await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TrueVerdictPath)
                 ?? RuntimeSpriteLoader.CreateSolidSprite(new Color(0.45f, 0.80f, 0.54f, 1.0f));
@@ -1195,8 +1202,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mHandImage.sprite = mHandCursorSprite;
             mHandImage.preserveAspect = true;
             mHandImage.raycastTarget = false;
-            mPointerImage.sprite = mHandCursorSprite;
+            mPointerImage.sprite = mPointerCursorSprite;
             mPointerImage.preserveAspect = true;
+            mPointerImage.raycastTarget = false;
             mVerdictImage.preserveAspect = true;
             mVerdictImage.raycastTarget = false;
             mQuestionPanelImage.sprite = mQuestionPanelSprite;
@@ -1441,6 +1449,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(1320.0f, 70.0f));
             mQuestionText.fontSize = 30;
             mQuestionText.alignment = TextAnchor.MiddleCenter;
+            mQuestionText.horizontalOverflow = HorizontalWrapMode.Overflow;
         }
 
         private void applyAwaitingHandInsertionLayout()
@@ -1464,6 +1473,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.5f, 0.22f),
                 new Vector2(250.0f, 320.0f));
             mQuestionText.fontSize = 30;
+            mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
 
         private void applyAnswerStageLayout()
@@ -1487,6 +1497,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.5f, 0.21f),
                 new Vector2(220.0f, 300.0f));
             mQuestionText.fontSize = 30;
+            mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
 
         private void applyResultLayout(EVerdictKind verdictKind)
@@ -1689,12 +1700,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(180.0f, 220.0f),
                 Color.white);
             mPointerImage = createImage(
-                "HandPointer",
+                "InputPointer",
                 mCanvasRootTransform,
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
                 Vector2.zero,
-                new Vector2(120.0f, 160.0f),
+                POINTER_CURSOR_SIZE_PIXELS,
                 Color.white);
             mVerdictImage = createImage(
                 "VerdictImage",
@@ -1814,6 +1825,52 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Image image = imageObject.AddComponent<Image>();
             image.color = color;
             return image;
+        }
+
+        private static Sprite createPointerCursorSprite()
+        {
+            Texture2D texture = new Texture2D(
+                POINTER_CURSOR_TEXTURE_SIZE,
+                POINTER_CURSOR_TEXTURE_SIZE,
+                TextureFormat.RGBA32,
+                mipChain: false);
+            texture.hideFlags = HideFlags.DontSave;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            float center = (POINTER_CURSOR_TEXTURE_SIZE - 1.0f) * 0.5f;
+            float fillRadius = POINTER_CURSOR_TEXTURE_SIZE * 0.24f;
+            float ringInnerRadius = POINTER_CURSOR_TEXTURE_SIZE * 0.31f;
+            float ringOuterRadius = POINTER_CURSOR_TEXTURE_SIZE * 0.39f;
+            Color[] pixels = new Color[POINTER_CURSOR_TEXTURE_SIZE * POINTER_CURSOR_TEXTURE_SIZE];
+
+            for (int y = 0; y < POINTER_CURSOR_TEXTURE_SIZE; y += 1)
+            {
+                for (int x = 0; x < POINTER_CURSOR_TEXTURE_SIZE; x += 1)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
+                    Color pixelColor = Color.clear;
+
+                    if (distance <= fillRadius)
+                    {
+                        pixelColor = POINTER_CURSOR_FILL_COLOR;
+                    }
+                    else if (distance >= ringInnerRadius && distance <= ringOuterRadius)
+                    {
+                        pixelColor = POINTER_CURSOR_RING_COLOR;
+                    }
+
+                    pixels[(y * POINTER_CURSOR_TEXTURE_SIZE) + x] = pixelColor;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+            return Sprite.Create(
+                texture,
+                new Rect(0.0f, 0.0f, POINTER_CURSOR_TEXTURE_SIZE, POINTER_CURSOR_TEXTURE_SIZE),
+                new Vector2(0.5f, 0.5f),
+                POINTER_CURSOR_TEXTURE_SIZE);
         }
 
         private Image createImage(

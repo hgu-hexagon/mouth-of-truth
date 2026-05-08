@@ -3,7 +3,7 @@ from __future__ import annotations
 from mouth_of_truth.contracts.verdict_kind import VerdictKind
 
 
-MULTIMODAL_FALSE_PIVOT_SCORE = 16.0
+MULTIMODAL_FALSE_PIVOT_SCORE = 33.0
 
 
 def get_multimodal_verdict_from_score(score: float) -> VerdictKind:

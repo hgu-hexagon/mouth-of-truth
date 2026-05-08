@@ -11,7 +11,10 @@ namespace MouthOfTruth.Game.Voice
         private const int SAMPLE_RATE = 16000;
         private const int MAX_SEGMENT_DURATION_SECONDS = 20;
         private const float SPEECH_WINDOW_SECONDS = 0.20f;
-        private const float SPEECH_RMS_THRESHOLD = 0.0085f;
+        private const float SPEECH_ACTIVITY_RMS_THRESHOLD = 0.0085f;
+        private const float SPEECH_EVIDENCE_RMS_THRESHOLD = 0.0145f;
+        private const float SPEECH_EVIDENCE_PEAK_RMS_THRESHOLD = 0.0200f;
+        private const int MINIMUM_SPEECH_EVIDENCE_WINDOW_COUNT = 4;
 
         private readonly List<float[]> mRecordedSegments = new List<float[]>();
 
@@ -59,7 +62,7 @@ namespace MouthOfTruth.Game.Voice
 
         public AnswerCaptureFrameSnapshot Update(float deltaTimeSeconds)
         {
-            bool isSpeechDetected = mIsCollecting && calculateCurrentSpeechRms() >= SPEECH_RMS_THRESHOLD;
+            bool isSpeechDetected = mIsCollecting && calculateCurrentSpeechRms() >= SPEECH_ACTIVITY_RMS_THRESHOLD;
             return new AnswerCaptureFrameSnapshot(string.Empty, isSpeechDetected);
         }
 
@@ -157,7 +160,7 @@ namespace MouthOfTruth.Game.Voice
                 return;
             }
 
-            if (containsSpeechSignal(activeSegmentSamples) == false)
+            if (containsSpeechEvidence(activeSegmentSamples) == false)
             {
                 return;
             }
@@ -208,7 +211,7 @@ namespace MouthOfTruth.Game.Voice
             return monoBuffer;
         }
 
-        private bool containsSpeechSignal(float[] monoSamples)
+        private bool containsSpeechEvidence(float[] monoSamples)
         {
             if (monoSamples == null || monoSamples.Length == 0)
             {
@@ -222,24 +225,39 @@ namespace MouthOfTruth.Game.Voice
 
             if (monoSamples.Length <= windowSampleCount)
             {
-                return calculateWindowRms(monoSamples, 0, monoSamples.Length) >= SPEECH_RMS_THRESHOLD;
+                float singleWindowRms = calculateWindowRms(monoSamples, 0, monoSamples.Length);
+                return singleWindowRms >= SPEECH_EVIDENCE_RMS_THRESHOLD
+                    && singleWindowRms >= SPEECH_EVIDENCE_PEAK_RMS_THRESHOLD;
             }
+
+            int speechWindowCount = 0;
+            float peakRms = 0.0f;
 
             for (int startSampleIndex = 0;
                  startSampleIndex + windowSampleCount <= monoSamples.Length;
                  startSampleIndex += strideSampleCount)
             {
-                if (calculateWindowRms(monoSamples, startSampleIndex, windowSampleCount)
-                    >= SPEECH_RMS_THRESHOLD)
+                float windowRms = calculateWindowRms(monoSamples, startSampleIndex, windowSampleCount);
+                peakRms = Math.Max(peakRms, windowRms);
+
+                if (windowRms >= SPEECH_EVIDENCE_RMS_THRESHOLD)
                 {
-                    return true;
+                    speechWindowCount += 1;
                 }
             }
 
             int tailWindowStartIndex = Math.Max(0, monoSamples.Length - windowSampleCount);
             int tailSampleCount = monoSamples.Length - tailWindowStartIndex;
-            return calculateWindowRms(monoSamples, tailWindowStartIndex, tailSampleCount)
-                   >= SPEECH_RMS_THRESHOLD;
+            float tailWindowRms = calculateWindowRms(monoSamples, tailWindowStartIndex, tailSampleCount);
+            peakRms = Math.Max(peakRms, tailWindowRms);
+
+            if (tailWindowRms >= SPEECH_EVIDENCE_RMS_THRESHOLD)
+            {
+                speechWindowCount += 1;
+            }
+
+            return speechWindowCount >= MINIMUM_SPEECH_EVIDENCE_WINDOW_COUNT
+                && peakRms >= SPEECH_EVIDENCE_PEAK_RMS_THRESHOLD;
         }
 
         private float calculateWindowRms(float[] monoSamples, int startSampleIndex, int sampleCount)

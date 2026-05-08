@@ -8,9 +8,7 @@ from typing import Any
 import torch
 
 from mouth_of_truth.audio_signal import (
-    DEFAULT_SPEECH_RMS_THRESHOLD,
     calculate_window_rms,
-    has_speech_signal,
 )
 from mouth_of_truth.voice.infer_voice import (
     TARGET_SAMPLE_RATE,
@@ -34,6 +32,9 @@ MAX_ANALYSIS_SEGMENT_COUNT = 1
 VOICE_HISTORY_SIZE = 10
 FAST_WINDOW_SECONDS = 0.20
 FAST_STRIDE_SECONDS = 0.10
+FAST_SPEECH_EVIDENCE_RMS_THRESHOLD = 0.0145
+FAST_SPEECH_EVIDENCE_PEAK_RMS_THRESHOLD = 0.0200
+MINIMUM_FAST_SPEECH_EVIDENCE_WINDOW_COUNT = 4
 TRAINED_VOICE_MODEL_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL"
 
 
@@ -46,7 +47,7 @@ def run_voice_emotion_pipeline(audio_path: str) -> dict[str, Any]:
     """Runs one voice-emotion analysis pipeline on one recorded answer file."""
     waveform = load_audio(audio_path)
 
-    if has_speech_signal(waveform, TARGET_SAMPLE_RATE) is False:
+    if has_sustained_voice_evidence(waveform, TARGET_SAMPLE_RATE) is False:
         return build_empty_voice_analysis()
 
     if should_use_trained_voice_model():
@@ -121,7 +122,7 @@ def build_fast_voice_segment_result(
     speech_rms_values = [
         rms_value
         for rms_value in rms_values
-        if rms_value >= DEFAULT_SPEECH_RMS_THRESHOLD
+        if rms_value >= FAST_SPEECH_EVIDENCE_RMS_THRESHOLD
     ]
 
     if not speech_rms_values:
@@ -183,6 +184,21 @@ def calculate_rms_windows(waveform: list[float], sample_rate: int) -> list[float
         start_sample_index += stride_sample_count
 
     return rms_values
+
+
+def has_sustained_voice_evidence(waveform: list[float], sample_rate: int) -> bool:
+    """Returns whether one waveform contains enough sustained voice evidence."""
+    rms_values = calculate_rms_windows(waveform, sample_rate)
+    speech_rms_values = [
+        rms_value
+        for rms_value in rms_values
+        if rms_value >= FAST_SPEECH_EVIDENCE_RMS_THRESHOLD
+    ]
+
+    if len(speech_rms_values) < MINIMUM_FAST_SPEECH_EVIDENCE_WINDOW_COUNT:
+        return False
+
+    return max(speech_rms_values) >= FAST_SPEECH_EVIDENCE_PEAK_RMS_THRESHOLD
 
 
 def build_fast_voice_probability_dict(suspicion_score: float) -> dict[str, float]:

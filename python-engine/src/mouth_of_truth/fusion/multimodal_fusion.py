@@ -5,8 +5,8 @@ from typing import Any
 from mouth_of_truth.fusion.verdict_policy import get_multimodal_verdict_from_score
 
 
-FACE_WEIGHT = 0.70
-VOICE_WEIGHT = 0.30
+FACE_WEIGHT = 0.80
+VOICE_WEIGHT = 0.20
 EmotionSummary = dict[str, Any]
 FusedVerdictPayload = dict[str, Any]
 

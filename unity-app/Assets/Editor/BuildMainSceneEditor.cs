@@ -486,7 +486,7 @@ namespace MouthOfTruth.Editor
 
             if (material.HasProperty("_BaseColor"))
             {
-                material.SetColor("_BaseColor", new Color(0.78f, 0.72f, 0.72f, 1.0f));
+                material.SetColor("_BaseColor", new Color(0.58f, 0.50f, 0.46f, 0.86f));
             }
 
             if (material.HasProperty("_Color"))

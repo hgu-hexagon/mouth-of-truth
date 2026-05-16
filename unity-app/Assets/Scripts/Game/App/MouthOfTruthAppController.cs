@@ -14,6 +14,9 @@ using MouthOfTruth.Game.Presentation.Runtime;
 using MouthOfTruth.Game.Session;
 using MouthOfTruth.Game.Voice;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace MouthOfTruth.Game.App
 {
@@ -23,7 +26,7 @@ namespace MouthOfTruth.Game.App
         private const float CARD_SELECTION_DWELL_SECONDS = 2.1f;
         private const float UI_ACTION_DWELL_SECONDS = 1.05f;
         private const float POINTER_REACQUIRE_GUARD_SECONDS = 0.45f;
-        private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 0.65f;
+        private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 2.2f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
 
@@ -81,6 +84,12 @@ namespace MouthOfTruth.Game.App
             Vector2? presentedPointerScreenPosition = getPresentedPointerScreenPosition(pointerScreenPosition);
             updatePointerPresentation(presentedPointerScreenPosition);
 
+            if (mGameView.ConsumeExitRequested())
+            {
+                requestApplicationExit();
+                return;
+            }
+
             if (mIsTransitionBusy || mIsPresentationCaptureRunning)
             {
                 return;
@@ -104,12 +113,6 @@ namespace MouthOfTruth.Game.App
             if (mGameView.ConsumeTryAgainRequested())
             {
                 _ = restartGameAsync();
-                return;
-            }
-
-            if (mGameView.ConsumeExitRequested())
-            {
-                requestApplicationExit();
                 return;
             }
 
@@ -619,15 +622,33 @@ namespace MouthOfTruth.Game.App
             mPointerPresentationOverrideRemainingSeconds = Mathf.Max(
                 0.0f,
                 mPointerPresentationOverrideRemainingSeconds - Time.deltaTime);
-            return new Vector2(Screen.width * 0.5f, Screen.height * 0.08f);
+            return getBottomCenterPointerScreenPosition();
         }
 
         private void beginBottomCenterPointerSettle()
         {
             mPointerPresentationOverrideRemainingSeconds = POST_CARD_SELECTION_POINTER_SETTLE_SECONDS;
+            warpSystemPointerToBottomCenter();
             mWasPointerAvailableLastFrame = false;
             mPointerReacquireGuardRemainingSeconds = 0.0f;
             resetPointerActivationDwellState();
+        }
+
+        private static Vector2 getBottomCenterPointerScreenPosition()
+        {
+            return new Vector2(Screen.width * 0.5f, Screen.height * 0.08f);
+        }
+
+        private static void warpSystemPointerToBottomCenter()
+        {
+#if ENABLE_INPUT_SYSTEM
+            Mouse currentMouse = Mouse.current;
+
+            if (currentMouse != null)
+            {
+                currentMouse.WarpCursorPosition(getBottomCenterPointerScreenPosition());
+            }
+#endif
         }
 
         private IQuestionNarrationService createNarrationService()

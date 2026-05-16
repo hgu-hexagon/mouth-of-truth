@@ -322,7 +322,7 @@ namespace MouthOfTruth.Editor
             Directory.CreateDirectory(Path.GetDirectoryName(archivePath) ?? runtimeRootPath);
             runProcess(
                 "/usr/bin/ditto",
-                $"-c -k --sequesterRsrc --keepParent \"{distributionRootPath}\" \"{archivePath}\"",
+                $"-c -k --norsrc --noextattr --noqtn --noacl --keepParent \"{distributionRootPath}\" \"{archivePath}\"",
                 runtimeRootPath);
         }
 

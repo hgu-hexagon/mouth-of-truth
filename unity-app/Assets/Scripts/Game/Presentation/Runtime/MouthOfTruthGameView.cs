@@ -498,29 +498,29 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, true);
             playInterfaceCue(mHandInsertClip, 0.68f);
-            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -240.0f);
-            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -48.0f);
-            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -2.0f);
+            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -270.0f);
+            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -58.0f);
+            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -4.0f);
 
             await animateOverTimeAsync(
-                1.04f,
+                1.65f,
                 progress =>
                 {
                     float easedProgress = easeInOut(progress);
-                    float approachProgress = Mathf.Clamp01(easedProgress / 0.40f);
-                    float insertionProgress = Mathf.Clamp01((easedProgress - 0.34f) / 0.66f);
-                    Vector2 handPosition = easedProgress < 0.40f
+                    float approachProgress = Mathf.Clamp01(easedProgress / 0.55f);
+                    float insertionProgress = Mathf.Clamp01((easedProgress - 0.48f) / 0.52f);
+                    Vector2 handPosition = easedProgress < 0.55f
                         ? Vector2.Lerp(startPosition, frontPosition, easeOut(approachProgress))
                         : Vector2.Lerp(frontPosition, innerPosition, easeInOut(insertionProgress));
-                    float handAlpha = easedProgress < 0.80f
-                        ? Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(easedProgress / 0.24f)))
-                        : Mathf.Lerp(1.0f, 0.16f, Mathf.Clamp01((easedProgress - 0.80f) / 0.20f));
-                    float arc = Mathf.Sin(easedProgress * Mathf.PI) * 22.0f;
-                    float handScale = easedProgress < 0.54f
-                        ? Mathf.Lerp(0.76f, 1.24f, easeOut(easedProgress / 0.54f))
-                        : Mathf.Lerp(1.24f, 0.34f, easeInOut((easedProgress - 0.54f) / 0.46f));
+                    float handAlpha = easedProgress < 0.86f
+                        ? Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(easedProgress / 0.30f)))
+                        : Mathf.Lerp(1.0f, 0.12f, Mathf.Clamp01((easedProgress - 0.86f) / 0.14f));
+                    float arc = Mathf.Sin(easedProgress * Mathf.PI) * 16.0f;
+                    float handScale = easedProgress < 0.62f
+                        ? Mathf.Lerp(0.70f, 1.10f, easeOut(easedProgress / 0.62f))
+                        : Mathf.Lerp(1.10f, 0.36f, easeInOut((easedProgress - 0.62f) / 0.38f));
                     float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
-                    float mouthPull = Mathf.Clamp01((easedProgress - 0.40f) / 0.60f);
+                    float mouthPull = Mathf.Clamp01((easedProgress - 0.50f) / 0.50f);
 
                     setRitualHandVisual(
                         handPosition + new Vector2(arc, 0.0f),
@@ -2448,7 +2448,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             ritualHandRectTransform.sizeDelta = sizeDelta;
             ritualHandRectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, rotationDegrees);
             ritualHandRectTransform.localScale = Vector3.one * Mathf.Max(0.0f, scale);
-            mRitualHandImage.color = new Color(1.0f, 0.91f, 0.78f, Mathf.Clamp01(alpha));
+            mRitualHandImage.color = new Color(1.0f, 0.97f, 0.91f, Mathf.Clamp01(alpha));
         }
 
         private void setHandVisual(float insertionProgress)

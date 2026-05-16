@@ -40,6 +40,7 @@ namespace MouthOfTruth.Game.App
         private bool mIsInitialized;
         private bool mIsTransitionBusy;
         private bool mIsPresentationCaptureRunning;
+        private bool mHasShownFirstRunTutorial;
         private bool mWasPointerAvailableLastFrame;
         private float mAnswerHoldLossElapsedSeconds;
         private float mPointerReacquireGuardRemainingSeconds;
@@ -201,8 +202,16 @@ namespace MouthOfTruth.Game.App
         private async Task startGameAsync()
         {
             mIsTransitionBusy = true;
+            bool shouldShowFirstRunTutorial = mHasShownFirstRunTutorial == false;
+            mHasShownFirstRunTutorial = true;
             mGameStateMachine.StartGame();
             resetInteractionSelectionState();
+
+            if (shouldShowFirstRunTutorial)
+            {
+                await mGameView.PlayFirstRunTutorialAsync();
+            }
+
             mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
             await Task.Delay(250, mLifecycleCancellationTokenSource.Token);
             mGameStateMachine.MarkCardPresentationCompleted();

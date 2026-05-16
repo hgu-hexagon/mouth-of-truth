@@ -61,6 +61,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public static string FloorRunnerPath =>
             GetStreamingArtPath("environment/floor_red_carpet_runner.png");
 
+        public static string FirstRunTutorialSequencePath =>
+            Path.Combine(Application.streamingAssetsPath, "tutorial", "combined_sequence.json");
+
         public static string QuestionCardBackPath =>
             GetStreamingArtPath("cards/question_card_back.png");
 

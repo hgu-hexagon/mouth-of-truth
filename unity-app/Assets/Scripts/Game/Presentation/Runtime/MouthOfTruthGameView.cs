@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using MouthOfTruth.Game.Analysis;
 using MouthOfTruth.Game.Data;
@@ -46,6 +47,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS = 3.225f;
         private const float CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS = 0.01875f;
         private const float CARD_HOVER_AUDIO_COOLDOWN_SECONDS = 0.22f;
+        private const float FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS = 4.0f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
         private const float INTERFACE_AUDIO_OVERLAP_DUCK_SCALE = 0.72f;
         private const int POINTER_CURSOR_TEXTURE_SIZE = 64;
@@ -66,6 +68,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Image mBackgroundImage;
         private Image mSceneOverlayImage;
         private Image mLoadingOverlayImage;
+        private Image mTutorialOverlayImage;
+        private Image mTutorialDevicePanelImage;
+        private Image mTutorialHandImage;
+        private Text mTutorialTitleText;
+        private Text mTutorialBodyText;
+        private Text mTutorialStepText;
         private Image mCarpetImage;
         private Image mTitleVignetteImage;
         private Image mLogoImage;
@@ -143,6 +151,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mTryAgainRequested;
         private bool mBackToTitleRequested;
         private bool mExitRequested;
+
+        [Serializable]
+        private sealed class TutorialSequenceMetadata
+        {
+            public float fr;
+            public float ip;
+            public float op;
+        }
 
         public async Task InitializeAsync()
         {
@@ -427,6 +443,49 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setCardsVisible(false);
             selectedCardView.SetAlpha(1.0f);
             selectedCardView.ResetTransformState();
+        }
+
+        public async Task PlayFirstRunTutorialAsync()
+        {
+            float tutorialDurationSeconds = getFirstRunTutorialDurationSeconds();
+            setObjectActive(mTutorialOverlayImage, true);
+            setObjectActive(mTutorialDevicePanelImage, true);
+            setObjectActive(mTutorialHandImage, true);
+            setObjectActive(mTutorialTitleText, true);
+            setObjectActive(mTutorialBodyText, true);
+            setObjectActive(mTutorialStepText, true);
+            setText(mTutorialTitleText, "손을 장치 위에서 천천히 움직여 주세요");
+            setText(mTutorialBodyText, "손끝 방향으로 버튼과 카드를 가리키고, 같은 위치에 잠시 머물면 선택됩니다.");
+            RectTransform handRectTransform = mTutorialHandImage.rectTransform;
+
+            await animateOverTimeAsync(
+                tutorialDurationSeconds,
+                progress =>
+                {
+                    float firstSegmentProgress = Mathf.Clamp01(progress / 0.48f);
+                    float secondSegmentProgress = Mathf.Clamp01((progress - 0.38f) / 0.62f);
+                    Vector2 hoverStartPosition = new Vector2(0.0f, -130.0f);
+                    Vector2 hoverReadyPosition = new Vector2(0.0f, -18.0f);
+                    handRectTransform.anchoredPosition = progress < 0.48f
+                        ? Vector2.Lerp(hoverStartPosition, hoverReadyPosition, easeOut(firstSegmentProgress))
+                        : getTutorialScanPosition(secondSegmentProgress);
+                    handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.02f, easeOut(firstSegmentProgress));
+                    mTutorialOverlayImage.color = new Color(
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        Mathf.Lerp(0.74f, 0.88f, easeInOut(progress)));
+                    setText(mTutorialStepText, progress < 0.48f
+                        ? "1. 손을 Leap Motion 위에 자연스럽게 올립니다."
+                        : "2. 왼쪽, 가운데, 오른쪽 방향을 천천히 가리킵니다.");
+                });
+
+            setObjectActive(mTutorialOverlayImage, false);
+            setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialHandImage, false);
+            setObjectActive(mTutorialTitleText, false);
+            setObjectActive(mTutorialBodyText, false);
+            setObjectActive(mTutorialStepText, false);
         }
 
         public void ShowNarratingQuestion(string questionText)
@@ -1374,6 +1433,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mPointerImage.sprite = mPointerCursorSprite;
             mPointerImage.preserveAspect = true;
             mPointerImage.raycastTarget = false;
+            mTutorialHandImage.sprite = mRitualHandSprite;
+            mTutorialHandImage.preserveAspect = true;
+            mTutorialHandImage.raycastTarget = false;
+            mTutorialOverlayImage.raycastTarget = true;
+            mTutorialDevicePanelImage.type = Image.Type.Sliced;
+            mTutorialDevicePanelImage.raycastTarget = false;
             mVerdictImage.preserveAspect = true;
             mVerdictImage.raycastTarget = false;
             mQuestionPanelImage.sprite = mQuestionPanelSprite;
@@ -1946,6 +2011,65 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mPointerImage.transform.SetAsLastSibling();
             mPointerImage.raycastTarget = false;
             mAnalyzingDotsText.transform.SetAsLastSibling();
+            mTutorialOverlayImage = createFullScreenImage(
+                "FirstRunTutorialOverlay",
+                mCanvasRootTransform,
+                new Color(0.0f, 0.0f, 0.0f, 0.0f));
+            mTutorialDevicePanelImage = createImage(
+                "FirstRunTutorialPanel",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.46f),
+                new Vector2(0.5f, 0.46f),
+                Vector2.zero,
+                new Vector2(900.0f, 520.0f),
+                new Color(0.10f, 0.08f, 0.06f, 0.88f));
+            mTutorialHandImage = createImage(
+                "FirstRunTutorialHand",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.48f),
+                new Vector2(0.5f, 0.48f),
+                Vector2.zero,
+                new Vector2(260.0f, 290.0f),
+                Color.white);
+            mTutorialTitleText = createText(
+                "FirstRunTutorialTitle",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.72f),
+                new Vector2(0.5f, 0.72f),
+                Vector2.zero,
+                new Vector2(980.0f, 64.0f),
+                34,
+                FontStyle.Normal);
+            mTutorialBodyText = createText(
+                "FirstRunTutorialBody",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.25f),
+                new Vector2(0.5f, 0.25f),
+                Vector2.zero,
+                new Vector2(1040.0f, 72.0f),
+                26,
+                FontStyle.Normal);
+            mTutorialStepText = createText(
+                "FirstRunTutorialStep",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.17f),
+                new Vector2(0.5f, 0.17f),
+                Vector2.zero,
+                new Vector2(980.0f, 54.0f),
+                24,
+                FontStyle.Normal);
+            mTutorialOverlayImage.transform.SetAsLastSibling();
+            mTutorialDevicePanelImage.transform.SetAsLastSibling();
+            mTutorialHandImage.transform.SetAsLastSibling();
+            mTutorialTitleText.transform.SetAsLastSibling();
+            mTutorialBodyText.transform.SetAsLastSibling();
+            mTutorialStepText.transform.SetAsLastSibling();
+            setObjectActive(mTutorialOverlayImage, false);
+            setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialHandImage, false);
+            setObjectActive(mTutorialTitleText, false);
+            setObjectActive(mTutorialBodyText, false);
+            setObjectActive(mTutorialStepText, false);
             mLoadingOverlayImage = createFullScreenImage("LoadingOverlay", mCanvasRootTransform, Color.black);
             mLoadingOverlayImage.transform.SetAsLastSibling();
             mLoadingOverlayImage.raycastTarget = true;
@@ -2415,6 +2539,67 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 CARD_FRONT_READ_HOLD_MINIMUM_SECONDS + weightedDuration,
                 CARD_FRONT_READ_HOLD_MINIMUM_SECONDS,
                 CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS);
+        }
+
+        private static Vector2 getTutorialScanPosition(float progress)
+        {
+            float clampedProgress = Mathf.Clamp01(progress);
+
+            if (clampedProgress < 0.33f)
+            {
+                return Vector2.Lerp(
+                    new Vector2(-220.0f, -20.0f),
+                    new Vector2(0.0f, -4.0f),
+                    easeInOutStatic(clampedProgress / 0.33f));
+            }
+
+            if (clampedProgress < 0.66f)
+            {
+                return Vector2.Lerp(
+                    new Vector2(0.0f, -4.0f),
+                    new Vector2(220.0f, -20.0f),
+                    easeInOutStatic((clampedProgress - 0.33f) / 0.33f));
+            }
+
+            return Vector2.Lerp(
+                new Vector2(220.0f, -20.0f),
+                new Vector2(0.0f, -4.0f),
+                easeInOutStatic((clampedProgress - 0.66f) / 0.34f));
+        }
+
+        private static float getFirstRunTutorialDurationSeconds()
+        {
+            try
+            {
+                if (File.Exists(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath) == false)
+                {
+                    return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
+                }
+
+                string json = File.ReadAllText(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath);
+                TutorialSequenceMetadata metadata = JsonUtility.FromJson<TutorialSequenceMetadata>(json);
+
+                if (metadata == null || metadata.fr <= 0.0f || metadata.op <= metadata.ip)
+                {
+                    return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
+                }
+
+                return Mathf.Clamp(
+                    (metadata.op - metadata.ip) / metadata.fr,
+                    3.0f,
+                    5.0f);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("Failed to read first-run tutorial sequence metadata.\n" + exception);
+                return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
+            }
+        }
+
+        private static float easeInOutStatic(float progress)
+        {
+            float clampedProgress = Mathf.Clamp01(progress);
+            return clampedProgress * clampedProgress * (3.0f - (2.0f * clampedProgress));
         }
 
         private float easeOut(float progress)

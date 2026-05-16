@@ -126,6 +126,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private AudioClip mCardSelectClip;
         private AudioClip mCardRevealClip;
         private AudioClip mHandInsertClip;
+        private AudioClip mHandPromptClip;
         private AudioClip mResultTrueClip;
         private AudioClip mResultFalseClip;
         private AudioClip mResultUncertainClip;
@@ -192,7 +193,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             float elapsedSeconds = Time.unscaledTime - mAnsweringPresentationStartedAtSeconds;
             int dotCount = 1 + (Mathf.FloorToInt(elapsedSeconds * 2.0f) % 3);
-            setText(mQuestionText, "답변을 듣고 있습니다" + new string('.', dotCount));
             setText(mAnalyzingDotsText, new string('.', dotCount));
 
             if (mQuestionPanelImage == null)
@@ -573,6 +573,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setText(mQuestionText, "“손을 내밀고, 진실을 답하라.”");
             applyMouthAnchoredLayout();
             setHandVisual(0.0f);
+            playInterfaceCue(mHandPromptClip, 0.70f);
         }
 
         public async Task AnimateHandInsertionAsync()
@@ -649,16 +650,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setOverlayAlpha(0.28f);
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mExitButton, true);
-            setObjectActive(mQuestionPanelImage, true);
-            setObjectActive(mQuestionText, true);
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mQuestionText, false);
             setObjectActive(mStatusPanelImage, false);
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mAnswerTimerText, false);
-            setText(mQuestionText, "답변을 듣고 있습니다.");
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, false);
-            applyMouthAnchoredLayout();
+            applyAnsweringFocusLayout();
             disableHeldHandPresentation();
             enableAnsweringPresentation();
         }
@@ -668,6 +668,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableHeldHandPresentation();
             applyAnswerStageLayout();
+            applyAnsweringFocusLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
             setObjectActive(mBackgroundImage, true);
@@ -787,8 +788,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public async Task PlayResultRevealAnimationAsync(EVerdictKind verdictKind)
         {
             setObjectActive(mTryAgainButton, false);
-            setObjectActive(mRitualHandImage, true);
-            placeRitualHandAboveMouth();
 
             if (verdictKind == EVerdictKind.True)
             {
@@ -803,7 +802,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 await playUncertainRevealAnimationAsync();
             }
 
-            setObjectActive(mRitualHandImage, false);
             setObjectActive(mTryAgainButton, true);
             setOverlayAlpha(0.38f);
             mMouthImage.color = Color.white;
@@ -815,8 +813,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private async Task playTrueRevealAnimationAsync()
         {
-            Vector2 handStartPosition = getHandInnerPosition() + new Vector2(0.0f, -22.0f);
-            Vector2 handEndPosition = getHandFrontPosition() + new Vector2(0.0f, -138.0f);
             mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
             await animateOverTimeAsync(
@@ -828,12 +824,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     setOverlayTint(new Color(0.05f, 0.11f, 0.06f, 1.0f), Mathf.Lerp(0.46f, 0.32f, easedProgress));
                     mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.025f, 1.0f, easedProgress);
                     mMouthImage.color = new Color(0.88f, 1.0f, 0.82f, Mathf.Lerp(0.86f, 1.0f, easedProgress));
-                    setRitualHandVisual(
-                        Vector2.Lerp(handStartPosition, handEndPosition, easedProgress),
-                        RITUAL_HAND_SIZE_PIXELS,
-                        Mathf.Lerp(0.48f, 0.0f, easedProgress),
-                        Mathf.Lerp(0.48f, 0.78f, easedProgress),
-                        Mathf.Lerp(2.0f, -3.0f, easedProgress));
                     mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);
                     mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.90f, 1.0f + (glow * 0.02f), easedProgress);
                 });
@@ -841,8 +831,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private async Task playFalseRevealAnimationAsync()
         {
-            Vector2 bitePosition = getHandInnerPosition() + new Vector2(0.0f, -6.0f);
-            Vector2 recoilPosition = getHandFrontPosition() + new Vector2(0.0f, -154.0f);
             mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
             await animateOverTimeAsync(
@@ -850,16 +838,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float easedProgress = easeInOut(progress);
-                    float biteTremor = Mathf.Sin(progress * Mathf.PI * 8.0f) * easedProgress;
                     setOverlayTint(new Color(0.28f, 0.012f, 0.008f, 1.0f), Mathf.Lerp(0.42f, 0.70f, easedProgress));
                     mMouthImage.color = new Color(1.0f, 0.68f, 0.58f, Mathf.Lerp(0.88f, 1.0f, easedProgress));
                     mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.22f, easedProgress);
-                    setRitualHandVisual(
-                        bitePosition + new Vector2(biteTremor * 9.0f, biteTremor * -4.0f),
-                        RITUAL_HAND_SIZE_PIXELS,
-                        0.95f,
-                        Mathf.Lerp(0.46f, 0.34f, easedProgress),
-                        Mathf.Lerp(0.0f, -9.0f, easedProgress));
                 });
 
             await animateOverTimeAsync(
@@ -871,12 +852,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     setOverlayTint(new Color(0.22f, 0.006f, 0.006f, 1.0f), Mathf.Lerp(0.70f, 0.40f, easedProgress));
                     mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.60f, 1.0f, easedProgress), Mathf.Lerp(0.54f, 1.0f, easedProgress), 1.0f);
                     mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.22f, 1.0f, easedProgress);
-                    setRitualHandVisual(
-                        Vector2.Lerp(bitePosition, recoilPosition, easedProgress) + new Vector2(shake * 24.0f, shake * 6.0f),
-                        RITUAL_HAND_SIZE_PIXELS,
-                        Mathf.Lerp(0.95f, 0.0f, easedProgress),
-                        Mathf.Lerp(0.34f, 0.84f, easedProgress),
-                        Mathf.Lerp(-9.0f, 12.0f, easedProgress));
                     mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);
                     mVerdictImage.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, shake * 2.5f);
                     mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.34f, 1.0f, easedProgress);
@@ -885,7 +860,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private async Task playUncertainRevealAnimationAsync()
         {
-            Vector2 handPosition = getHandInnerPosition() + new Vector2(0.0f, -42.0f);
             mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
             await animateOverTimeAsync(
@@ -899,12 +873,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     setOverlayTint(new Color(0.055f, 0.055f, 0.075f, 1.0f), Mathf.Lerp(0.48f, 0.40f, easedProgress));
                     mMouthImage.color = new Color(0.74f, 0.76f, 0.82f, Mathf.Lerp(0.74f, 1.0f, easedProgress));
                     mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.985f, 1.0f, easedProgress);
-                    setRitualHandVisual(
-                        handPosition + new Vector2(wobble * 18.0f, Mathf.Sin(progress * Mathf.PI * 3.0f) * 10.0f),
-                        RITUAL_HAND_SIZE_PIXELS,
-                        Mathf.Lerp(0.34f, 0.0f, easedProgress),
-                        Mathf.Lerp(0.56f, 0.62f, easedProgress),
-                        wobble * 5.0f);
                     mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(flickerAlpha));
                     mVerdictImage.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, wobble * 2.5f);
                     mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.96f, 1.0f, easedProgress);
@@ -1347,6 +1315,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardRevealPath);
             mHandInsertClip =
                 await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandInsertPath);
+            mHandPromptClip =
+                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandPromptPath);
             mResultTrueClip =
                 await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultTruePath);
             mResultFalseClip =
@@ -1679,6 +1649,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 HELD_POINTER_CURSOR_SIZE_PIXELS);
             mQuestionText.fontSize = 30;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        }
+
+        private void applyAnsweringFocusLayout()
+        {
+            applyTopLeftExitButtonLayout();
+            setRectTransformLayout(
+                mMouthImage.rectTransform,
+                new Vector2(0.5f, 0.51f),
+                new Vector2(1080.0f, 1080.0f));
+            mMouthImage.rectTransform.anchoredPosition = Vector2.zero;
+            mMouthImage.rectTransform.localScale = Vector3.one * 1.08f;
+            mMouthImage.color = Color.white;
         }
 
         private void applyResultLayout(EVerdictKind verdictKind)

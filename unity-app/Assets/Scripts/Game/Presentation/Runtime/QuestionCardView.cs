@@ -134,6 +134,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCardImage.type = Image.Type.Simple;
             mCardImage.color = new Color(0.96f, 0.93f, 0.88f, 1.0f);
             mQuestionText.enabled = true;
+            mQuestionText.color = Color.black;
+            mCanvasGroup.alpha = 1.0f;
             setQuestionText(questionText);
             applyQuestionTextLayout(questionText);
         }
@@ -201,6 +203,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void setQuestionText(string questionText)
         {
             mQuestionText.font = containsHangul(questionText) ? mKoreanFallbackFont : mPrimaryUiFont;
+            mQuestionText.color = Color.black;
             mQuestionText.text = questionText;
         }
 

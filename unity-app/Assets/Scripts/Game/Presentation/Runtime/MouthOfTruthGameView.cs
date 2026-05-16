@@ -48,6 +48,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS = 4.0f;
         private const float FIRST_RUN_TUTORIAL_DURATION_SCALE = 3.0f;
         private const float HAND_INSERTION_DURATION_SECONDS = 2.85f;
+        private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
         private const float INTERFACE_AUDIO_OVERLAP_DUCK_SCALE = 0.72f;
         private const int POINTER_CURSOR_TEXTURE_SIZE = 64;
@@ -192,6 +193,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float elapsedSeconds = Time.unscaledTime - mAnsweringPresentationStartedAtSeconds;
             int dotCount = 1 + (Mathf.FloorToInt(elapsedSeconds * 2.0f) % 3);
             setText(mQuestionText, "답변을 듣고 있습니다" + new string('.', dotCount));
+            setText(mAnalyzingDotsText, new string('.', dotCount));
 
             if (mQuestionPanelImage == null)
             {
@@ -199,7 +201,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             float pulse = (Mathf.Sin(elapsedSeconds * 3.0f) + 1.0f) * 0.5f;
+            float mouthPulse = (Mathf.Sin(elapsedSeconds * 2.45f) + 1.0f) * 0.5f;
             mQuestionPanelImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.86f, 1.0f, pulse));
+            setOverlayTint(new Color(0.025f, 0.018f, 0.014f, 1.0f), Mathf.Lerp(0.26f, 0.36f, pulse));
+
+            if (mMouthImage != null)
+            {
+                mMouthImage.color = new Color(1.0f, 0.96f, 0.88f, Mathf.Lerp(0.94f, 1.0f, mouthPulse));
+                mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.02f, 1.075f, mouthPulse);
+            }
+
+            if (mAnalyzingDotsText != null)
+            {
+                mAnalyzingDotsText.rectTransform.anchoredPosition = getMouthAnchorPosition() + new Vector2(0.0f, -108.0f);
+                mAnalyzingDotsText.color = new Color(1.0f, 0.82f, 0.58f, Mathf.Lerp(0.55f, 0.95f, pulse));
+                mAnalyzingDotsText.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.72f, 0.94f, pulse);
+            }
         }
 
         private void updateHeldHandPresentation()
@@ -233,12 +250,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             float pulse = (Mathf.Sin(elapsedSeconds * 3.2f) + 1.0f) * 0.5f;
             float tremor = Mathf.Sin(elapsedSeconds * 8.0f) * 3.0f;
-            setOverlayTint(new Color(0.02f, 0.015f, 0.018f, 1.0f), Mathf.Lerp(0.42f, 0.56f, pulse));
-            mMouthImage.color = new Color(0.94f, 0.91f, 0.84f, Mathf.Lerp(0.40f, 0.68f, pulse));
+            float focusProgress = Mathf.Clamp01(elapsedSeconds / 0.85f);
+            setOverlayTint(new Color(0.02f, 0.015f, 0.018f, 1.0f), Mathf.Lerp(0.50f, 0.68f, pulse));
+            mMouthImage.color = new Color(0.94f, 0.91f, 0.84f, Mathf.Lerp(0.46f, 0.74f, pulse));
             mMouthImage.rectTransform.anchoredPosition = getMouthAnchorPosition() + new Vector2(tremor, 0.0f);
-            mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.965f, 1.06f, pulse);
+            mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.08f, 1.26f, easeOut(focusProgress)) + (pulse * 0.055f));
             mAnalyzingDotsText.color = new Color(1.0f, 0.83f, 0.58f, Mathf.Lerp(0.70f, 1.0f, pulse));
-            mAnalyzingDotsText.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.92f, 1.16f, pulse);
+            mAnalyzingDotsText.rectTransform.anchoredPosition = getMouthAnchorPosition() + new Vector2(0.0f, -40.0f);
+            mAnalyzingDotsText.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.08f, 1.34f, pulse);
         }
 
         public void ShowStartScreen()
@@ -509,11 +528,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         ? Vector2.Lerp(hoverStartPosition, hoverReadyPosition, easeOut(firstSegmentProgress))
                         : getTutorialScanPosition(secondSegmentProgress);
                     handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.02f, easeOut(firstSegmentProgress));
-                    mTutorialOverlayImage.color = new Color(
-                        0.0f,
-                        0.0f,
-                        0.0f,
-                        1.0f);
+                    mTutorialOverlayImage.color = new Color(0.055f, 0.056f, 0.064f, 1.0f);
                     setText(mTutorialStepText, progress < 0.48f
                         ? "1. 손을 Leap Motion 위에 자연스럽게 올립니다."
                         : "2. 왼쪽, 가운데, 오른쪽 방향을 천천히 가리킵니다.");
@@ -567,7 +582,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyAnswerStageLayout();
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, true);
-            mRitualHandImage.transform.SetSiblingIndex(mMouthImage.transform.GetSiblingIndex());
+            placeRitualHandAboveMouth();
             playInterfaceCue(mHandInsertClip, 0.68f);
             Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -270.0f);
             Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -42.0f);
@@ -585,11 +600,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         : Vector2.Lerp(frontPosition, innerPosition, easeInOut(insertionProgress));
                     float handAlpha = easedProgress < 0.82f
                         ? Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(easedProgress / 0.30f)))
-                        : Mathf.Lerp(1.0f, 0.54f, Mathf.Clamp01((easedProgress - 0.82f) / 0.18f));
+                        : Mathf.Lerp(1.0f, 0.72f, Mathf.Clamp01((easedProgress - 0.82f) / 0.18f));
                     float arc = Mathf.Sin(easedProgress * Mathf.PI) * 9.0f;
                     float handScale = easedProgress < 0.50f
                         ? Mathf.Lerp(0.72f, 1.08f, easeOut(easedProgress / 0.50f))
-                        : Mathf.Lerp(1.08f, 0.86f, easeInOut((easedProgress - 0.50f) / 0.50f));
+                        : Mathf.Lerp(1.08f, 0.94f, easeInOut((easedProgress - 0.50f) / 0.50f));
                     float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
                     float mouthPull = Mathf.Clamp01((easedProgress - 0.50f) / 0.50f);
 
@@ -601,26 +616,25 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         Mathf.Lerp(-5.0f, 2.0f, easedProgress));
                     setOverlayAlpha(Mathf.Lerp(0.30f, 0.48f, mouthPulse));
                     mMouthImage.rectTransform.localScale =
-                        Vector3.one * (1.0f + (mouthPulse * 0.08f) + (mouthPull * 0.035f));
+                        Vector3.one * (1.0f + (mouthPulse * 0.12f) + (mouthPull * 0.055f));
                 });
 
             await animateOverTimeAsync(
-                0.36f,
+                0.46f,
                 progress =>
                 {
                     float easedProgress = easeIn(progress);
                     setRitualHandVisual(
-                        innerPosition + new Vector2(0.0f, Mathf.Lerp(0.0f, 32.0f, easedProgress)),
+                        innerPosition + new Vector2(0.0f, Mathf.Lerp(0.0f, 42.0f, easedProgress)),
                         RITUAL_HAND_SIZE_PIXELS,
-                        Mathf.Lerp(0.54f, 0.0f, easedProgress),
-                        Mathf.Lerp(0.86f, 0.76f, easedProgress),
+                        Mathf.Lerp(0.72f, 0.0f, easedProgress),
+                        Mathf.Lerp(0.94f, 0.82f, easedProgress),
                         Mathf.Lerp(2.0f, 0.0f, easedProgress));
-                    setOverlayAlpha(Mathf.Lerp(0.48f, 0.28f, easedProgress));
+                    setOverlayAlpha(Mathf.Lerp(0.48f, 0.36f, easedProgress));
                 });
 
             setObjectActive(mRitualHandImage, false);
-            setOverlayAlpha(0.28f);
-            mMouthImage.rectTransform.localScale = Vector3.one;
+            await playMouthJudgementFocusTransitionAsync();
         }
 
         public void ShowAnswering()
@@ -698,6 +712,23 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnalyzingPresentation();
         }
 
+        private async Task playMouthJudgementFocusTransitionAsync()
+        {
+            Vector2 mouthAnchorPosition = getMouthAnchorPosition();
+
+            await animateOverTimeAsync(
+                MOUTH_JUDGEMENT_FOCUS_SECONDS,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    float pulse = Mathf.Sin(progress * Mathf.PI);
+                    setOverlayTint(new Color(0.025f, 0.015f, 0.012f, 1.0f), Mathf.Lerp(0.36f, 0.50f, easedProgress));
+                    mMouthImage.color = new Color(1.0f, 0.94f, 0.84f, Mathf.Lerp(1.0f, 0.86f, easedProgress));
+                    mMouthImage.rectTransform.anchoredPosition = mouthAnchorPosition;
+                    mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.08f, 1.26f, easedProgress) + (pulse * 0.035f));
+                });
+        }
+
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
             disableAnsweringPresentation();
@@ -757,6 +788,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mRitualHandImage, true);
+            placeRitualHandAboveMouth();
 
             if (verdictKind == EVerdictKind.True)
             {
@@ -1802,7 +1834,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(700.0f, 80.0f),
                 38,
-                FontStyle.Normal);
+                FontStyle.Bold);
             mStatusText = createText(
                 "StatusText",
                 mCanvasRootTransform,
@@ -1811,7 +1843,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(1200.0f, 70.0f),
                 26,
-                FontStyle.Normal);
+                FontStyle.Bold);
             mQuestionText = createText(
                 "QuestionText",
                 mCanvasRootTransform,
@@ -1820,7 +1852,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(1200.0f, 140.0f),
                 34,
-                FontStyle.Normal);
+                FontStyle.Bold);
             mAnalyzingDotsText = createText(
                 "AnalyzingDotsText",
                 mCanvasRootTransform,
@@ -1829,7 +1861,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Vector2.zero,
                 new Vector2(360.0f, 140.0f),
                 90,
-                FontStyle.Normal);
+                FontStyle.Bold);
             mAnswerTimerText = createText(
                 "AnswerTimerText",
                 mCanvasRootTransform,
@@ -1887,7 +1919,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(640.0f, 80.0f),
                 48,
-                FontStyle.Normal);
+                FontStyle.Bold);
             mAnswerInputField = createInputField();
             mStartButton = createButton(
                 "StartButton",
@@ -1936,7 +1968,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.5f, 0.46f),
                 Vector2.zero,
                 new Vector2(900.0f, 520.0f),
-                new Color(0.10f, 0.08f, 0.06f, 0.96f));
+                new Color(0.12f, 0.12f, 0.135f, 0.96f));
             mTutorialHandImage = createImage(
                 "FirstRunTutorialHand",
                 mCanvasRootTransform,
@@ -1953,7 +1985,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Vector2.zero,
                 new Vector2(980.0f, 64.0f),
                 34,
-                FontStyle.Normal);
+                FontStyle.Bold);
             mTutorialBodyText = createText(
                 "FirstRunTutorialBody",
                 mCanvasRootTransform,
@@ -1971,7 +2003,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Vector2.zero,
                 new Vector2(980.0f, 54.0f),
                 24,
-                FontStyle.Normal);
+                FontStyle.Bold);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
@@ -2272,9 +2304,46 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Vector2.zero,
                 new Vector2(-20.0f, -20.0f),
                 34,
-                FontStyle.Normal);
+                FontStyle.Bold);
             setText(label, labelText);
             return button;
+        }
+
+        private void placeRitualHandAboveMouth()
+        {
+            if (mRitualHandImage == null || mMouthImage == null)
+            {
+                return;
+            }
+
+            int mouthSiblingIndex = mMouthImage.transform.GetSiblingIndex();
+            int targetSiblingIndex = Mathf.Min(mCanvasRootTransform.childCount - 1, mouthSiblingIndex + 1);
+            mRitualHandImage.transform.SetSiblingIndex(targetSiblingIndex);
+
+            if (mQuestionPanelImage != null && mQuestionPanelImage.gameObject.activeSelf)
+            {
+                mQuestionPanelImage.transform.SetAsLastSibling();
+            }
+
+            if (mQuestionText != null && mQuestionText.gameObject.activeSelf)
+            {
+                mQuestionText.transform.SetAsLastSibling();
+            }
+
+            if (mVerdictImage != null && mVerdictImage.gameObject.activeSelf)
+            {
+                mVerdictImage.transform.SetAsLastSibling();
+            }
+
+            if (mTryAgainButton != null && mTryAgainButton.gameObject.activeSelf)
+            {
+                mTryAgainButton.transform.SetAsLastSibling();
+            }
+
+            if (mExitButton != null && mExitButton.gameObject.activeSelf)
+            {
+                mExitButton.transform.SetAsLastSibling();
+            }
         }
 
         private void configureExitButtonAsTopLeftIcon()
@@ -2604,6 +2673,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 mQuestionPanelImage.color = Color.white;
             }
+
+            if (mAnalyzingDotsText != null)
+            {
+                setObjectActive(mAnalyzingDotsText, true);
+                mAnalyzingDotsText.transform.SetAsLastSibling();
+                setText(mAnalyzingDotsText, ".");
+            }
         }
 
         private void disableAnsweringPresentation()
@@ -2613,6 +2689,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (mQuestionPanelImage != null)
             {
                 mQuestionPanelImage.color = Color.white;
+            }
+
+            if (mAnalyzingDotsText != null && mIsAnalyzingPresentationActive == false)
+            {
+                setObjectActive(mAnalyzingDotsText, false);
+                setText(mAnalyzingDotsText, string.Empty);
+                mAnalyzingDotsText.rectTransform.localScale = Vector3.one;
             }
         }
 

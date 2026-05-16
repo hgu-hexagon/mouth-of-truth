@@ -479,12 +479,13 @@ namespace MouthOfTruth.Game.App
             mIsTransitionBusy = true;
             mGameView.UpdatePointerVisual(false, null);
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
-            await mGameView.PlayQuestionRevealAsync(selectedQuestionCardSlot, selectedQuestionDefinition);
-            mGameStateMachine.MarkQuestionRevealCompleted();
-            mGameView.ShowNarratingQuestion(buildNarrationDisplayQuestionText(selectedQuestionDefinition.Text));
-            await mQuestionNarrationService.SpeakQuestionAsync(
+            await mGameView.PlayQuestionRevealAsync(
+                selectedQuestionCardSlot,
                 selectedQuestionDefinition,
-                mLifecycleCancellationTokenSource.Token);
+                () => mQuestionNarrationService.SpeakQuestionAsync(
+                    selectedQuestionDefinition,
+                    mLifecycleCancellationTokenSource.Token));
+            mGameStateMachine.MarkQuestionRevealCompleted();
             mGameStateMachine.MarkQuestionNarrationCompleted();
             mGameView.ShowAwaitingHandInsertion();
             mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
@@ -822,35 +823,31 @@ namespace MouthOfTruth.Game.App
 
                 mGameStateMachine.UpdateCardSelection(EQuestionCardSlot.CenterCard, 0.7f);
                 mGameStateMachine.MarkQuestionRevealCompleted();
-                mGameView.ShowNarratingQuestion(buildNarrationDisplayQuestionText(selectedQuestionDefinition.Text));
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "05_question_narration.png");
-
                 mGameStateMachine.MarkQuestionNarrationCompleted();
                 mGameView.ShowAwaitingHandInsertion();
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "06_hand_prompt.png");
+                await captureScreenshotAsync(outputDirectoryPath, "05_hand_prompt.png");
 
                 await mGameView.AnimateHandInsertionAsync();
                 mGameView.ShowAnswering();
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "07_answering.png");
+                await captureScreenshotAsync(outputDirectoryPath, "06_answering.png");
 
                 mGameView.ShowAnalyzing();
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "08_analyzing.png");
+                await captureScreenshotAsync(outputDirectoryPath, "07_analyzing.png");
 
                 mGameView.ShowResult(EVerdictKind.True, string.Empty);
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "09_result_true.png");
+                await captureScreenshotAsync(outputDirectoryPath, "08_result_true.png");
 
                 mGameView.ShowResult(EVerdictKind.False, string.Empty);
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "10_result_false.png");
+                await captureScreenshotAsync(outputDirectoryPath, "09_result_false.png");
 
                 mGameView.ShowResult(EVerdictKind.Uncertain, string.Empty);
                 await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "11_result_uncertain.png");
+                await captureScreenshotAsync(outputDirectoryPath, "10_result_uncertain.png");
             }
             finally
             {
@@ -878,27 +875,5 @@ namespace MouthOfTruth.Game.App
             await Task.Delay(520);
         }
 
-        private static string buildNarrationDisplayQuestionText(string questionText)
-        {
-            if (string.IsNullOrWhiteSpace(questionText))
-            {
-                return string.Empty;
-            }
-
-            List<string> normalizedQuestionTextParts = new List<string>();
-            string[] questionTextParts = questionText.Split(new[] { '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string questionTextPart in questionTextParts)
-            {
-                string trimmedQuestionTextPart = questionTextPart.Trim();
-
-                if (string.IsNullOrWhiteSpace(trimmedQuestionTextPart) == false)
-                {
-                    normalizedQuestionTextParts.Add(trimmedQuestionTextPart);
-                }
-            }
-
-            return string.Join(" ", normalizedQuestionTextParts);
-        }
     }
 }

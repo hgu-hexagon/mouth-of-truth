@@ -366,7 +366,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task PlayQuestionRevealAsync(
             EQuestionCardSlot selectedQuestionCardSlot,
-            QuestionDefinition questionDefinition)
+            QuestionDefinition questionDefinition,
+            Func<Task> questionNarrationTaskFactory = null)
         {
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
@@ -409,14 +410,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     selectedCardView.SetScale(Mathf.Lerp(1.22f, 1.26f, easedProgress));
                 });
 
+            Task questionNarrationTask = questionNarrationTaskFactory?.Invoke() ?? Task.CompletedTask;
             float cardFrontReadHoldDurationSeconds = getCardFrontReadHoldDurationSeconds(questionDefinition.Text);
-            await animateOverTimeAsync(
-                cardFrontReadHoldDurationSeconds,
-                progress =>
-                {
-                    float pulse = Mathf.Sin(progress * Mathf.PI) * 0.012f;
-                    selectedCardView.SetScale(1.26f + pulse);
-                });
+            float elapsedFrontReadHoldSeconds = 0.0f;
+
+            while (elapsedFrontReadHoldSeconds < cardFrontReadHoldDurationSeconds
+                || questionNarrationTask.IsCompleted == false)
+            {
+                elapsedFrontReadHoldSeconds += Time.deltaTime;
+                float progress = Mathf.Clamp01(elapsedFrontReadHoldSeconds / cardFrontReadHoldDurationSeconds);
+                float pulse = Mathf.Sin(progress * Mathf.PI) * 0.012f;
+                selectedCardView.SetScale(1.26f + pulse);
+                await Task.Yield();
+            }
+
+            await questionNarrationTask;
 
             prepareCardLaunchPresentation();
             Vector2 launchStartPosition = selectedCardView.RectTransform.anchoredPosition;
@@ -486,34 +494,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTutorialTitleText, false);
             setObjectActive(mTutorialBodyText, false);
             setObjectActive(mTutorialStepText, false);
-        }
-
-        public void ShowNarratingQuestion(string questionText)
-        {
-            disableAnsweringPresentation();
-            disableAnalyzingPresentation();
-            disableHeldHandPresentation();
-            applyNarrationLayout();
-            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, false);
-            setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.24f);
-            configureExitButtonAsTopLeftIcon();
-            setObjectActive(mExitButton, true);
-            setObjectActive(mQuestionPanelImage, true);
-            setObjectActive(mQuestionText, true);
-            setObjectActive(mStatusPanelImage, false);
-            setObjectActive(mPromptText, false);
-            setObjectActive(mStatusText, false);
-            setObjectActive(mAnswerTimerText, false);
-            setObjectActive(mMouthImage, true);
-            setObjectActive(mHandImage, false);
-            setObjectActive(mRitualHandImage, false);
-            setObjectActive(mPointerImage, false);
-            setText(mQuestionText, questionText);
-            applyMouthAnchoredLayout();
         }
 
         public void ShowAwaitingHandInsertion()

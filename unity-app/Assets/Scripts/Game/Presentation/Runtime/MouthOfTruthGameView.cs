@@ -29,8 +29,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.15f;
         private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.07f;
         private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.09f;
-        private const float ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR = 0.12f;
-        private const float ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR = 0.05f;
         private const float CARD_INTENT_LEFT_MAX_NORMALIZED_X = 0.39f;
         private const float CARD_INTENT_RIGHT_MIN_NORMALIZED_X = 0.61f;
         private const float CARD_INTENT_MIN_NORMALIZED_Y = 0.28f;
@@ -39,8 +37,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.28f;
         private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.22f;
         private const float MOUTH_INTENT_INNER_SWITCH_FACTOR = 0.58f;
-        private const float ANSWER_HOLD_INTENT_HALF_WIDTH_FACTOR = 0.28f;
-        private const float ANSWER_HOLD_INTENT_MARGIN_FACTOR = 0.26f;
         private const float BUTTON_INTENT_EXPANSION_PIXELS = 54.0f;
         private const float EXIT_BUTTON_INTENT_EXPANSION_PIXELS = 32.0f;
         private const float CARD_FRONT_READ_HOLD_MINIMUM_SECONDS = 1.875f;
@@ -125,7 +121,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private AudioClip mCardSelectClip;
         private AudioClip mCardRevealClip;
         private AudioClip mHandInsertClip;
-        private AudioClip mHandPauseClip;
         private AudioClip mResultTrueClip;
         private AudioClip mResultFalseClip;
         private AudioClip mResultUncertainClip;
@@ -577,16 +572,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.rectTransform.localScale = Vector3.one;
         }
 
-        public async Task AnimateHandRemovalAsync()
-        {
-            disableAnsweringPresentation();
-            disableHeldHandPresentation();
-            setObjectActive(mHandImage, false);
-            setObjectActive(mRitualHandImage, false);
-            playInterfaceCue(mHandPauseClip, 0.68f);
-            await animateOverTimeAsync(0.18f, _ => { });
-        }
-
         public void ShowAnswering()
         {
             disableAnalyzingPresentation();
@@ -611,33 +596,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyMouthAnchoredLayout();
             disableHeldHandPresentation();
             enableAnsweringPresentation();
-        }
-
-        public void ShowAnswerPaused()
-        {
-            disableAnsweringPresentation();
-            disableAnalyzingPresentation();
-            applyAnswerStageLayout();
-            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, false);
-            mAnswerInputField.interactable = false;
-            setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.30f);
-            configureExitButtonAsTopLeftIcon();
-            setObjectActive(mExitButton, true);
-            setObjectActive(mQuestionPanelImage, true);
-            setObjectActive(mQuestionText, true);
-            setObjectActive(mStatusPanelImage, false);
-            setObjectActive(mPromptText, false);
-            setObjectActive(mStatusText, false);
-            setObjectActive(mAnswerTimerText, false);
-            setText(mQuestionText, "손을 다시 올리면 답변이 이어집니다.");
-            setObjectActive(mHandImage, false);
-            setObjectActive(mRitualHandImage, false);
-            applyMouthAnchoredLayout();
-            disableHeldHandPresentation();
         }
 
         public void ShowAnalyzing()
@@ -1003,39 +961,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mouthDiameterPixels);
         }
 
-        public bool IsAnswerHoldMaintained(Vector2? pointerScreenPosition)
-        {
-            if (pointerScreenPosition.HasValue == false)
-            {
-                return false;
-            }
-
-            if (tryConvertScreenPointToCanvasPosition(
-                    pointerScreenPosition.Value,
-                    out Vector2 pointerCanvasPosition) == false)
-            {
-                return false;
-            }
-
-            float mouthDiameterPixels = Mathf.Max(
-                1.0f,
-                Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
-            if (EvaluateAnswerHoldState(
-                pointerCanvasPosition,
-                getHandFrontPosition(),
-                getHandInnerPosition(),
-                mouthDiameterPixels))
-            {
-                return true;
-            }
-
-            return EvaluateMouthIntentHoldState(
-                pointerCanvasPosition,
-                getHandFrontPosition(),
-                getHandInnerPosition(),
-                mouthDiameterPixels);
-        }
-
         public static EQuestionCardSlot? EvaluateQuestionCardIntentSlot(
             Vector2 screenPosition,
             float screenWidth,
@@ -1104,32 +1029,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return EHandAnchorState.OutsideMouth;
         }
 
-        public static bool EvaluateAnswerHoldState(
-            Vector2 pointerCanvasPosition,
-            Vector2 handFrontPosition,
-            Vector2 handInnerPosition,
-            float mouthDiameterPixels)
-        {
-            if (EvaluateHandAnchorState(
-                    pointerCanvasPosition,
-                    handFrontPosition,
-                    handInnerPosition,
-                    mouthDiameterPixels) != EHandAnchorState.OutsideMouth)
-            {
-                return true;
-            }
-
-            float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
-            float corridorHalfWidth = clampedMouthDiameterPixels * ANSWER_HOLD_CORRIDOR_HALF_WIDTH_FACTOR;
-            float corridorMargin = clampedMouthDiameterPixels * ANSWER_HOLD_CORRIDOR_MARGIN_FACTOR;
-            float minimumY = Mathf.Min(handFrontPosition.y, handInnerPosition.y) - corridorMargin;
-            float maximumY = Mathf.Max(handFrontPosition.y, handInnerPosition.y) + corridorMargin;
-
-            return Mathf.Abs(pointerCanvasPosition.x - handFrontPosition.x) <= corridorHalfWidth
-                && pointerCanvasPosition.y >= minimumY
-                && pointerCanvasPosition.y <= maximumY;
-        }
-
         public static EHandAnchorState EvaluateMouthIntentAnchorState(
             Vector2 pointerCanvasPosition,
             Vector2 handFrontPosition,
@@ -1158,24 +1057,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return pointerCanvasPosition.y >= innerSwitchY
                 ? EHandAnchorState.AtInnerAnchor
                 : EHandAnchorState.AtFrontAnchor;
-        }
-
-        public static bool EvaluateMouthIntentHoldState(
-            Vector2 pointerCanvasPosition,
-            Vector2 handFrontPosition,
-            Vector2 handInnerPosition,
-            float mouthDiameterPixels)
-        {
-            float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
-            float corridorHalfWidth = clampedMouthDiameterPixels * ANSWER_HOLD_INTENT_HALF_WIDTH_FACTOR;
-            float corridorMargin = clampedMouthDiameterPixels * ANSWER_HOLD_INTENT_MARGIN_FACTOR;
-            float centerX = Mathf.Lerp(handFrontPosition.x, handInnerPosition.x, 0.5f);
-            float minimumY = Mathf.Min(handFrontPosition.y, handInnerPosition.y) - corridorMargin;
-            float maximumY = Mathf.Max(handFrontPosition.y, handInnerPosition.y) + corridorMargin;
-
-            return Mathf.Abs(pointerCanvasPosition.x - centerX) <= corridorHalfWidth
-                && pointerCanvasPosition.y >= minimumY
-                && pointerCanvasPosition.y <= maximumY;
         }
 
         public void UpdatePointerVisual(bool isVisible, Vector2? pointerScreenPosition)
@@ -1379,8 +1260,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardRevealPath);
             mHandInsertClip =
                 await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandInsertPath);
-            mHandPauseClip =
-                await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandPausePath);
             mResultTrueClip =
                 await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultTruePath);
             mResultFalseClip =

@@ -42,7 +42,7 @@ namespace MouthOfTruth.Editor
 
             Debug.Log(
                 "Mouth of Truth software flow validation succeeded. "
-                + "Question selection, answer pause/resume, timeout, "
+                + "Question selection, answer hand latch, timeout, "
                 + "and deterministic verdict flow are healthy.");
         }
 
@@ -207,13 +207,10 @@ namespace MouthOfTruth.Editor
                 "Silence timer did not reset during active speech.");
 
             gameStateMachine.NotifyHandExitedFrontAnchor();
-            assertState(gameStateMachine, EGameFlowState.AnswerPaused, "answer pause");
+            assertState(gameStateMachine, EGameFlowState.Answering, "answer hand latch after exit");
             assertCondition(
-                gameStateMachine.CreateSnapshot().IsAnswerPaused,
-                "Pause snapshot flag was not set.");
-
-            gameStateMachine.NotifyHandReachedInnerAnchor();
-            assertState(gameStateMachine, EGameFlowState.Answering, "answer resume");
+                gameStateMachine.CreateSnapshot().IsAnswerPaused == false,
+                "Answer unexpectedly paused after hand exit.");
 
             shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(1.0f, isSpeechDetected: false);
 
@@ -491,17 +488,6 @@ namespace MouthOfTruth.Editor
                 handFrontPosition,
                 handInnerPosition,
                 MOUTH_DIAMETER_PIXELS);
-            bool answerHoldState = MouthOfTruthGameView.EvaluateAnswerHoldState(
-                new Vector2(0.0f, 84.0f),
-                handFrontPosition,
-                handInnerPosition,
-                MOUTH_DIAMETER_PIXELS);
-            bool wideAnswerHoldState = MouthOfTruthGameView.EvaluateAnswerHoldState(
-                new Vector2(92.0f, 86.0f),
-                handFrontPosition,
-                handInnerPosition,
-                MOUTH_DIAMETER_PIXELS);
-
             if (exactFrontState != EHandAnchorState.AtFrontAnchor)
             {
                 throw new InvalidOperationException("Front anchor targeting no longer resolves to AtFrontAnchor.");
@@ -520,16 +506,6 @@ namespace MouthOfTruth.Editor
             if (betweenAnchorsState != EHandAnchorState.OutsideMouth)
             {
                 throw new InvalidOperationException("The corridor between the front and inner anchors is too wide for reliable targeting.");
-            }
-
-            if (answerHoldState == false)
-            {
-                throw new InvalidOperationException("Answer hold sustain no longer accepts a centered mouth-hold position.");
-            }
-
-            if (wideAnswerHoldState)
-            {
-                throw new InvalidOperationException("Answer hold sustain accepted a pointer that is too far off-center.");
             }
         }
 
@@ -585,20 +561,6 @@ namespace MouthOfTruth.Editor
                     handInnerPosition,
                     MOUTH_DIAMETER_PIXELS) == EHandAnchorState.OutsideMouth,
                 "Far off-center Leap mouth intent was accepted too broadly.");
-            assertCondition(
-                MouthOfTruthGameView.EvaluateMouthIntentHoldState(
-                    new Vector2(82.0f, 74.0f),
-                    handFrontPosition,
-                    handInnerPosition,
-                    MOUTH_DIAMETER_PIXELS),
-                "Loose Leap answer hold did not accept a near-mouth position.");
-            assertCondition(
-                MouthOfTruthGameView.EvaluateMouthIntentHoldState(
-                    new Vector2(150.0f, 100.0f),
-                    handFrontPosition,
-                    handInnerPosition,
-                    MOUTH_DIAMETER_PIXELS) == false,
-                "Loose Leap answer hold accepted a far off-center position.");
         }
 
         private static void validatePythonBridgeRoundTrip()

@@ -125,7 +125,7 @@ namespace MouthOfTruth.Game.Session
                 return;
             }
 
-            CurrentState = EGameFlowState.AnswerPaused;
+            // Hand insertion is a start trigger. Once answering starts, temporary hand loss does not pause collection.
         }
 
         public bool AdvanceAnswerCollection(float deltaTimeSeconds, bool isSpeechDetected)

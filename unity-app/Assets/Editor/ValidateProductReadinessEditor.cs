@@ -108,7 +108,6 @@ namespace MouthOfTruth.Editor
                 MouthOfTruthAssetCatalog.CardSelectPath,
                 MouthOfTruthAssetCatalog.CardRevealPath,
                 MouthOfTruthAssetCatalog.HandInsertPath,
-                MouthOfTruthAssetCatalog.HandPausePath,
                 MouthOfTruthAssetCatalog.ResultTruePath,
                 MouthOfTruthAssetCatalog.ResultFalsePath,
                 MouthOfTruthAssetCatalog.ResultUncertainPath,

@@ -115,9 +115,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public static string HandInsertPath =>
             GetStreamingAudioPath("interaction/hand_insert.ogg");
 
-        public static string HandPausePath =>
-            GetStreamingAudioPath("interaction/hand_pause.ogg");
-
         public static string ResultTruePath =>
             GetStreamingAudioPath("results/result_true.wav");
 

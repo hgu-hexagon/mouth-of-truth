@@ -1888,7 +1888,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(700.0f, 80.0f),
                 38,
-                FontStyle.Bold);
+                FontStyle.Normal);
             mStatusText = createText(
                 "StatusText",
                 mCanvasRootTransform,
@@ -1906,7 +1906,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(1200.0f, 140.0f),
                 34,
-                FontStyle.Bold);
+                FontStyle.Normal);
             mAnalyzingDotsText = createText(
                 "AnalyzingDotsText",
                 mCanvasRootTransform,
@@ -1915,7 +1915,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Vector2.zero,
                 new Vector2(360.0f, 140.0f),
                 90,
-                FontStyle.Bold);
+                FontStyle.Normal);
             mAnswerTimerText = createText(
                 "AnswerTimerText",
                 mCanvasRootTransform,
@@ -1973,7 +1973,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 0.0f),
                 new Vector2(640.0f, 80.0f),
                 48,
-                FontStyle.Bold);
+                FontStyle.Normal);
             mAnswerInputField = createInputField();
             mStartButton = createButton(
                 "StartButton",
@@ -2358,7 +2358,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Vector2.zero,
                 new Vector2(-20.0f, -20.0f),
                 34,
-                FontStyle.Bold);
+                FontStyle.Normal);
             setText(label, labelText);
             return button;
         }

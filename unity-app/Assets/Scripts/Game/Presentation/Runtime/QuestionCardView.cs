@@ -98,7 +98,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.verticalOverflow = VerticalWrapMode.Truncate;
             mQuestionText.color = Color.black;
             mQuestionText.fontSize = QUESTION_TEXT_MAXIMUM_FONT_SIZE;
-            mQuestionText.fontStyle = FontStyle.Bold;
+            mQuestionText.fontStyle = FontStyle.Normal;
             mQuestionText.lineSpacing = QUESTION_TEXT_LINE_SPACING;
             mQuestionText.resizeTextForBestFit = false;
             mQuestionText.resizeTextMinSize = QUESTION_TEXT_MINIMUM_FONT_SIZE;

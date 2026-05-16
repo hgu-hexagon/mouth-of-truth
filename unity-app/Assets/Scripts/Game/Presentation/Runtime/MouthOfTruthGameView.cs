@@ -227,9 +227,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            float pulse = (Mathf.Sin(elapsedSeconds * 2.6f) + 1.0f) * 0.5f;
-            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.48f, 0.64f, pulse));
-            mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.985f, 1.01f, pulse);
+            float pulse = (Mathf.Sin(elapsedSeconds * 3.2f) + 1.0f) * 0.5f;
+            float tremor = Mathf.Sin(elapsedSeconds * 8.0f) * 3.0f;
+            setOverlayTint(new Color(0.02f, 0.015f, 0.018f, 1.0f), Mathf.Lerp(0.42f, 0.56f, pulse));
+            mMouthImage.color = new Color(0.94f, 0.91f, 0.84f, Mathf.Lerp(0.40f, 0.68f, pulse));
+            mMouthImage.rectTransform.anchoredPosition = getMouthAnchorPosition() + new Vector2(tremor, 0.0f);
+            mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.965f, 1.06f, pulse);
+            mAnalyzingDotsText.color = new Color(1.0f, 0.83f, 0.58f, Mathf.Lerp(0.70f, 1.0f, pulse));
+            mAnalyzingDotsText.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.92f, 1.16f, pulse);
         }
 
         public void ShowStartScreen()
@@ -634,13 +639,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             await animateOverTimeAsync(
-                0.10f,
+                0.18f,
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
-                    setOverlayAlpha(Mathf.Lerp(0.34f, 0.48f, easedProgress));
-                    mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.58f, 0.42f, easedProgress));
-                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.035f, easedProgress);
+                    setOverlayTint(new Color(0.02f, 0.015f, 0.018f, 1.0f), Mathf.Lerp(0.56f, 0.48f, easedProgress));
+                    mMouthImage.color = new Color(1.0f, 0.93f, 0.82f, Mathf.Lerp(0.62f, 0.42f, easedProgress));
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.03f, 1.08f, easedProgress);
                     mAnalyzingDotsText.color = new Color(1.0f, 0.92f, 0.78f, Mathf.Lerp(1.0f, 0.0f, easedProgress));
                 });
 
@@ -758,41 +763,45 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private async Task playFalseRevealAnimationAsync()
         {
-            Vector2 bitePosition = getHandInnerPosition() + new Vector2(0.0f, -8.0f);
-            Vector2 recoilPosition = getHandFrontPosition() + new Vector2(0.0f, -112.0f);
+            Vector2 bitePosition = getHandInnerPosition() + new Vector2(0.0f, -6.0f);
+            Vector2 recoilPosition = getHandFrontPosition() + new Vector2(0.0f, -154.0f);
             mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
             await animateOverTimeAsync(
-                0.22f,
+                0.32f,
                 progress =>
                 {
                     float easedProgress = easeInOut(progress);
-                    setOverlayTint(new Color(0.24f, 0.015f, 0.012f, 1.0f), Mathf.Lerp(0.38f, 0.58f, easedProgress));
-                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.12f, easedProgress);
+                    float biteTremor = Mathf.Sin(progress * Mathf.PI * 8.0f) * easedProgress;
+                    setOverlayTint(new Color(0.28f, 0.012f, 0.008f, 1.0f), Mathf.Lerp(0.42f, 0.70f, easedProgress));
+                    mMouthImage.color = new Color(1.0f, 0.68f, 0.58f, Mathf.Lerp(0.88f, 1.0f, easedProgress));
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.22f, easedProgress);
                     setRitualHandVisual(
-                        bitePosition + new Vector2(Mathf.Sin(progress * Mathf.PI * 5.0f) * 4.0f, 0.0f),
+                        bitePosition + new Vector2(biteTremor * 9.0f, biteTremor * -4.0f),
                         RITUAL_HAND_SIZE_PIXELS,
-                        0.82f,
-                        Mathf.Lerp(0.44f, 0.38f, easedProgress),
-                        Mathf.Lerp(0.0f, -5.0f, easedProgress));
+                        0.95f,
+                        Mathf.Lerp(0.46f, 0.34f, easedProgress),
+                        Mathf.Lerp(0.0f, -9.0f, easedProgress));
                 });
 
             await animateOverTimeAsync(
-                0.46f,
+                0.56f,
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
-                    float shake = Mathf.Sin(progress * Mathf.PI * 10.0f) * (1.0f - easedProgress);
-                    setOverlayTint(new Color(0.18f, 0.01f, 0.01f, 1.0f), Mathf.Lerp(0.58f, 0.40f, easedProgress));
-                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.12f, 1.0f, easedProgress);
+                    float shake = Mathf.Sin(progress * Mathf.PI * 14.0f) * (1.0f - easedProgress);
+                    setOverlayTint(new Color(0.22f, 0.006f, 0.006f, 1.0f), Mathf.Lerp(0.70f, 0.40f, easedProgress));
+                    mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.60f, 1.0f, easedProgress), Mathf.Lerp(0.54f, 1.0f, easedProgress), 1.0f);
+                    mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.22f, 1.0f, easedProgress);
                     setRitualHandVisual(
-                        Vector2.Lerp(bitePosition, recoilPosition, easedProgress) + new Vector2(shake * 14.0f, 0.0f),
+                        Vector2.Lerp(bitePosition, recoilPosition, easedProgress) + new Vector2(shake * 24.0f, shake * 6.0f),
                         RITUAL_HAND_SIZE_PIXELS,
-                        Mathf.Lerp(0.82f, 0.0f, easedProgress),
-                        Mathf.Lerp(0.38f, 0.72f, easedProgress),
-                        Mathf.Lerp(-5.0f, 7.0f, easedProgress));
+                        Mathf.Lerp(0.95f, 0.0f, easedProgress),
+                        Mathf.Lerp(0.34f, 0.84f, easedProgress),
+                        Mathf.Lerp(-9.0f, 12.0f, easedProgress));
                     mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);
-                    mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.18f, 1.0f, easedProgress);
+                    mVerdictImage.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, shake * 2.5f);
+                    mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.34f, 1.0f, easedProgress);
                 });
         }
 
@@ -2573,6 +2582,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             if (mMouthImage != null)
             {
+                mMouthImage.rectTransform.anchoredPosition = getMouthAnchorPosition();
                 mMouthImage.color = Color.white;
                 mMouthImage.rectTransform.localScale = Vector3.one;
             }
@@ -2581,6 +2591,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 setObjectActive(mAnalyzingDotsText, false);
                 setText(mAnalyzingDotsText, string.Empty);
+                mAnalyzingDotsText.rectTransform.localScale = Vector3.one;
             }
         }
 

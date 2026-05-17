@@ -60,6 +60,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.36f;
         private const float TEMPLE_APPROACH_END_SCALE = 1.46f;
         private const float TEMPLE_APPROACH_END_Y_OFFSET = -68.0f;
+        private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
+        private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
+        private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.14f;
         private const float CARD_SELECTION_ENTRANCE_SECONDS = 0.82f;
         private const float CARD_SELECTION_ENTRANCE_SETTLE_SECONDS = 0.22f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
@@ -75,8 +78,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 RESULT_MOUTH_ANCHOR = new Vector2(0.5f, 0.52f);
         private static readonly Vector2 RESULT_MOUTH_SIZE_PIXELS = new Vector2(1680.0f, 1680.0f);
         private static readonly Color SCENE_OVERLAY_COLOR = new Color(0.03f, 0.02f, 0.02f, 1.0f);
+        private static readonly Color STAGE_OVERLAY_TINT = new Color(0.020f, 0.014f, 0.010f, 1.0f);
         private static readonly Color POINTER_CURSOR_FILL_COLOR = new Color(0.62f, 0.64f, 0.66f, 0.54f);
         private static readonly Color POINTER_CURSOR_RING_COLOR = new Color(0.90f, 0.91f, 0.92f, 0.86f);
+        private static readonly Vector2 STAGE_CARPET_POSITION = new Vector2(0.0f, 166.0f);
+        private static readonly Vector2 STAGE_CARPET_SIZE = new Vector2(880.0f, 328.0f);
+        private static readonly Color STAGE_CARPET_TINT = new Color(0.58f, 0.52f, 0.48f, 0.82f);
+        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_POSITION = new Vector2(0.0f, 156.0f);
+        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -330,7 +339,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mCarpetImage, true);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
-            setObjectActive(mSceneOverlayImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
             setObjectActive(mStartButton, false);
             setObjectActive(mExitButton, true);
             setObjectActive(mQuestionText, false);
@@ -429,9 +439,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 templeApproachCameraRectTransform,
                 new Vector2(0.5f, 0.0f),
                 new Vector2(0.5f, 0.0f),
-                new Vector2(0.0f, 166.0f),
-                new Vector2(880.0f, 328.0f),
-                new Color(0.58f, 0.52f, 0.48f, 0.82f));
+                STAGE_CARPET_POSITION,
+                STAGE_CARPET_SIZE,
+                STAGE_CARPET_TINT);
             approachCarpetImage.sprite = mCarpetImage.sprite;
             approachCarpetImage.raycastTarget = false;
 
@@ -440,12 +450,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 templeApproachCameraRectTransform,
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
-                new Vector2(0.0f, 188.0f),
-                new Vector2(206.0f, 206.0f),
+                TEMPLE_APPROACH_MOUTH_POSITION,
+                TEMPLE_APPROACH_MOUTH_SIZE,
                 new Color(1.0f, 1.0f, 1.0f, 0.86f));
             approachMouthImage.sprite = mMouthImage.sprite;
             approachMouthImage.raycastTarget = false;
-            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.42f);
+            setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_START_OVERLAY_ALPHA);
 
             await animateOverTimeAsync(
                 TEMPLE_APPROACH_DURATION_SECONDS,
@@ -465,7 +475,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     templeApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
                     templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, cameraYOffset);
                     approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.86f, 1.0f, stairProgress));
-                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.42f, 0.16f, arrivalProgress));
+                    float overlayAlpha = Mathf.Lerp(
+                        TEMPLE_APPROACH_START_OVERLAY_ALPHA,
+                        TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA,
+                        arrivalProgress);
+                    setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
                 });
 
             await animateOverTimeAsync(
@@ -475,7 +489,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     float pulse = Mathf.Sin(progress * Mathf.PI);
                     templeApproachCameraRectTransform.localScale = Vector3.one * (TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f));
                     templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET);
-                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.16f, 0.20f, pulse));
+                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
                 });
             Destroy(templeApproachCameraObject);
             resetStageMotionTransforms();
@@ -485,7 +499,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             setObjectActive(mPromptText, false);
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.30f);
+            setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -498,7 +512,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float overlayProgress = easeOut(progress);
-                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.30f, 0.08f, overlayProgress));
+                    float overlayAlpha = Mathf.Lerp(
+                        TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA,
+                        CARD_SELECTION_SETTLED_OVERLAY_ALPHA,
+                        overlayProgress);
+                    setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
 
                     foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
                     {
@@ -510,9 +528,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             await animateOverTimeAsync(
                 CARD_SELECTION_ENTRANCE_SETTLE_SECONDS,
-                progress =>
+                _ =>
                 {
-                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.08f, 0.0f, easeOut(progress)));
+                    setOverlayTint(STAGE_OVERLAY_TINT, CARD_SELECTION_SETTLED_OVERLAY_ALPHA);
                 });
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
@@ -521,7 +539,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 pair.Value.SetScale(1.0f);
             }
 
-            setObjectActive(mSceneOverlayImage, false);
+            setOverlayTint(STAGE_OVERLAY_TINT, CARD_SELECTION_SETTLED_OVERLAY_ALPHA);
             setObjectActive(mPromptText, true);
         }
 
@@ -2203,11 +2221,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 carpetRectTransform.pivot = new Vector2(0.5f, 0.5f);
                 carpetRectTransform.anchorMin = new Vector2(0.5f, 0.0f);
                 carpetRectTransform.anchorMax = new Vector2(0.5f, 0.0f);
-                carpetRectTransform.anchoredPosition = new Vector2(0.0f, 218.0f);
-                carpetRectTransform.sizeDelta = new Vector2(1010.0f, 430.0f);
+                carpetRectTransform.anchoredPosition = STAGE_CARPET_POSITION;
+                carpetRectTransform.sizeDelta = STAGE_CARPET_SIZE;
                 carpetRectTransform.localScale = Vector3.one;
                 carpetRectTransform.localRotation = Quaternion.identity;
-                mCarpetImage.color = new Color(0.62f, 0.56f, 0.52f, 0.84f);
+                mCarpetImage.color = STAGE_CARPET_TINT;
             }
 
             if (mMouthImage != null)
@@ -2262,9 +2280,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mCanvasRootTransform,
                 new Vector2(0.5f, 0.0f),
                 new Vector2(0.5f, 0.0f),
-                new Vector2(0.0f, 218.0f),
-                new Vector2(1010.0f, 430.0f),
-                new Color(0.62f, 0.56f, 0.52f, 0.84f));
+                STAGE_CARPET_POSITION,
+                STAGE_CARPET_SIZE,
+                STAGE_CARPET_TINT);
             mTitleVignetteImage = createFullScreenImage(
                 "TitleVignette",
                 mCanvasRootTransform,

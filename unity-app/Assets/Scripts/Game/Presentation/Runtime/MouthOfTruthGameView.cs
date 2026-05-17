@@ -57,7 +57,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
-        private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.20f;
+        private const float TEMPLE_APPROACH_DURATION_SECONDS = 5.20f;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.80f;
         private const float TEMPLE_APPROACH_CARD_TRANSITION_ZOOM_OUT_SECONDS = 0.38f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
@@ -1983,22 +1983,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
             float beamAlpha = Mathf.Lerp(0.72f, 1.0f, Mathf.Pow(quickPulse, 1.35f));
-            Vector2 beamSize = new Vector2(mouthWidth * 0.50f, mouthHeight * 0.042f);
-            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.166f, mouthHeight * 0.184f, slowPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * 0.45f, mouthHeight * 0.040f);
+            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.142f, mouthHeight * 0.156f, slowPulse);
             Color beamColor = new Color(1.0f, 0.46f, 0.10f, beamAlpha);
             updateEyeBeamImage(
                 mMouthLeftEyeBeamImage,
-                new Vector2(-(mouthWidth * 0.118f), eyeYOffset),
+                new Vector2(-(mouthWidth * 0.112f), eyeYOffset),
                 beamSize,
                 beamColor,
-                17.0f + (quickPulse * 1.2f),
+                11.0f + (quickPulse * 0.9f),
                 new Vector2(1.0f, 0.5f));
             updateEyeBeamImage(
                 mMouthRightEyeBeamImage,
-                new Vector2(mouthWidth * 0.102f, eyeYOffset),
+                new Vector2(mouthWidth * 0.112f, eyeYOffset),
                 beamSize,
                 beamColor,
-                -17.0f - (quickPulse * 1.2f),
+                -11.0f - (quickPulse * 0.9f),
                 new Vector2(0.0f, 0.5f));
         }
 
@@ -2774,9 +2774,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     float horizontalProgress = x / (TEXTURE_WIDTH - 1.0f);
                     float distanceFromSource = isSourceOnRight ? 1.0f - horizontalProgress : horizontalProgress;
                     float verticalDistance = Mathf.Abs(y - verticalCenter) / verticalCenter;
-                    float beamCore = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 2.6f);
-                    float beamFalloff = Mathf.Pow(Mathf.Clamp01(1.0f - distanceFromSource), 0.48f);
-                    pixels[(y * TEXTURE_WIDTH) + x] = new Color(1.0f, 1.0f, 1.0f, beamCore * beamFalloff);
+                    float beamCore = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 3.2f);
+                    float beamHalo = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 1.25f) * 0.34f;
+                    float beamFalloff = Mathf.Pow(Mathf.Clamp01(1.0f - distanceFromSource), 0.58f);
+                    float sourceFlare = Mathf.Pow(Mathf.Clamp01(1.0f - (distanceFromSource * 6.5f)), 2.0f);
+                    float alpha = ((beamCore * 0.82f) + beamHalo + (sourceFlare * 0.38f)) * beamFalloff;
+                    pixels[(y * TEXTURE_WIDTH) + x] = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(alpha));
                 }
             }
 

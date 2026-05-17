@@ -57,12 +57,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 7.20f;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 1.20f;
-        private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.36f;
-        private const float TEMPLE_APPROACH_END_SCALE = 1.46f;
+        private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.56f;
+        private const float TEMPLE_APPROACH_END_SCALE = 1.66f;
         private const float TEMPLE_APPROACH_END_Y_OFFSET = -68.0f;
         private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
         private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
-        private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.14f;
+        private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.18f;
         private const float CARD_SELECTION_ENTRANCE_SECONDS = 0.82f;
         private const float CARD_SELECTION_ENTRANCE_SETTLE_SECONDS = 0.22f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
@@ -84,8 +84,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 STAGE_CARPET_POSITION = new Vector2(0.0f, 166.0f);
         private static readonly Vector2 STAGE_CARPET_SIZE = new Vector2(880.0f, 328.0f);
         private static readonly Color STAGE_CARPET_TINT = new Color(0.58f, 0.52f, 0.48f, 0.82f);
-        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_POSITION = new Vector2(0.0f, 156.0f);
-        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
+        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_POSITION = new Vector2(0.0f, 90.0f);
+        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(300.0f, 300.0f);
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -430,8 +430,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Image approachBackgroundImage = createFullScreenImage(
                 "TempleApproachBackground",
                 templeApproachCameraRectTransform,
-                STAGE_BACKGROUND_TINT);
-            approachBackgroundImage.sprite = mCardSelectionBackgroundSprite;
+                mBackgroundImage.color);
+            approachBackgroundImage.sprite = mBackgroundImage.sprite;
+            approachBackgroundImage.type = mBackgroundImage.type;
+            approachBackgroundImage.preserveAspect = mBackgroundImage.preserveAspect;
             approachBackgroundImage.raycastTarget = false;
 
             Image approachCarpetImage = createImage(

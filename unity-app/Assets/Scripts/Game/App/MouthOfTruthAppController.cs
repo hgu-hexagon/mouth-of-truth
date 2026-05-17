@@ -202,6 +202,7 @@ namespace MouthOfTruth.Game.App
             mAnswerAnalysisClient ??= createAnalysisClient();
             mHandInteractionInputAdapter = createHandInteractionInputAdapter();
             mAnswerCaptureInputAdapter = createAnswerCaptureInputAdapter();
+            prepareAnswerAudioSession();
             mFaceCaptureInputAdapter = createFaceCaptureInputAdapter();
             mGameView.SetAnswerTranscriptPlaceholder(mAnswerCaptureInputAdapter.TranscriptPlaceholderText);
             mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
@@ -733,6 +734,27 @@ namespace MouthOfTruth.Game.App
             }
 
             return new KeyboardTranscriptAnswerInputAdapter(mGameView);
+        }
+
+        private void prepareAnswerAudioSession()
+        {
+            MicrophoneAnswerInputAdapter microphoneAnswerInputAdapter = mAnswerCaptureInputAdapter as MicrophoneAnswerInputAdapter;
+
+            if (microphoneAnswerInputAdapter == null)
+            {
+                return;
+            }
+
+            try
+            {
+                microphoneAnswerInputAdapter.PrepareAudioSession();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning(
+                    "Microphone audio session prewarm failed. Capture will retry when answering.\n"
+                    + exception);
+            }
         }
 
         private IFaceCaptureInputAdapter createFaceCaptureInputAdapter()

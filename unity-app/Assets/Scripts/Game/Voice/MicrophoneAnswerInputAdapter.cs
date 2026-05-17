@@ -21,6 +21,8 @@ namespace MouthOfTruth.Game.Voice
         private AudioClip mActiveRecordingClip;
         private string mSelectedDeviceName;
         private bool mIsCollecting;
+        private bool mIsMicrophoneRunning;
+        private int mSegmentStartSamplePosition;
         private int mRecordedSegmentCount;
 
         public MicrophoneAnswerInputAdapter()
@@ -38,6 +40,11 @@ namespace MouthOfTruth.Game.Voice
             stopCurrentRecording(preserveActiveSegment: false);
             mRecordedSegments.Clear();
             mRecordedSegmentCount = 0;
+        }
+
+        public void PrepareAudioSession()
+        {
+            startMicrophoneIfNeeded();
         }
 
         public void BeginCollection()
@@ -58,6 +65,7 @@ namespace MouthOfTruth.Game.Voice
         public void CancelCollection()
         {
             Reset();
+            stopMicrophoneIfRunning();
         }
 
         public AnswerCaptureFrameSnapshot Update(float deltaTimeSeconds)
@@ -125,19 +133,54 @@ namespace MouthOfTruth.Game.Voice
                 return;
             }
 
+            startMicrophoneIfNeeded();
+            mSegmentStartSamplePosition = Mathf.Clamp(
+                Microphone.GetPosition(mSelectedDeviceName),
+                0,
+                mActiveRecordingClip.samples);
+            mIsCollecting = true;
+        }
+
+        private void startMicrophoneIfNeeded()
+        {
+            if (HasAvailableDevice() == false)
+            {
+                throw new InvalidOperationException("No microphone input device is available.");
+            }
+
+            if (mIsMicrophoneRunning && mActiveRecordingClip != null)
+            {
+                return;
+            }
+
             mActiveRecordingClip = Microphone.Start(
                 mSelectedDeviceName,
-                false,
+                true,
                 MAX_SEGMENT_DURATION_SECONDS,
                 SAMPLE_RATE);
 
             if (mActiveRecordingClip == null)
             {
+                mIsMicrophoneRunning = false;
                 throw new InvalidOperationException(
                     $"Failed to start microphone capture for device '{mSelectedDeviceName}'.");
             }
 
-            mIsCollecting = true;
+            mIsMicrophoneRunning = true;
+        }
+
+        private void stopMicrophoneIfRunning()
+        {
+            if (mIsMicrophoneRunning == false || string.IsNullOrWhiteSpace(mSelectedDeviceName))
+            {
+                return;
+            }
+
+            Microphone.End(mSelectedDeviceName);
+            mActiveRecordingClip = null;
+            mIsMicrophoneRunning = false;
+            mIsCollecting = false;
+            mSegmentStartSamplePosition = 0;
         }
 
         private void stopCurrentRecording(bool preserveActiveSegment)
@@ -151,8 +194,6 @@ namespace MouthOfTruth.Game.Voice
                 ? readActiveSegmentSamples()
                 : Array.Empty<float>();
 
-            Microphone.End(mSelectedDeviceName);
-            mActiveRecordingClip = null;
             mIsCollecting = false;
 
             if (activeSegmentSamples.Length == 0)
@@ -176,9 +217,17 @@ namespace MouthOfTruth.Game.Voice
                 return Array.Empty<float>();
             }
 
-            int recordedSampleCount = Mathf.Clamp(
+            int currentSamplePosition = Mathf.Clamp(
                 Microphone.GetPosition(mSelectedDeviceName),
                 0,
+                mActiveRecordingClip.samples);
+            int segmentStartSamplePosition = Mathf.Clamp(
+                mSegmentStartSamplePosition,
+                0,
+                mActiveRecordingClip.samples);
+            int recordedSampleCount = calculateLoopedSampleDistance(
+                segmentStartSamplePosition,
+                currentSamplePosition,
                 mActiveRecordingClip.samples);
 
             if (recordedSampleCount <= 0)
@@ -186,29 +235,7 @@ namespace MouthOfTruth.Game.Voice
                 return Array.Empty<float>();
             }
 
-            float[] clipBuffer = new float[recordedSampleCount * mActiveRecordingClip.channels];
-            mActiveRecordingClip.GetData(clipBuffer, 0);
-
-            if (mActiveRecordingClip.channels == 1)
-            {
-                return clipBuffer;
-            }
-
-            float[] monoBuffer = new float[recordedSampleCount];
-
-            for (int sampleIndex = 0; sampleIndex < recordedSampleCount; sampleIndex += 1)
-            {
-                float mixedValue = 0.0f;
-
-                for (int channelIndex = 0; channelIndex < mActiveRecordingClip.channels; channelIndex += 1)
-                {
-                    mixedValue += clipBuffer[(sampleIndex * mActiveRecordingClip.channels) + channelIndex];
-                }
-
-                monoBuffer[sampleIndex] = mixedValue / mActiveRecordingClip.channels;
-            }
-
-            return monoBuffer;
+            return readLoopedMonoSamples(segmentStartSamplePosition, recordedSampleCount);
         }
 
         private bool containsSpeechEvidence(float[] monoSamples)
@@ -281,21 +308,22 @@ namespace MouthOfTruth.Game.Voice
 
         private float calculateCurrentSpeechRms()
         {
-            if (mActiveRecordingClip == null || string.IsNullOrWhiteSpace(mSelectedDeviceName))
+            if (mActiveRecordingClip == null
+                || mIsMicrophoneRunning == false
+                || string.IsNullOrWhiteSpace(mSelectedDeviceName))
             {
                 return 0.0f;
             }
 
-            int currentSamplePosition = Microphone.GetPosition(mSelectedDeviceName);
-
-            if (currentSamplePosition <= 0)
-            {
-                return 0.0f;
-            }
-
-            int windowSampleCount = Mathf.Min(
+            int currentSamplePosition = Mathf.Clamp(
+                Microphone.GetPosition(mSelectedDeviceName),
+                0,
+                mActiveRecordingClip.samples);
+            int availableSampleCount = calculateLoopedSampleDistance(
+                mSegmentStartSamplePosition,
                 currentSamplePosition,
-                Mathf.CeilToInt(SAMPLE_RATE * SPEECH_WINDOW_SECONDS));
+                mActiveRecordingClip.samples);
+            int windowSampleCount = Mathf.Min(availableSampleCount, Mathf.CeilToInt(SAMPLE_RATE * SPEECH_WINDOW_SECONDS));
 
             if (windowSampleCount <= 0)
             {
@@ -303,8 +331,18 @@ namespace MouthOfTruth.Game.Voice
             }
 
             int startSampleOffset = currentSamplePosition - windowSampleCount;
-            float[] clipBuffer = new float[windowSampleCount * mActiveRecordingClip.channels];
-            mActiveRecordingClip.GetData(clipBuffer, startSampleOffset);
+
+            if (startSampleOffset < 0)
+            {
+                startSampleOffset += mActiveRecordingClip.samples;
+            }
+
+            float[] clipBuffer = readLoopedMonoSamples(startSampleOffset, windowSampleCount);
+
+            if (clipBuffer.Length == 0)
+            {
+                return 0.0f;
+            }
 
             double squaredSum = 0.0d;
 
@@ -315,6 +353,73 @@ namespace MouthOfTruth.Game.Voice
 
             double meanSquare = squaredSum / clipBuffer.Length;
             return (float)Math.Sqrt(meanSquare);
+        }
+
+        private float[] readLoopedMonoSamples(int startSamplePosition, int sampleCount)
+        {
+            if (mActiveRecordingClip == null || sampleCount <= 0)
+            {
+                return Array.Empty<float>();
+            }
+
+            int channels = Mathf.Max(1, mActiveRecordingClip.channels);
+            int clipSampleCount = mActiveRecordingClip.samples;
+
+            if (clipSampleCount <= 0)
+            {
+                return Array.Empty<float>();
+            }
+
+            int remainingSampleCount = Mathf.Min(sampleCount, clipSampleCount);
+            int readSamplePosition = Mathf.Clamp(startSamplePosition, 0, clipSampleCount - 1);
+            int outputSampleOffset = 0;
+            float[] monoSamples = new float[remainingSampleCount];
+
+            while (remainingSampleCount > 0)
+            {
+                int chunkSampleCount = Math.Min(remainingSampleCount, clipSampleCount - readSamplePosition);
+                float[] interleavedSamples = new float[chunkSampleCount * channels];
+                mActiveRecordingClip.GetData(interleavedSamples, readSamplePosition);
+
+                for (int sampleIndex = 0; sampleIndex < chunkSampleCount; sampleIndex += 1)
+                {
+                    float mixedValue = 0.0f;
+
+                    for (int channelIndex = 0; channelIndex < channels; channelIndex += 1)
+                    {
+                        mixedValue += interleavedSamples[(sampleIndex * channels) + channelIndex];
+                    }
+
+                    monoSamples[outputSampleOffset + sampleIndex] = mixedValue / channels;
+                }
+
+                outputSampleOffset += chunkSampleCount;
+                remainingSampleCount -= chunkSampleCount;
+                readSamplePosition = 0;
+            }
+
+            return monoSamples;
+        }
+
+        private int calculateLoopedSampleDistance(
+            int startSamplePosition,
+            int endSamplePosition,
+            int clipSampleCount)
+        {
+            if (clipSampleCount <= 0)
+            {
+                return 0;
+            }
+
+            int clampedStartSamplePosition = Mathf.Clamp(startSamplePosition, 0, clipSampleCount);
+            int clampedEndSamplePosition = Mathf.Clamp(endSamplePosition, 0, clipSampleCount);
+
+            if (clampedEndSamplePosition >= clampedStartSamplePosition)
+            {
+                return clampedEndSamplePosition - clampedStartSamplePosition;
+            }
+
+            return (clipSampleCount - clampedStartSamplePosition) + clampedEndSamplePosition;
         }
 
         private string selectDefaultDeviceName()

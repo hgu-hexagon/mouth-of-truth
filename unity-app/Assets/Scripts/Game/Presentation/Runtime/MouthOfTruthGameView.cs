@@ -55,6 +55,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
+        private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
+        private const float INTERFACE_AUDIO_VOLUME = 0.78f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
         private const float INTERFACE_AUDIO_OVERLAP_DUCK_SCALE = 0.72f;
         private const int POINTER_CURSOR_TEXTURE_SIZE = 64;
@@ -196,6 +198,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void LateUpdate()
         {
             ensureAmbiencePlayback();
+            stabilizeAudioSourceLevels();
             updateHeldHandPresentation();
             updateAnsweringPresentation();
             updateAnalyzingPresentation();
@@ -2330,20 +2333,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAmbienceAudioSource = gameObject.AddComponent<AudioSource>();
             mAmbienceAudioSource.loop = true;
             mAmbienceAudioSource.playOnAwake = false;
-            mAmbienceAudioSource.volume = 0.32f;
+            mAmbienceAudioSource.volume = AMBIENCE_AUDIO_VOLUME;
             mAmbienceAudioSource.spatialBlend = 0.0f;
             mAmbienceAudioSource.priority = 0;
             mAmbienceAudioSource.dopplerLevel = 0.0f;
             mAmbienceAudioSource.ignoreListenerPause = true;
+            mAmbienceAudioSource.ignoreListenerVolume = true;
 
             mInterfaceAudioSource = gameObject.AddComponent<AudioSource>();
             mInterfaceAudioSource.loop = false;
             mInterfaceAudioSource.playOnAwake = false;
-            mInterfaceAudioSource.volume = 0.78f;
+            mInterfaceAudioSource.volume = INTERFACE_AUDIO_VOLUME;
             mInterfaceAudioSource.spatialBlend = 0.0f;
             mInterfaceAudioSource.priority = 16;
             mInterfaceAudioSource.dopplerLevel = 0.0f;
             mInterfaceAudioSource.ignoreListenerPause = true;
+            mInterfaceAudioSource.ignoreListenerVolume = true;
         }
 
         private void ensureEventSystemExists()
@@ -3149,6 +3154,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             mAmbienceAudioSource.clip = mTitleAmbienceClip;
             mAmbienceAudioSource.Play();
+        }
+
+        private void stabilizeAudioSourceLevels()
+        {
+            if (mAmbienceAudioSource != null)
+            {
+                mAmbienceAudioSource.volume = AMBIENCE_AUDIO_VOLUME;
+            }
+
+            if (mInterfaceAudioSource != null)
+            {
+                mInterfaceAudioSource.volume = INTERFACE_AUDIO_VOLUME;
+            }
         }
 
         private void playInterfaceCue(AudioClip audioClip, float volumeScale)

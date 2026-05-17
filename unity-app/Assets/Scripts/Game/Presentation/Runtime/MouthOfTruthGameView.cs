@@ -57,6 +57,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 7.20f;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 1.20f;
+        private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.36f;
+        private const float TEMPLE_APPROACH_END_SCALE = 1.46f;
+        private const float TEMPLE_APPROACH_END_Y_OFFSET = -68.0f;
         private const float CARD_SELECTION_ENTRANCE_SECONDS = 0.82f;
         private const float CARD_SELECTION_ENTRANCE_SETTLE_SECONDS = 0.22f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
@@ -448,15 +451,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 TEMPLE_APPROACH_DURATION_SECONDS,
                 progress =>
                 {
-                    float walkProgress = easeInOut(Mathf.Clamp01(progress / 0.72f));
-                    float stairProgress = easeInOut(Mathf.Clamp01((progress - 0.72f) / 0.28f));
-                    float arrivalProgress = easeOut(Mathf.Clamp01((progress - 0.86f) / 0.14f));
-                    float walkingBob = Mathf.Sin(progress * Mathf.PI * 5.0f) * (1.0f - stairProgress) * 0.8f;
+                    float travelProgress = easeInOut(progress);
+                    float cameraScale = Mathf.Lerp(1.0f, TEMPLE_APPROACH_END_SCALE, travelProgress);
+                    float stairProgress = easeInOut(Mathf.InverseLerp(
+                        TEMPLE_APPROACH_STAIR_START_SCALE,
+                        TEMPLE_APPROACH_END_SCALE,
+                        cameraScale));
+                    float arrivalProgress = easeOut(Mathf.Clamp01((stairProgress - 0.48f) / 0.52f));
+                    float walkingProgress = Mathf.InverseLerp(1.0f, TEMPLE_APPROACH_STAIR_START_SCALE, cameraScale);
+                    float walkingBob = Mathf.Sin(walkingProgress * Mathf.PI * 4.0f) * (1.0f - stairProgress) * 0.8f;
                     float stairBob = Mathf.Sin(stairProgress * Mathf.PI * 2.0f) * stairProgress * (1.0f - arrivalProgress) * 1.8f;
-
-                    float flatWalkScale = Mathf.Lerp(1.0f, 1.24f, walkProgress);
-                    float cameraScale = Mathf.Lerp(flatWalkScale, 1.46f, stairProgress);
-                    float cameraYOffset = Mathf.Lerp(0.0f, -68.0f, stairProgress) + walkingBob + stairBob;
+                    float cameraYOffset = Mathf.Lerp(0.0f, TEMPLE_APPROACH_END_Y_OFFSET, stairProgress) + walkingBob + stairBob;
                     templeApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
                     templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, cameraYOffset);
                     approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.86f, 1.0f, stairProgress));
@@ -468,8 +473,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float pulse = Mathf.Sin(progress * Mathf.PI);
-                    templeApproachCameraRectTransform.localScale = Vector3.one * (1.46f + (pulse * 0.003f));
-                    templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, -68.0f);
+                    templeApproachCameraRectTransform.localScale = Vector3.one * (TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f));
+                    templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET);
                     setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.16f, 0.20f, pulse));
                 });
             Destroy(templeApproachCameraObject);

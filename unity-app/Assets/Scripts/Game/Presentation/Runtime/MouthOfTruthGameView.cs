@@ -48,6 +48,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float CARD_HOVER_AUDIO_COOLDOWN_SECONDS = 0.60f;
         private const float CARD_SELECTION_CUE_SETTLE_SECONDS = 0.32f;
         private const float CARD_REVEAL_CUE_SETTLE_SECONDS = 0.46f;
+        private const float CARD_FLIP_CLOSE_SECONDS = 0.28f;
+        private const float CARD_FLIP_OPEN_SECONDS = 0.36f;
         private const float HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS = 0.90f;
         private const float FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS = 4.0f;
         private const float FIRST_RUN_TUTORIAL_DURATION_SCALE = 3.0f;
@@ -55,11 +57,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
-        private const float TEMPLE_APPROACH_DURATION_SECONDS = 7.20f;
-        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 1.20f;
-        private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.56f;
-        private const float TEMPLE_APPROACH_END_SCALE = 1.66f;
-        private const float TEMPLE_APPROACH_END_Y_OFFSET = -68.0f;
+        private const float TEMPLE_APPROACH_DURATION_SECONDS = 8.40f;
+        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 1.35f;
+        private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.75f;
+        private const float TEMPLE_APPROACH_END_SCALE = 2.05f;
+        private const float TEMPLE_APPROACH_END_Y_OFFSET = -124.0f;
         private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
         private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
         private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.18f;
@@ -85,7 +87,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 STAGE_CARPET_SIZE = new Vector2(880.0f, 328.0f);
         private static readonly Color STAGE_CARPET_TINT = new Color(0.58f, 0.52f, 0.48f, 0.82f);
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_POSITION = new Vector2(0.0f, 90.0f);
-        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(300.0f, 300.0f);
+        private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
@@ -618,15 +620,27 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         Vector3.one * Mathf.Lerp(1.0f, 1.22f, easedProgress);
                 });
 
+            await animateOverTimeAsync(
+                CARD_FLIP_CLOSE_SECONDS,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    float verticalScale = 1.22f + (Mathf.Sin(progress * Mathf.PI) * 0.02f);
+                    selectedCardView.SetScale(Mathf.Lerp(1.22f, 0.08f, easedProgress), verticalScale);
+                });
+
             selectedCardView.SetFront(mCardFrontSprite, questionDefinition.Text);
             playInterfaceCueClean(mCardRevealClip, 0.58f);
 
             await animateOverTimeAsync(
-                0.16f + CARD_REVEAL_CUE_SETTLE_SECONDS,
+                CARD_FLIP_OPEN_SECONDS + CARD_REVEAL_CUE_SETTLE_SECONDS,
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
-                    selectedCardView.SetScale(Mathf.Lerp(1.22f, 1.26f, easedProgress));
+                    float settlePulse = Mathf.Sin(progress * Mathf.PI) * 0.012f;
+                    selectedCardView.SetScale(
+                        Mathf.Lerp(0.08f, 1.26f, easedProgress),
+                        Mathf.Lerp(1.24f, 1.26f, easedProgress) + settlePulse);
                 });
 
             await animateOverTimeAsync(

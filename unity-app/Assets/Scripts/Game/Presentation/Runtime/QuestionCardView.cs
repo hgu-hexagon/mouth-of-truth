@@ -195,6 +195,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mRectTransform.localScale = Vector3.one * Mathf.Max(0.01f, scale);
         }
 
+        public void SetScale(float horizontalScale, float verticalScale)
+        {
+            mRectTransform.localScale = new Vector3(
+                Mathf.Max(0.01f, horizontalScale),
+                Mathf.Max(0.01f, verticalScale),
+                1.0f);
+        }
+
         public void OnPointerEnter(PointerEventData eventData)
         {
             IsHovered = true;

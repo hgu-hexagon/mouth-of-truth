@@ -57,9 +57,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
-        private const float TEMPLE_APPROACH_DURATION_SECONDS = 9.40f;
-        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 1.45f;
-        private const float TEMPLE_APPROACH_CARD_TRANSITION_ZOOM_OUT_SECONDS = 0.46f;
+        private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.20f;
+        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.80f;
+        private const float TEMPLE_APPROACH_CARD_TRANSITION_ZOOM_OUT_SECONDS = 0.38f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 2.25f;
         private const float TEMPLE_APPROACH_END_Y_OFFSET = -168.0f;
@@ -1983,22 +1983,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
             float beamAlpha = Mathf.Lerp(0.72f, 1.0f, Mathf.Pow(quickPulse, 1.35f));
-            Vector2 beamSize = new Vector2(mouthWidth * 0.58f, mouthHeight * 0.044f);
-            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.138f, mouthHeight * 0.166f, slowPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * 0.50f, mouthHeight * 0.042f);
+            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.166f, mouthHeight * 0.184f, slowPulse);
             Color beamColor = new Color(1.0f, 0.46f, 0.10f, beamAlpha);
             updateEyeBeamImage(
                 mMouthLeftEyeBeamImage,
-                new Vector2(-(mouthWidth * 0.132f), eyeYOffset),
+                new Vector2(-(mouthWidth * 0.118f), eyeYOffset),
                 beamSize,
                 beamColor,
-                -12.0f - (quickPulse * 1.4f),
+                17.0f + (quickPulse * 1.2f),
                 new Vector2(1.0f, 0.5f));
             updateEyeBeamImage(
                 mMouthRightEyeBeamImage,
-                new Vector2(mouthWidth * 0.132f, eyeYOffset),
+                new Vector2(mouthWidth * 0.102f, eyeYOffset),
                 beamSize,
                 beamColor,
-                12.0f + (quickPulse * 1.4f),
+                -17.0f - (quickPulse * 1.2f),
                 new Vector2(0.0f, 0.5f));
         }
 

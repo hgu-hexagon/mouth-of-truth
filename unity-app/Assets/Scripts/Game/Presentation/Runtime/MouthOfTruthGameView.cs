@@ -59,6 +59,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 9.40f;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 1.45f;
+        private const float TEMPLE_APPROACH_CARD_TRANSITION_ZOOM_OUT_SECONDS = 0.46f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 2.25f;
         private const float TEMPLE_APPROACH_END_Y_OFFSET = -168.0f;
@@ -493,6 +494,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     float pulse = Mathf.Sin(progress * Mathf.PI);
                     templeApproachCameraRectTransform.localScale = Vector3.one * (TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f));
                     templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET);
+                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
+                });
+
+            await animateOverTimeAsync(
+                TEMPLE_APPROACH_CARD_TRANSITION_ZOOM_OUT_SECONDS,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    templeApproachCameraRectTransform.localScale =
+                        Vector3.one * Mathf.Lerp(TEMPLE_APPROACH_END_SCALE, 1.0f, easedProgress);
+                    templeApproachCameraRectTransform.anchoredPosition =
+                        Vector2.Lerp(new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET), Vector2.zero, easedProgress);
+                    approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(1.0f, 0.88f, easedProgress));
                     setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
                 });
             Destroy(templeApproachCameraObject);
@@ -1969,21 +1983,23 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
             float beamAlpha = Mathf.Lerp(0.72f, 1.0f, Mathf.Pow(quickPulse, 1.35f));
-            Vector2 beamSize = new Vector2(mouthWidth * 0.78f, mouthHeight * 0.050f);
-            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.105f, mouthHeight * 0.148f, slowPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * 0.58f, mouthHeight * 0.044f);
+            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.138f, mouthHeight * 0.166f, slowPulse);
             Color beamColor = new Color(1.0f, 0.46f, 0.10f, beamAlpha);
             updateEyeBeamImage(
                 mMouthLeftEyeBeamImage,
-                new Vector2(-(mouthWidth * 0.205f), eyeYOffset),
+                new Vector2(-(mouthWidth * 0.132f), eyeYOffset),
                 beamSize,
                 beamColor,
-                -14.0f - (quickPulse * 2.0f));
+                -12.0f - (quickPulse * 1.4f),
+                new Vector2(1.0f, 0.5f));
             updateEyeBeamImage(
                 mMouthRightEyeBeamImage,
-                new Vector2(mouthWidth * 0.205f, eyeYOffset),
+                new Vector2(mouthWidth * 0.132f, eyeYOffset),
                 beamSize,
                 beamColor,
-                14.0f + (quickPulse * 2.0f));
+                12.0f + (quickPulse * 1.4f),
+                new Vector2(0.0f, 0.5f));
         }
 
         private void updateEyeBeamImage(
@@ -1991,7 +2007,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Vector2 offsetFromMouthCenter,
             Vector2 sizeDelta,
             Color color,
-            float rotationDegrees)
+            float rotationDegrees,
+            Vector2 pivot)
         {
             if (beamImage == null || beamImage.gameObject.activeSelf == false || mMouthImage == null)
             {
@@ -2002,6 +2019,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             RectTransform beamRectTransform = beamImage.rectTransform;
             beamRectTransform.anchorMin = mouthRectTransform.anchorMin;
             beamRectTransform.anchorMax = mouthRectTransform.anchorMax;
+            beamRectTransform.pivot = pivot;
             beamRectTransform.anchoredPosition = mouthRectTransform.anchoredPosition + offsetFromMouthCenter;
             beamRectTransform.sizeDelta = sizeDelta;
             beamRectTransform.localScale = Vector3.one;
@@ -2416,7 +2434,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 60.0f),
                 new Vector2(360.0f, 72.0f),
                 Color.clear);
-            mMouthLeftEyeBeamImage.sprite = createEyeBeamSprite();
+            mMouthLeftEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: true);
             mMouthLeftEyeBeamImage.raycastTarget = false;
             mMouthRightEyeBeamImage = createImage(
                 "MouthRightEyeBeam",
@@ -2426,7 +2444,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 60.0f),
                 new Vector2(360.0f, 72.0f),
                 Color.clear);
-            mMouthRightEyeBeamImage.sprite = createEyeBeamSprite();
+            mMouthRightEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: false);
             mMouthRightEyeBeamImage.raycastTarget = false;
             placeMouthEffectImagesBehindMouth();
             mHandImage = createImage(
@@ -2738,7 +2756,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return Sprite.Create(texture, new Rect(0.0f, 0.0f, TEXTURE_SIZE, TEXTURE_SIZE), new Vector2(0.5f, 0.5f), TEXTURE_SIZE);
         }
 
-        private static Sprite createEyeBeamSprite()
+        private static Sprite createEyeBeamSprite(bool isSourceOnRight)
         {
             const int TEXTURE_WIDTH = 256;
             const int TEXTURE_HEIGHT = 48;
@@ -2747,17 +2765,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             texture.filterMode = FilterMode.Bilinear;
             texture.wrapMode = TextureWrapMode.Clamp;
             Color[] pixels = new Color[TEXTURE_WIDTH * TEXTURE_HEIGHT];
-            float horizontalCenter = (TEXTURE_WIDTH - 1.0f) * 0.5f;
             float verticalCenter = (TEXTURE_HEIGHT - 1.0f) * 0.5f;
 
             for (int y = 0; y < TEXTURE_HEIGHT; y += 1)
             {
                 for (int x = 0; x < TEXTURE_WIDTH; x += 1)
                 {
-                    float horizontalDistance = Mathf.Abs(x - horizontalCenter) / horizontalCenter;
+                    float horizontalProgress = x / (TEXTURE_WIDTH - 1.0f);
+                    float distanceFromSource = isSourceOnRight ? 1.0f - horizontalProgress : horizontalProgress;
                     float verticalDistance = Mathf.Abs(y - verticalCenter) / verticalCenter;
                     float beamCore = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 2.6f);
-                    float beamFalloff = Mathf.Pow(Mathf.Clamp01(1.0f - horizontalDistance), 0.65f);
+                    float beamFalloff = Mathf.Pow(Mathf.Clamp01(1.0f - distanceFromSource), 0.48f);
                     pixels[(y * TEXTURE_WIDTH) + x] = new Color(1.0f, 1.0f, 1.0f, beamCore * beamFalloff);
                 }
             }

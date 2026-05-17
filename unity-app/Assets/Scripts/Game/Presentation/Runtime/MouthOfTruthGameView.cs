@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -48,6 +49,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS = 4.0f;
         private const float FIRST_RUN_TUTORIAL_DURATION_SCALE = 3.0f;
         private const float HAND_INSERTION_DURATION_SECONDS = 2.85f;
+        private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
+        private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
         private const float INTERFACE_AUDIO_OVERLAP_DUCK_SCALE = 0.72f;
@@ -145,6 +148,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mUseHeldHandPresentation;
         private bool mIsAnsweringPresentationActive;
         private bool mIsAnalyzingPresentationActive;
+        private Coroutine mHandPromptPanelFadeCoroutine;
         private float mHeldHandBaseProgress;
         private float mHeldHandPulseAmplitude;
         private float mHeldHandPulseSpeed;
@@ -198,16 +202,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             float elapsedSeconds = Time.unscaledTime - mAnsweringPresentationStartedAtSeconds;
-            float slowPulse = (Mathf.Sin(elapsedSeconds * 2.35f) + 1.0f) * 0.5f;
-            float quickPulse = (Mathf.Sin(elapsedSeconds * 5.7f) + 1.0f) * 0.5f;
-            float breathScale = Mathf.Lerp(0.995f, 1.065f, slowPulse);
-            setOverlayTint(new Color(0.020f, 0.012f, 0.010f, 1.0f), Mathf.Lerp(0.36f, 0.50f, slowPulse));
-            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.88f, 0.98f, slowPulse), Mathf.Lerp(0.72f, 0.92f, slowPulse), 1.0f);
+            float slowPulse = (Mathf.Sin(elapsedSeconds * 2.1f) + 1.0f) * 0.5f;
+            float quickPulse = (Mathf.Sin(elapsedSeconds * 6.2f) + 1.0f) * 0.5f;
+            float breathScale = Mathf.Lerp(0.99f, 1.08f, slowPulse);
+            float listeningAlpha = Mathf.Lerp(0.52f, 0.86f, Mathf.Pow(quickPulse, 1.25f));
+            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.40f, 0.55f, slowPulse));
+            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.90f, 1.0f, slowPulse), Mathf.Lerp(0.70f, 0.92f, slowPulse), 1.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * breathScale;
             updateMouthEffectImage(
                 mMouthListeningAuraImage,
-                new Color(1.0f, 0.54f, 0.18f, Mathf.Lerp(0.36f, 0.62f, quickPulse)),
-                1.16f + (slowPulse * 0.12f),
+                new Color(1.0f, 0.64f, 0.22f, listeningAlpha),
+                1.14f + (slowPulse * 0.22f),
                 0.0f);
         }
 
@@ -236,19 +241,20 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float surge = (Mathf.Sin(elapsedSeconds * 8.6f) + 1.0f) * 0.5f;
             float tremor = Mathf.Sin(elapsedSeconds * 10.5f) * 4.5f;
             float focusProgress = Mathf.Clamp01(elapsedSeconds / 0.85f);
-            setOverlayTint(new Color(0.015f, 0.010f, 0.014f, 1.0f), Mathf.Lerp(0.58f, 0.76f, pulse));
-            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.58f, 0.84f, pulse), Mathf.Lerp(0.44f, 0.68f, pulse), Mathf.Lerp(0.62f, 0.86f, pulse));
+            setOverlayTint(new Color(0.026f, 0.018f, 0.010f, 1.0f), Mathf.Lerp(0.54f, 0.70f, pulse));
+            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.72f, 0.92f, pulse), Mathf.Lerp(0.48f, 0.70f, pulse), Mathf.Lerp(0.64f, 0.84f, pulse));
             mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor, 0.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.02f, 1.13f, easeOut(focusProgress)) + (pulse * 0.065f));
             updateMouthEffectImage(
                 mMouthAnalyzingAuraImage,
-                new Color(1.0f, 0.18f, 0.07f, Mathf.Lerp(0.50f, 0.90f, surge)),
+                new Color(1.0f, 0.44f, 0.10f, Mathf.Lerp(0.42f, 0.78f, surge)),
                 1.05f + (pulse * 0.30f),
                 elapsedSeconds * 28.0f);
         }
 
         public void ShowStartScreen()
         {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -293,6 +299,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
         {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -381,6 +388,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             QuestionDefinition questionDefinition,
             Func<Task> questionNarrationTaskFactory = null)
         {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mQuestionPanelImage, false);
@@ -538,6 +546,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAwaitingHandInsertion()
         {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -569,10 +578,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyMouthAnchoredLayout();
             setHandVisual(0.0f);
             playInterfaceCue(mHandPromptClip, 0.74f);
+            beginHandPromptPanelAutoFade();
         }
 
         public async Task AnimateHandInsertionAsync()
         {
+            hideHandPromptPanelImmediately();
             disableAnsweringPresentation();
             disableHeldHandPresentation();
             applyAnswerStageLayout();
@@ -636,6 +647,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnswering()
         {
+            hideHandPromptPanelImmediately();
             disableAnalyzingPresentation();
             applyAnswerStageLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
@@ -662,6 +674,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAnalyzing()
         {
+            hideHandPromptPanelImmediately();
             disableAnsweringPresentation();
             disableHeldHandPresentation();
             applyAnswerStageLayout();
@@ -745,6 +758,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -1786,6 +1800,80 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 tintColor.g,
                 tintColor.b,
                 Mathf.Clamp01(alpha));
+        }
+
+        private void beginHandPromptPanelAutoFade()
+        {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            setHandPromptPanelAlpha(1.0f);
+            float holdSeconds = mHandPromptClip != null
+                ? Mathf.Max(0.55f, mHandPromptClip.length)
+                : HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS;
+            mHandPromptPanelFadeCoroutine = StartCoroutine(fadeHandPromptPanelAfterDelay(holdSeconds));
+        }
+
+        private IEnumerator fadeHandPromptPanelAfterDelay(float holdSeconds)
+        {
+            float holdElapsedSeconds = 0.0f;
+
+            while (holdElapsedSeconds < holdSeconds)
+            {
+                holdElapsedSeconds += Time.deltaTime;
+                yield return null;
+            }
+
+            float fadeElapsedSeconds = 0.0f;
+
+            while (fadeElapsedSeconds < HAND_PROMPT_PANEL_FADE_SECONDS)
+            {
+                fadeElapsedSeconds += Time.deltaTime;
+                float alpha = Mathf.Lerp(1.0f, 0.0f, easeOut(fadeElapsedSeconds / HAND_PROMPT_PANEL_FADE_SECONDS));
+                setHandPromptPanelAlpha(alpha);
+                yield return null;
+            }
+
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mQuestionText, false);
+            setHandPromptPanelAlpha(1.0f);
+            mHandPromptPanelFadeCoroutine = null;
+        }
+
+        private void hideHandPromptPanelImmediately()
+        {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mQuestionText, false);
+        }
+
+        private void stopHandPromptPanelAutoFade(bool restoreAlpha)
+        {
+            if (mHandPromptPanelFadeCoroutine != null)
+            {
+                StopCoroutine(mHandPromptPanelFadeCoroutine);
+                mHandPromptPanelFadeCoroutine = null;
+            }
+
+            if (restoreAlpha)
+            {
+                setHandPromptPanelAlpha(1.0f);
+            }
+        }
+
+        private void setHandPromptPanelAlpha(float alpha)
+        {
+            float clampedAlpha = Mathf.Clamp01(alpha);
+
+            if (mQuestionPanelImage != null)
+            {
+                Color panelColor = mQuestionPanelImage.color;
+                mQuestionPanelImage.color = new Color(panelColor.r, panelColor.g, panelColor.b, clampedAlpha);
+            }
+
+            if (mQuestionText != null)
+            {
+                Color textColor = mQuestionText.color;
+                mQuestionText.color = new Color(textColor.r, textColor.g, textColor.b, clampedAlpha);
+            }
         }
 
         private void setBackgroundTint(Color tintColor)

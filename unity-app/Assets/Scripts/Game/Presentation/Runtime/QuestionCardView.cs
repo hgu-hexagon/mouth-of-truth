@@ -11,6 +11,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const int QUESTION_TEXT_MAXIMUM_FONT_SIZE = 26;
         private const int QUESTION_TEXT_MINIMUM_FONT_SIZE = 20;
         private const float QUESTION_TEXT_LINE_SPACING = 1.2f;
+        private static readonly Color QUESTION_TEXT_INK_COLOR = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+        private static readonly Color QUESTION_TEXT_INK_BOOST_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.82f);
+        private static readonly Vector2 QUESTION_TEXT_INK_BOOST_OFFSET = new Vector2(0.18f, -0.18f);
 
         private Image mCardImage;
         private Image mGlowImage;
@@ -97,7 +100,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.alignment = TextAnchor.MiddleCenter;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Overflow;
             mQuestionText.verticalOverflow = VerticalWrapMode.Truncate;
-            mQuestionText.color = Color.black;
+            mQuestionText.color = QUESTION_TEXT_INK_COLOR;
             mQuestionText.fontSize = QUESTION_TEXT_MAXIMUM_FONT_SIZE;
             mQuestionText.fontStyle = FontStyle.Normal;
             mQuestionText.lineSpacing = QUESTION_TEXT_LINE_SPACING;
@@ -107,8 +110,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.raycastTarget = false;
             mQuestionText.material = Graphic.defaultGraphicMaterial;
             mQuestionTextInkBoost = textObject.AddComponent<Shadow>();
-            mQuestionTextInkBoost.effectColor = Color.black;
-            mQuestionTextInkBoost.effectDistance = Vector2.zero;
+            mQuestionTextInkBoost.effectColor = QUESTION_TEXT_INK_BOOST_COLOR;
+            mQuestionTextInkBoost.effectDistance = QUESTION_TEXT_INK_BOOST_OFFSET;
             mQuestionTextInkBoost.useGraphicAlpha = false;
             setQuestionText(string.Empty);
         }
@@ -140,7 +143,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCardImage.type = Image.Type.Simple;
             mCardImage.color = Color.white;
             mQuestionText.enabled = true;
-            mQuestionText.color = Color.black;
+            mQuestionText.color = QUESTION_TEXT_INK_COLOR;
             mQuestionText.material = Graphic.defaultGraphicMaterial;
             mCanvasGroup.alpha = 1.0f;
             setQuestionText(questionText);
@@ -210,15 +213,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void setQuestionText(string questionText)
         {
             mQuestionText.font = containsHangul(questionText) ? mKoreanFallbackFont : mPrimaryUiFont;
-            mQuestionText.color = Color.black;
+            mQuestionText.color = QUESTION_TEXT_INK_COLOR;
             mQuestionText.material = Graphic.defaultGraphicMaterial;
             mQuestionText.fontStyle = FontStyle.Normal;
             mQuestionText.text = questionText;
 
             if (mQuestionTextInkBoost != null)
             {
-                mQuestionTextInkBoost.effectColor = Color.black;
-                mQuestionTextInkBoost.effectDistance = Vector2.zero;
+                mQuestionTextInkBoost.effectColor = QUESTION_TEXT_INK_BOOST_COLOR;
+                mQuestionTextInkBoost.effectDistance = QUESTION_TEXT_INK_BOOST_OFFSET;
             }
         }
 

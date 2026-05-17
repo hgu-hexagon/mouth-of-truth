@@ -375,9 +375,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             configureExitButtonAsTopLeftIcon();
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, true);
-            setObjectActive(mMouthImage, true);
+            setObjectActive(mBackgroundImage, false);
+            setObjectActive(mCarpetImage, false);
+            setObjectActive(mMouthImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
@@ -402,26 +402,45 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mBackToTitleButton, false);
             setCardsVisible(false);
 
-            RectTransform backgroundRectTransform = mBackgroundImage.rectTransform;
-            RectTransform carpetRectTransform = mCarpetImage.rectTransform;
-            RectTransform mouthRectTransform = mMouthImage.rectTransform;
-            backgroundRectTransform.pivot = new Vector2(0.5f, 0.58f);
-            carpetRectTransform.pivot = new Vector2(0.5f, 0.0f);
-            mouthRectTransform.pivot = new Vector2(0.5f, 0.5f);
-            carpetRectTransform.anchoredPosition = new Vector2(0.0f, 0.0f);
-            carpetRectTransform.sizeDelta = new Vector2(1506.0f, 584.0f);
-            setRectTransformLayout(mouthRectTransform, new Vector2(0.5f, 0.60f), new Vector2(300.0f, 300.0f));
-            mouthRectTransform.anchoredPosition = new Vector2(0.0f, 90.0f);
-            mouthRectTransform.localScale = Vector3.one;
-            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.78f);
-            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.42f);
+            GameObject templeApproachCameraObject = new GameObject("TempleApproachCameraRoot", typeof(RectTransform));
+            templeApproachCameraObject.transform.SetParent(mCanvasRootTransform, false);
+            templeApproachCameraObject.transform.SetAsFirstSibling();
+            RectTransform templeApproachCameraRectTransform = templeApproachCameraObject.GetComponent<RectTransform>();
+            templeApproachCameraRectTransform.anchorMin = Vector2.zero;
+            templeApproachCameraRectTransform.anchorMax = Vector2.one;
+            templeApproachCameraRectTransform.offsetMin = Vector2.zero;
+            templeApproachCameraRectTransform.offsetMax = Vector2.zero;
+            templeApproachCameraRectTransform.pivot = new Vector2(0.5f, 0.58f);
 
-            Vector2 carpetStartPosition = Vector2.zero;
-            Vector2 carpetStairExitPosition = new Vector2(0.0f, -190.0f);
-            Vector2 mouthStartPosition = new Vector2(0.0f, 90.0f);
-            Vector2 mouthArrivalPosition = new Vector2(0.0f, 48.0f);
-            Vector2 mouthStartSize = new Vector2(300.0f, 300.0f);
-            Vector2 mouthArrivalSize = new Vector2(420.0f, 420.0f);
+            Image approachBackgroundImage = createFullScreenImage(
+                "TempleApproachBackground",
+                templeApproachCameraRectTransform,
+                STAGE_BACKGROUND_TINT);
+            approachBackgroundImage.sprite = mCardSelectionBackgroundSprite;
+            approachBackgroundImage.raycastTarget = false;
+
+            Image approachCarpetImage = createImage(
+                "TempleApproachCarpet",
+                templeApproachCameraRectTransform,
+                new Vector2(0.5f, 0.0f),
+                new Vector2(0.5f, 0.0f),
+                new Vector2(0.0f, 218.0f),
+                new Vector2(1010.0f, 430.0f),
+                new Color(0.62f, 0.56f, 0.52f, 0.84f));
+            approachCarpetImage.sprite = mCarpetImage.sprite;
+            approachCarpetImage.raycastTarget = false;
+
+            Image approachMouthImage = createImage(
+                "TempleApproachMouth",
+                templeApproachCameraRectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.0f, 90.0f),
+                new Vector2(300.0f, 300.0f),
+                new Color(1.0f, 1.0f, 1.0f, 0.78f));
+            approachMouthImage.sprite = mMouthImage.sprite;
+            approachMouthImage.raycastTarget = false;
+            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.42f);
 
             await animateOverTimeAsync(
                 TEMPLE_APPROACH_DURATION_SECONDS,
@@ -429,20 +448,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 {
                     float walkProgress = easeInOut(Mathf.Clamp01(progress / 0.62f));
                     float stairProgress = easeInOut(Mathf.Clamp01((progress - 0.48f) / 0.52f));
-                    float carpetLeavingProgress = easeIn(Mathf.Clamp01((progress - 0.62f) / 0.38f));
                     float arrivalProgress = easeOut(Mathf.Clamp01((progress - 0.76f) / 0.24f));
                     float walkingBob = Mathf.Sin(progress * Mathf.PI * 7.0f) * (1.0f - stairProgress) * 2.8f;
                     float stairBob = Mathf.Sin(stairProgress * Mathf.PI * 4.0f) * stairProgress * (1.0f - arrivalProgress) * 3.6f;
 
-                    backgroundRectTransform.anchoredPosition = new Vector2(0.0f, Mathf.Lerp(0.0f, -148.0f, stairProgress) + walkingBob + stairBob);
-                    backgroundRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.32f, Mathf.Lerp(walkProgress * 0.55f, 1.0f, stairProgress));
-                    carpetRectTransform.anchoredPosition = Vector2.Lerp(carpetStartPosition, carpetStairExitPosition, carpetLeavingProgress);
-                    carpetRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.32f, walkProgress);
-                    mCarpetImage.color = new Color(0.62f, 0.56f, 0.52f, Mathf.Lerp(0.82f, 0.0f, carpetLeavingProgress));
-                    mouthRectTransform.anchoredPosition = Vector2.Lerp(mouthStartPosition, mouthArrivalPosition, stairProgress);
-                    mouthRectTransform.sizeDelta = Vector2.Lerp(mouthStartSize, mouthArrivalSize, stairProgress);
-                    mouthRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.04f, arrivalProgress);
-                    mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.78f, 1.0f, stairProgress));
+                    float cameraScale = Mathf.Lerp(1.0f, 1.42f, Mathf.Lerp(walkProgress * 0.58f, 1.0f, stairProgress));
+                    float cameraYOffset = Mathf.Lerp(0.0f, -62.0f, stairProgress) + walkingBob + stairBob;
+                    templeApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
+                    templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, cameraYOffset);
+                    approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.78f, 1.0f, stairProgress));
                     setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.42f, 0.16f, arrivalProgress));
                 });
 
@@ -451,10 +465,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float pulse = Mathf.Sin(progress * Mathf.PI);
-                    backgroundRectTransform.localScale = Vector3.one * (1.32f + (pulse * 0.006f));
-                    mouthRectTransform.localScale = Vector3.one * (1.04f + (pulse * 0.006f));
+                    templeApproachCameraRectTransform.localScale = Vector3.one * (1.42f + (pulse * 0.006f));
                     setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.16f, 0.20f, pulse));
                 });
+            Destroy(templeApproachCameraObject);
             resetStageMotionTransforms();
         }
 

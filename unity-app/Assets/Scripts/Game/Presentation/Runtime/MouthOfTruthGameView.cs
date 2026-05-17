@@ -24,19 +24,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 FALLBACK_HAND_INNER_POSITION = new Vector2(0.0f, 230.0f);
         private static readonly Color TITLE_BACKGROUND_TINT = new Color(0.95f, 0.95f, 0.97f, 1.0f);
         private static readonly Color STAGE_BACKGROUND_TINT = new Color(0.82f, 0.82f, 0.86f, 1.0f);
-        private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.13f;
-        private const float INNER_ANCHOR_RADIUS_FACTOR = 0.072f;
-        private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.09f;
-        private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.11f;
-        private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.055f;
-        private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.07f;
+        private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.105f;
+        private const float INNER_ANCHOR_RADIUS_FACTOR = 0.060f;
+        private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.070f;
+        private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.085f;
+        private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.045f;
+        private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.055f;
         private const float CARD_INTENT_LEFT_MAX_NORMALIZED_X = 0.39f;
         private const float CARD_INTENT_RIGHT_MIN_NORMALIZED_X = 0.61f;
         private const float CARD_INTENT_MIN_NORMALIZED_Y = 0.28f;
         private const float CARD_INTENT_MAX_NORMALIZED_Y = 0.84f;
-        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.18f;
-        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.16f;
-        private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.14f;
+        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.12f;
+        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.10f;
+        private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.08f;
         private const float MOUTH_INTENT_INNER_SWITCH_FACTOR = 0.58f;
         private const float BUTTON_INTENT_EXPANSION_PIXELS = 54.0f;
         private const float EXIT_BUTTON_INTENT_EXPANSION_PIXELS = 32.0f;
@@ -45,7 +45,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS = 0.01875f;
         private const float CARD_FRONT_FOCUS_BEFORE_NARRATION_SECONDS = 0.72f;
         private const float CARD_FRONT_AFTER_NARRATION_HOLD_SECONDS = 0.58f;
-        private const float CARD_HOVER_AUDIO_COOLDOWN_SECONDS = 0.22f;
+        private const float CARD_HOVER_AUDIO_COOLDOWN_SECONDS = 0.42f;
+        private const float CARD_SELECTION_CUE_SETTLE_SECONDS = 0.18f;
+        private const float CARD_REVEAL_CUE_SETTLE_SECONDS = 0.24f;
+        private const float HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS = 0.55f;
         private const float FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS = 4.0f;
         private const float FIRST_RUN_TUTORIAL_DURATION_SCALE = 3.0f;
         private const float HAND_INSERTION_DURATION_SECONDS = 2.85f;
@@ -95,6 +98,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Image mMouthImage;
         private Image mMouthListeningAuraImage;
         private Image mMouthAnalyzingAuraImage;
+        private Image mMouthLeftEyeBeamImage;
+        private Image mMouthRightEyeBeamImage;
         private Image mHandImage;
         private Image mRitualHandImage;
         private Image mPointerImage;
@@ -202,18 +207,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             float elapsedSeconds = Time.unscaledTime - mAnsweringPresentationStartedAtSeconds;
-            float slowPulse = (Mathf.Sin(elapsedSeconds * 2.1f) + 1.0f) * 0.5f;
-            float quickPulse = (Mathf.Sin(elapsedSeconds * 6.2f) + 1.0f) * 0.5f;
-            float breathScale = Mathf.Lerp(0.99f, 1.08f, slowPulse);
-            float listeningAlpha = Mathf.Lerp(0.52f, 0.86f, Mathf.Pow(quickPulse, 1.25f));
-            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.40f, 0.55f, slowPulse));
-            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.90f, 1.0f, slowPulse), Mathf.Lerp(0.70f, 0.92f, slowPulse), 1.0f);
+            float slowPulse = (Mathf.Sin(elapsedSeconds * 1.85f) + 1.0f) * 0.5f;
+            float quickPulse = (Mathf.Sin(elapsedSeconds * 4.8f) + 1.0f) * 0.5f;
+            float breathScale = Mathf.Lerp(1.0f, 1.035f, slowPulse);
+            setOverlayTint(new Color(0.018f, 0.012f, 0.010f, 1.0f), Mathf.Lerp(0.38f, 0.48f, slowPulse));
+            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.93f, 1.0f, slowPulse), Mathf.Lerp(0.78f, 0.94f, slowPulse), 1.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * breathScale;
-            updateMouthEffectImage(
-                mMouthListeningAuraImage,
-                new Color(1.0f, 0.64f, 0.22f, listeningAlpha),
-                1.14f + (slowPulse * 0.22f),
-                0.0f);
+            updateAnsweringEyeBeamImages(slowPulse, quickPulse);
         }
 
         private void updateHeldHandPresentation()
@@ -245,6 +245,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.72f, 0.92f, pulse), Mathf.Lerp(0.48f, 0.70f, pulse), Mathf.Lerp(0.64f, 0.84f, pulse));
             mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor, 0.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.02f, 1.13f, easeOut(focusProgress)) + (pulse * 0.065f));
+            updateMouthEffectImage(
+                mMouthListeningAuraImage,
+                new Color(1.0f, 0.62f, 0.20f, Mathf.Lerp(0.32f, 0.56f, pulse)),
+                0.88f + (surge * 0.16f),
+                -elapsedSeconds * 18.0f);
             updateMouthEffectImage(
                 mMouthAnalyzingAuraImage,
                 new Color(1.0f, 0.44f, 0.10f, Mathf.Lerp(0.42f, 0.78f, surge)),
@@ -396,7 +401,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mSceneOverlayImage, true);
             setMouthEffectImagesActive(false, false);
             setOverlayAlpha(0.12f);
-            playInterfaceCue(mCardSelectClip, 0.58f);
+            playInterfaceCueClean(mCardSelectClip, 0.58f);
+            await animateOverTimeAsync(CARD_SELECTION_CUE_SETTLE_SECONDS, _ => { });
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
@@ -421,10 +427,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 });
 
             selectedCardView.SetFront(mCardFrontSprite, questionDefinition.Text);
-            playInterfaceCue(mCardRevealClip, 0.58f);
+            playInterfaceCueClean(mCardRevealClip, 0.58f);
 
             await animateOverTimeAsync(
-                0.16f,
+                0.16f + CARD_REVEAL_CUE_SETTLE_SECONDS,
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
@@ -487,6 +493,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setCardsVisible(false);
             selectedCardView.SetAlpha(1.0f);
             selectedCardView.ResetTransformState();
+            await animateOverTimeAsync(HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS, _ => { });
         }
 
         public async Task PlayFirstRunTutorialAsync()
@@ -561,6 +568,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mExitButton, true);
             setObjectActive(mMouthImage, true);
             setMouthEffectImagesActive(false, false);
+            setEyeBeamImagesActive(false);
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, false);
             setObjectActive(mPointerImage, false);
@@ -577,7 +585,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setText(mQuestionText, "“손을 내밀고, 진실을 답하라.”");
             applyMouthAnchoredLayout();
             setHandVisual(0.0f);
-            playInterfaceCue(mHandPromptClip, 0.74f);
+            playInterfaceCueClean(mHandPromptClip, 0.74f);
             beginHandPromptPanelAutoFade();
         }
 
@@ -589,6 +597,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyAnswerStageLayout();
             setObjectActive(mHandImage, false);
             setMouthEffectImagesActive(false, false);
+            setEyeBeamImagesActive(false);
             setObjectActive(mRitualHandImage, true);
             placeRitualHandAboveMouth();
             playInterfaceCue(mHandInsertClip, 0.68f);
@@ -667,7 +676,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, false);
             applyAnsweringFocusLayout();
-            setMouthEffectImagesActive(true, false);
+            setMouthEffectImagesActive(false, false);
+            setEyeBeamImagesActive(true);
             disableHeldHandPresentation();
             enableAnsweringPresentation();
         }
@@ -697,7 +707,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mPointerImage, false);
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, false);
-            setMouthEffectImagesActive(false, true);
+            setMouthEffectImagesActive(true, true);
+            setEyeBeamImagesActive(false);
             enableAnalyzingPresentation();
         }
 
@@ -1708,6 +1719,57 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             placeMouthEffectImagesBehindMouth();
         }
 
+        private void updateAnsweringEyeBeamImages(float slowPulse, float quickPulse)
+        {
+            if (mMouthImage == null)
+            {
+                return;
+            }
+
+            float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
+            float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
+            float beamAlpha = Mathf.Lerp(0.42f, 0.76f, Mathf.Pow(quickPulse, 1.35f));
+            Vector2 beamSize = new Vector2(mouthWidth * 0.42f, mouthHeight * 0.085f);
+            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.095f, mouthHeight * 0.125f, slowPulse);
+            Color beamColor = new Color(1.0f, 0.54f, 0.18f, beamAlpha);
+            updateEyeBeamImage(
+                mMouthLeftEyeBeamImage,
+                new Vector2(-(mouthWidth * 0.13f), eyeYOffset),
+                beamSize,
+                beamColor,
+                -8.0f - (quickPulse * 2.0f));
+            updateEyeBeamImage(
+                mMouthRightEyeBeamImage,
+                new Vector2(mouthWidth * 0.13f, eyeYOffset),
+                beamSize,
+                beamColor,
+                8.0f + (quickPulse * 2.0f));
+        }
+
+        private void updateEyeBeamImage(
+            Image beamImage,
+            Vector2 offsetFromMouthCenter,
+            Vector2 sizeDelta,
+            Color color,
+            float rotationDegrees)
+        {
+            if (beamImage == null || beamImage.gameObject.activeSelf == false || mMouthImage == null)
+            {
+                return;
+            }
+
+            RectTransform mouthRectTransform = mMouthImage.rectTransform;
+            RectTransform beamRectTransform = beamImage.rectTransform;
+            beamRectTransform.anchorMin = mouthRectTransform.anchorMin;
+            beamRectTransform.anchorMax = mouthRectTransform.anchorMax;
+            beamRectTransform.anchoredPosition = mouthRectTransform.anchoredPosition + offsetFromMouthCenter;
+            beamRectTransform.sizeDelta = sizeDelta;
+            beamRectTransform.localScale = Vector3.one;
+            beamRectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, rotationDegrees);
+            beamImage.color = color;
+            placeEyeBeamImagesAboveMouth();
+        }
+
         private void syncMouthEffectImageLayout(Image effectImage, float sizeMultiplier)
         {
             if (effectImage == null || mMouthImage == null)
@@ -1731,6 +1793,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             placeMouthEffectImagesBehindMouth();
         }
 
+        private void setEyeBeamImagesActive(bool isActive)
+        {
+            setObjectActive(mMouthLeftEyeBeamImage, isActive);
+            setObjectActive(mMouthRightEyeBeamImage, isActive);
+            placeEyeBeamImagesAboveMouth();
+        }
+
         private void placeMouthEffectImagesBehindMouth()
         {
             if (mMouthImage == null)
@@ -1748,6 +1817,27 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 && mMouthAnalyzingAuraImage.transform.GetSiblingIndex() > mMouthImage.transform.GetSiblingIndex())
             {
                 mMouthAnalyzingAuraImage.transform.SetSiblingIndex(mMouthImage.transform.GetSiblingIndex());
+            }
+        }
+
+        private void placeEyeBeamImagesAboveMouth()
+        {
+            if (mMouthImage == null)
+            {
+                return;
+            }
+
+            int mouthSiblingIndex = mMouthImage.transform.GetSiblingIndex();
+            int targetSiblingIndex = Mathf.Min(mCanvasRootTransform.childCount - 1, mouthSiblingIndex + 1);
+
+            if (mMouthLeftEyeBeamImage != null)
+            {
+                mMouthLeftEyeBeamImage.transform.SetSiblingIndex(targetSiblingIndex);
+            }
+
+            if (mMouthRightEyeBeamImage != null)
+            {
+                mMouthRightEyeBeamImage.transform.SetSiblingIndex(targetSiblingIndex);
             }
         }
 
@@ -2043,6 +2133,26 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 Color.clear);
             mMouthAnalyzingAuraImage.sprite = createRingGlowSprite();
             mMouthAnalyzingAuraImage.raycastTarget = false;
+            mMouthLeftEyeBeamImage = createImage(
+                "MouthLeftEyeBeam",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.50f),
+                new Vector2(0.5f, 0.50f),
+                new Vector2(0.0f, 60.0f),
+                new Vector2(360.0f, 72.0f),
+                Color.clear);
+            mMouthLeftEyeBeamImage.sprite = createEyeBeamSprite();
+            mMouthLeftEyeBeamImage.raycastTarget = false;
+            mMouthRightEyeBeamImage = createImage(
+                "MouthRightEyeBeam",
+                mCanvasRootTransform,
+                new Vector2(0.5f, 0.50f),
+                new Vector2(0.5f, 0.50f),
+                new Vector2(0.0f, 60.0f),
+                new Vector2(360.0f, 72.0f),
+                Color.clear);
+            mMouthRightEyeBeamImage.sprite = createEyeBeamSprite();
+            mMouthRightEyeBeamImage.raycastTarget = false;
             placeMouthEffectImagesBehindMouth();
             mHandImage = createImage(
                 "HeldPointer",
@@ -2182,6 +2292,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTutorialBodyText, false);
             setObjectActive(mTutorialStepText, false);
             setMouthEffectImagesActive(false, false);
+            setEyeBeamImagesActive(false);
             mLoadingOverlayImage = createFullScreenImage("LoadingOverlay", mCanvasRootTransform, Color.black);
             mLoadingOverlayImage.transform.SetAsLastSibling();
             mLoadingOverlayImage.raycastTarget = true;
@@ -2348,6 +2459,39 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             texture.SetPixels(pixels);
             texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
             return Sprite.Create(texture, new Rect(0.0f, 0.0f, TEXTURE_SIZE, TEXTURE_SIZE), new Vector2(0.5f, 0.5f), TEXTURE_SIZE);
+        }
+
+        private static Sprite createEyeBeamSprite()
+        {
+            const int TEXTURE_WIDTH = 256;
+            const int TEXTURE_HEIGHT = 48;
+            Texture2D texture = new Texture2D(TEXTURE_WIDTH, TEXTURE_HEIGHT, TextureFormat.RGBA32, mipChain: false);
+            texture.hideFlags = HideFlags.DontSave;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            Color[] pixels = new Color[TEXTURE_WIDTH * TEXTURE_HEIGHT];
+            float horizontalCenter = (TEXTURE_WIDTH - 1.0f) * 0.5f;
+            float verticalCenter = (TEXTURE_HEIGHT - 1.0f) * 0.5f;
+
+            for (int y = 0; y < TEXTURE_HEIGHT; y += 1)
+            {
+                for (int x = 0; x < TEXTURE_WIDTH; x += 1)
+                {
+                    float horizontalDistance = Mathf.Abs(x - horizontalCenter) / horizontalCenter;
+                    float verticalDistance = Mathf.Abs(y - verticalCenter) / verticalCenter;
+                    float beamCore = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 2.6f);
+                    float beamFalloff = Mathf.Pow(Mathf.Clamp01(1.0f - horizontalDistance), 0.65f);
+                    pixels[(y * TEXTURE_WIDTH) + x] = new Color(1.0f, 1.0f, 1.0f, beamCore * beamFalloff);
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+            return Sprite.Create(
+                texture,
+                new Rect(0.0f, 0.0f, TEXTURE_WIDTH, TEXTURE_HEIGHT),
+                new Vector2(0.5f, 0.5f),
+                TEXTURE_WIDTH);
         }
 
         private Image createImage(
@@ -2906,6 +3050,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void disableAnsweringPresentation()
         {
             mIsAnsweringPresentationActive = false;
+            setEyeBeamImagesActive(false);
 
             if (mQuestionPanelImage != null)
             {
@@ -2938,6 +3083,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void disableAnalyzingPresentation()
         {
             mIsAnalyzingPresentationActive = false;
+            setEyeBeamImagesActive(false);
 
             if (mMouthImage != null)
             {
@@ -2992,6 +3138,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 safeVolumeScale *= INTERFACE_AUDIO_OVERLAP_DUCK_SCALE;
             }
 
+            mInterfaceAudioSource.PlayOneShot(audioClip, safeVolumeScale);
+        }
+
+        private void playInterfaceCueClean(AudioClip audioClip, float volumeScale)
+        {
+            if (mInterfaceAudioSource == null || audioClip == null)
+            {
+                return;
+            }
+
+            mInterfaceAudioSource.Stop();
+            float safeVolumeScale = Mathf.Clamp(volumeScale, 0.0f, INTERFACE_AUDIO_MAX_VOLUME_SCALE);
             mInterfaceAudioSource.PlayOneShot(audioClip, safeVolumeScale);
         }
 

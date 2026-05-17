@@ -1983,23 +1983,23 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
             float beamAlpha = Mathf.Lerp(0.72f, 1.0f, Mathf.Pow(quickPulse, 1.35f));
-            Vector2 beamSize = new Vector2(mouthWidth * 0.45f, mouthHeight * 0.040f);
-            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.142f, mouthHeight * 0.156f, slowPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * 0.28f, mouthHeight * 0.032f);
+            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.112f, mouthHeight * 0.124f, slowPulse);
             Color beamColor = new Color(1.0f, 0.46f, 0.10f, beamAlpha);
             updateEyeBeamImage(
                 mMouthLeftEyeBeamImage,
-                new Vector2(-(mouthWidth * 0.112f), eyeYOffset),
+                new Vector2(-(mouthWidth * 0.090f), eyeYOffset),
                 beamSize,
                 beamColor,
-                11.0f + (quickPulse * 0.9f),
-                new Vector2(1.0f, 0.5f));
+                -34.0f - (quickPulse * 0.7f),
+                new Vector2(0.0f, 0.5f));
             updateEyeBeamImage(
                 mMouthRightEyeBeamImage,
-                new Vector2(mouthWidth * 0.112f, eyeYOffset),
+                new Vector2(mouthWidth * 0.060f, eyeYOffset),
                 beamSize,
                 beamColor,
-                -11.0f - (quickPulse * 0.9f),
-                new Vector2(0.0f, 0.5f));
+                34.0f + (quickPulse * 0.7f),
+                new Vector2(1.0f, 0.5f));
         }
 
         private void updateEyeBeamImage(
@@ -2434,7 +2434,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 60.0f),
                 new Vector2(360.0f, 72.0f),
                 Color.clear);
-            mMouthLeftEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: true);
+            mMouthLeftEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: false);
             mMouthLeftEyeBeamImage.raycastTarget = false;
             mMouthRightEyeBeamImage = createImage(
                 "MouthRightEyeBeam",
@@ -2444,7 +2444,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(0.0f, 60.0f),
                 new Vector2(360.0f, 72.0f),
                 Color.clear);
-            mMouthRightEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: false);
+            mMouthRightEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: true);
             mMouthRightEyeBeamImage.raycastTarget = false;
             placeMouthEffectImagesBehindMouth();
             mHandImage = createImage(
@@ -2775,10 +2775,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     float distanceFromSource = isSourceOnRight ? 1.0f - horizontalProgress : horizontalProgress;
                     float verticalDistance = Mathf.Abs(y - verticalCenter) / verticalCenter;
                     float beamCore = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 3.2f);
-                    float beamHalo = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 1.25f) * 0.34f;
-                    float beamFalloff = Mathf.Pow(Mathf.Clamp01(1.0f - distanceFromSource), 0.58f);
+                    float beamHalo = Mathf.Pow(Mathf.Clamp01(1.0f - verticalDistance), 1.18f) * 0.22f;
+                    float beamFalloff = Mathf.Pow(Mathf.Clamp01(1.0f - distanceFromSource), 0.96f);
                     float sourceFlare = Mathf.Pow(Mathf.Clamp01(1.0f - (distanceFromSource * 6.5f)), 2.0f);
-                    float alpha = ((beamCore * 0.82f) + beamHalo + (sourceFlare * 0.38f)) * beamFalloff;
+                    float alpha = ((beamCore * 0.86f) + beamHalo + (sourceFlare * 0.16f)) * beamFalloff;
                     pixels[(y * TEXTURE_WIDTH) + x] = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(alpha));
                 }
             }

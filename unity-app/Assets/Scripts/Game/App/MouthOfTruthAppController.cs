@@ -225,7 +225,7 @@ namespace MouthOfTruth.Game.App
 
             await mGameView.PlayTempleApproachAsync();
             mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
-            await Task.Delay(250, mLifecycleCancellationTokenSource.Token);
+            await mGameView.PlayCardSelectionEntranceAsync();
             mGameStateMachine.MarkCardPresentationCompleted();
             mIsTransitionBusy = false;
         }
@@ -238,8 +238,8 @@ namespace MouthOfTruth.Game.App
             resetInteractionSelectionState();
             await mGameView.PlayTempleApproachAsync();
             mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
+            await mGameView.PlayCardSelectionEntranceAsync();
             beginBottomCenterPointerSettle();
-            await Task.Delay(250, mLifecycleCancellationTokenSource.Token);
             mGameStateMachine.MarkCardPresentationCompleted();
             mIsTransitionBusy = false;
         }

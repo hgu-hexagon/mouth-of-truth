@@ -55,8 +55,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
-        private const float TEMPLE_APPROACH_DURATION_SECONDS = 4.45f;
-        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.55f;
+        private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.15f;
+        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 1.05f;
+        private const float CARD_SELECTION_ENTRANCE_SECONDS = 0.82f;
+        private const float CARD_SELECTION_ENTRANCE_SETTLE_SECONDS = 0.22f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
         private const float INTERFACE_AUDIO_VOLUME = 0.78f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
@@ -435,9 +437,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 templeApproachCameraRectTransform,
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
-                new Vector2(0.0f, 90.0f),
-                new Vector2(300.0f, 300.0f),
-                new Color(1.0f, 1.0f, 1.0f, 0.78f));
+                new Vector2(0.0f, 162.0f),
+                new Vector2(232.0f, 232.0f),
+                new Color(1.0f, 1.0f, 1.0f, 0.82f));
             approachMouthImage.sprite = mMouthImage.sprite;
             approachMouthImage.raycastTarget = false;
             setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.42f);
@@ -446,17 +448,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 TEMPLE_APPROACH_DURATION_SECONDS,
                 progress =>
                 {
-                    float walkProgress = easeInOut(Mathf.Clamp01(progress / 0.62f));
-                    float stairProgress = easeInOut(Mathf.Clamp01((progress - 0.48f) / 0.52f));
-                    float arrivalProgress = easeOut(Mathf.Clamp01((progress - 0.76f) / 0.24f));
-                    float walkingBob = Mathf.Sin(progress * Mathf.PI * 7.0f) * (1.0f - stairProgress) * 2.8f;
-                    float stairBob = Mathf.Sin(stairProgress * Mathf.PI * 4.0f) * stairProgress * (1.0f - arrivalProgress) * 3.6f;
+                    float walkProgress = easeInOut(Mathf.Clamp01(progress / 0.68f));
+                    float stairProgress = easeInOut(Mathf.Clamp01((progress - 0.58f) / 0.42f));
+                    float arrivalProgress = easeOut(Mathf.Clamp01((progress - 0.82f) / 0.18f));
+                    float walkingBob = Mathf.Sin(progress * Mathf.PI * 6.0f) * (1.0f - stairProgress) * 1.8f;
+                    float stairBob = Mathf.Sin(stairProgress * Mathf.PI * 3.0f) * stairProgress * (1.0f - arrivalProgress) * 2.2f;
 
-                    float cameraScale = Mathf.Lerp(1.0f, 1.42f, Mathf.Lerp(walkProgress * 0.58f, 1.0f, stairProgress));
-                    float cameraYOffset = Mathf.Lerp(0.0f, -62.0f, stairProgress) + walkingBob + stairBob;
+                    float cameraScale = Mathf.Lerp(1.0f, 1.38f, Mathf.Lerp(walkProgress * 0.56f, 1.0f, stairProgress));
+                    float cameraYOffset = Mathf.Lerp(0.0f, -50.0f, stairProgress) + walkingBob + stairBob;
                     templeApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
                     templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, cameraYOffset);
-                    approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.78f, 1.0f, stairProgress));
+                    approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.82f, 1.0f, stairProgress));
                     setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.42f, 0.16f, arrivalProgress));
                 });
 
@@ -465,11 +467,55 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float pulse = Mathf.Sin(progress * Mathf.PI);
-                    templeApproachCameraRectTransform.localScale = Vector3.one * (1.42f + (pulse * 0.006f));
+                    templeApproachCameraRectTransform.localScale = Vector3.one * (1.38f + (pulse * 0.004f));
                     setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.16f, 0.20f, pulse));
                 });
             Destroy(templeApproachCameraObject);
             resetStageMotionTransforms();
+        }
+
+        public async Task PlayCardSelectionEntranceAsync()
+        {
+            setObjectActive(mPromptText, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.30f);
+
+            foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
+            {
+                pair.Value.SetAlpha(0.0f);
+                pair.Value.SetScale(0.92f);
+            }
+
+            await animateOverTimeAsync(
+                CARD_SELECTION_ENTRANCE_SECONDS,
+                progress =>
+                {
+                    float overlayProgress = easeOut(progress);
+                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.30f, 0.08f, overlayProgress));
+
+                    foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
+                    {
+                        float cardProgress = easeOut(Mathf.Clamp01((progress - getCardEntranceDelay(pair.Key)) / 0.70f));
+                        pair.Value.SetAlpha(cardProgress);
+                        pair.Value.SetScale(Mathf.Lerp(0.92f, 1.0f, cardProgress));
+                    }
+                });
+
+            await animateOverTimeAsync(
+                CARD_SELECTION_ENTRANCE_SETTLE_SECONDS,
+                progress =>
+                {
+                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.08f, 0.0f, easeOut(progress)));
+                });
+
+            foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
+            {
+                pair.Value.SetAlpha(1.0f);
+                pair.Value.SetScale(1.0f);
+            }
+
+            setObjectActive(mSceneOverlayImage, false);
+            setObjectActive(mPromptText, true);
         }
 
         public void UpdateCardHoverVisual(EQuestionCardSlot? hoveredQuestionCardSlot, float hoverProgress)
@@ -1627,6 +1673,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Vector2 getCenteredCardRevealPosition()
         {
             return getCardAnchorPosition(EQuestionCardSlot.CenterCard) + new Vector2(0.0f, 10.0f);
+        }
+
+        private static float getCardEntranceDelay(EQuestionCardSlot questionCardSlot)
+        {
+            return questionCardSlot switch
+            {
+                EQuestionCardSlot.LeftCard => 0.04f,
+                EQuestionCardSlot.CenterCard => 0.00f,
+                EQuestionCardSlot.RightCard => 0.08f,
+                _ => 0.0f,
+            };
         }
 
         private Vector2 getCardAnchorPosition(EQuestionCardSlot questionCardSlot)

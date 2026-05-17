@@ -55,6 +55,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
+        private const float TEMPLE_APPROACH_DURATION_SECONDS = 1.55f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
         private const float INTERFACE_AUDIO_VOLUME = 0.78f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
@@ -268,6 +269,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
+            resetStageMotionTransforms();
             applyStartScreenLayout();
             configureExitButtonAsTopLeftIcon();
             mBackgroundImage.sprite = mTitleBackgroundSprite;
@@ -313,6 +315,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
+            resetStageMotionTransforms();
             applyCardSelectionLayout();
             configureExitButtonAsTopLeftIcon();
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
@@ -358,6 +361,75 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mLastAudibleHoveredCardSlot = null;
             mLastHoveredUiActionTarget = null;
             mLastCardHoverCueTimeSeconds = -999.0f;
+        }
+
+        public async Task PlayTempleApproachAsync()
+        {
+            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            disableAnsweringPresentation();
+            disableAnalyzingPresentation();
+            disableHeldHandPresentation();
+            resetStageMotionTransforms();
+            applyCardSelectionLayout();
+            configureExitButtonAsTopLeftIcon();
+            mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
+            setBackgroundTint(STAGE_BACKGROUND_TINT);
+            setObjectActive(mBackgroundImage, true);
+            setObjectActive(mCarpetImage, true);
+            setObjectActive(mMouthImage, true);
+            setObjectActive(mSceneOverlayImage, true);
+            setObjectActive(mLogoImage, false);
+            setObjectActive(mTitleVignetteImage, false);
+            setObjectActive(mStartButton, false);
+            setObjectActive(mExitButton, true);
+            setObjectActive(mQuestionText, false);
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mStatusPanelImage, false);
+            setObjectActive(mResultPanelImage, false);
+            setObjectActive(mPromptText, false);
+            setObjectActive(mStatusText, false);
+            setObjectActive(mAnswerTimerText, false);
+            setObjectActive(mAnswerInputField, false);
+            setMouthEffectImagesActive(false, false);
+            setEyeBeamImagesActive(false);
+            setObjectActive(mHandImage, false);
+            setObjectActive(mRitualHandImage, false);
+            setObjectActive(mPointerImage, false);
+            setObjectActive(mVerdictImage, false);
+            setObjectActive(mVerdictText, false);
+            setObjectActive(mTryAgainButton, false);
+            setObjectActive(mBackToTitleButton, false);
+            setCardsVisible(false);
+
+            RectTransform backgroundRectTransform = mBackgroundImage.rectTransform;
+            RectTransform carpetRectTransform = mCarpetImage.rectTransform;
+            RectTransform mouthRectTransform = mMouthImage.rectTransform;
+            setRectTransformLayout(mMouthImage.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(390.0f, 390.0f));
+            mMouthImage.rectTransform.anchoredPosition = new Vector2(0.0f, 82.0f);
+            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.36f);
+
+            Vector2 carpetStartPosition = new Vector2(0.0f, 218.0f);
+            Vector2 carpetEndPosition = new Vector2(0.0f, 155.0f);
+
+            await animateOverTimeAsync(
+                TEMPLE_APPROACH_DURATION_SECONDS,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    float revealPulse = Mathf.Sin(easedProgress * Mathf.PI);
+                    backgroundRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.075f, easedProgress);
+                    carpetRectTransform.anchoredPosition = Vector2.Lerp(carpetStartPosition, carpetEndPosition, easedProgress);
+                    carpetRectTransform.localScale = Vector3.one * Mathf.Lerp(0.96f, 1.08f, easedProgress);
+                    mCarpetImage.color = new Color(0.62f, 0.56f, 0.52f, Mathf.Lerp(0.60f, 0.86f, easedProgress));
+                    mouthRectTransform.anchoredPosition = Vector2.Lerp(new Vector2(0.0f, 82.0f), Vector2.zero, easedProgress);
+                    mouthRectTransform.localScale = Vector3.one * Mathf.Lerp(0.84f, 1.0f + (revealPulse * 0.025f), easedProgress);
+                    mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.0f, 0.96f, easeOut(easedProgress)));
+                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.36f, 0.16f, easedProgress));
+                });
+
+            await animateOverTimeAsync(0.18f, _ => { });
+            resetStageMotionTransforms();
         }
 
         public void UpdateCardHoverVisual(EQuestionCardSlot? hoveredQuestionCardSlot, float hoverProgress)
@@ -2004,6 +2076,38 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             mBackgroundImage.color = tintColor;
+        }
+
+        private void resetStageMotionTransforms()
+        {
+            if (mBackgroundImage != null)
+            {
+                RectTransform backgroundRectTransform = mBackgroundImage.rectTransform;
+                backgroundRectTransform.anchorMin = Vector2.zero;
+                backgroundRectTransform.anchorMax = Vector2.one;
+                backgroundRectTransform.offsetMin = Vector2.zero;
+                backgroundRectTransform.offsetMax = Vector2.zero;
+                backgroundRectTransform.anchoredPosition = Vector2.zero;
+                backgroundRectTransform.localScale = Vector3.one;
+                backgroundRectTransform.localRotation = Quaternion.identity;
+            }
+
+            if (mCarpetImage != null)
+            {
+                RectTransform carpetRectTransform = mCarpetImage.rectTransform;
+                carpetRectTransform.anchorMin = new Vector2(0.5f, 0.0f);
+                carpetRectTransform.anchorMax = new Vector2(0.5f, 0.0f);
+                carpetRectTransform.anchoredPosition = new Vector2(0.0f, 218.0f);
+                carpetRectTransform.sizeDelta = new Vector2(1010.0f, 430.0f);
+                carpetRectTransform.localScale = Vector3.one;
+                carpetRectTransform.localRotation = Quaternion.identity;
+                mCarpetImage.color = new Color(0.62f, 0.56f, 0.52f, 0.84f);
+            }
+
+            if (mMouthImage != null)
+            {
+                mMouthImage.rectTransform.localRotation = Quaternion.identity;
+            }
         }
 
         private void setRectTransformLayout(

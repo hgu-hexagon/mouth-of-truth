@@ -26,7 +26,7 @@ namespace MouthOfTruth.Game.App
         private const float CARD_SELECTION_DWELL_SECONDS = 2.1f;
         private const float UI_ACTION_DWELL_SECONDS = 1.05f;
         private const float POINTER_REACQUIRE_GUARD_SECONDS = 0.45f;
-        private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 2.2f;
+        private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 0.0f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
 

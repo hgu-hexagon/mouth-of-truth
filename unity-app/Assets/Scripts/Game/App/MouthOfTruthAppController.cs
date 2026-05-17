@@ -90,14 +90,19 @@ namespace MouthOfTruth.Game.App
                 return;
             }
 
-            if (mIsTransitionBusy || mIsPresentationCaptureRunning)
-            {
-                return;
-            }
-
             bool canAcceptPointerActivation = mPointerPresentationOverrideRemainingSeconds <= 0.0f
                 && updatePointerActivationGuard(pointerScreenPosition);
             Vector2? activatablePointerScreenPosition = canAcceptPointerActivation ? pointerScreenPosition : null;
+
+            if (mIsTransitionBusy || mIsPresentationCaptureRunning)
+            {
+                if (mGameView.IsFirstRunTutorialVisible)
+                {
+                    updateUiActionSelection(activatablePointerScreenPosition);
+                }
+
+                return;
+            }
 
             if (updateUiActionSelection(activatablePointerScreenPosition))
             {
@@ -230,6 +235,7 @@ namespace MouthOfTruth.Game.App
             resetAnswerTracking();
             resetInteractionSelectionState();
             mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
+            beginBottomCenterPointerSettle();
             await Task.Delay(250, mLifecycleCancellationTokenSource.Token);
             mGameStateMachine.MarkCardPresentationCompleted();
             mIsTransitionBusy = false;
@@ -394,6 +400,7 @@ namespace MouthOfTruth.Game.App
                 && isCinematicTransition == false
                 && (
                     mGameStateMachine.CurrentState == EGameFlowState.StartScreen
+                    || mGameView.IsFirstRunTutorialVisible
                     || mGameStateMachine.CurrentState == EGameFlowState.AwaitingCardSelection
                     || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult
                     || mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion

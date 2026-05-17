@@ -157,6 +157,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mBackToTitleRequested;
         private bool mExitRequested;
 
+        public bool IsFirstRunTutorialVisible { get; private set; }
+
         [Serializable]
         private sealed class TutorialSequenceMetadata
         {
@@ -482,6 +484,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public async Task PlayFirstRunTutorialAsync()
         {
             float tutorialDurationSeconds = getFirstRunTutorialDurationSeconds() * FIRST_RUN_TUTORIAL_DURATION_SCALE;
+            IsFirstRunTutorialVisible = true;
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mTutorialOverlayImage, true);
             setObjectActive(mTutorialDevicePanelImage, true);
@@ -493,6 +496,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mBackToTitleButton, false);
             setObjectActive(mExitButton, true);
+            mTutorialOverlayImage.color = new Color(0.078f, 0.080f, 0.090f, 1.0f);
+            mTutorialDevicePanelImage.color = new Color(0.145f, 0.148f, 0.162f, 0.97f);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
@@ -516,7 +521,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         ? Vector2.Lerp(hoverStartPosition, hoverReadyPosition, easeOut(firstSegmentProgress))
                         : getTutorialScanPosition(secondSegmentProgress);
                     handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.02f, easeOut(firstSegmentProgress));
-                    mTutorialOverlayImage.color = new Color(0.055f, 0.056f, 0.064f, 1.0f);
+                    mTutorialOverlayImage.color = new Color(0.078f, 0.080f, 0.090f, 1.0f);
                     setText(mTutorialStepText, progress < 0.48f
                         ? "1. 손을 Leap Motion 위에 자연스럽게 올립니다."
                         : "2. 왼쪽, 가운데, 오른쪽 방향을 천천히 가리킵니다.");
@@ -528,6 +533,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTutorialTitleText, false);
             setObjectActive(mTutorialBodyText, false);
             setObjectActive(mTutorialStepText, false);
+            IsFirstRunTutorialVisible = false;
         }
 
         public void ShowAwaitingHandInsertion()
@@ -1144,6 +1150,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             setObjectActive(mPointerImage, true);
+            mPointerImage.transform.SetAsLastSibling();
             RectTransform pointerRectTransform = mPointerImage.rectTransform;
             pointerRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             pointerRectTransform.anchorMax = new Vector2(0.5f, 0.5f);

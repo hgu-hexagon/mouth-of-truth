@@ -16,6 +16,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Image mGlowImage;
         private Image mProgressImage;
         private Text mQuestionText;
+        private Shadow mQuestionTextInkBoost;
         private CanvasGroup mCanvasGroup;
         private RectTransform mRectTransform;
         private Vector2 mDefaultAnchoredPosition;
@@ -104,6 +105,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mQuestionText.resizeTextMinSize = QUESTION_TEXT_MINIMUM_FONT_SIZE;
             mQuestionText.resizeTextMaxSize = QUESTION_TEXT_MAXIMUM_FONT_SIZE;
             mQuestionText.raycastTarget = false;
+            mQuestionText.material = Graphic.defaultGraphicMaterial;
+            mQuestionTextInkBoost = textObject.AddComponent<Shadow>();
+            mQuestionTextInkBoost.effectColor = Color.black;
+            mQuestionTextInkBoost.effectDistance = Vector2.zero;
+            mQuestionTextInkBoost.useGraphicAlpha = false;
             setQuestionText(string.Empty);
         }
 
@@ -132,9 +138,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             mCardImage.type = Image.Type.Simple;
-            mCardImage.color = new Color(0.96f, 0.93f, 0.88f, 1.0f);
+            mCardImage.color = Color.white;
             mQuestionText.enabled = true;
             mQuestionText.color = Color.black;
+            mQuestionText.material = Graphic.defaultGraphicMaterial;
             mCanvasGroup.alpha = 1.0f;
             setQuestionText(questionText);
             applyQuestionTextLayout(questionText);
@@ -204,7 +211,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mQuestionText.font = containsHangul(questionText) ? mKoreanFallbackFont : mPrimaryUiFont;
             mQuestionText.color = Color.black;
+            mQuestionText.material = Graphic.defaultGraphicMaterial;
+            mQuestionText.fontStyle = FontStyle.Normal;
             mQuestionText.text = questionText;
+
+            if (mQuestionTextInkBoost != null)
+            {
+                mQuestionTextInkBoost.effectColor = Color.black;
+                mQuestionTextInkBoost.effectDistance = Vector2.zero;
+            }
         }
 
         private void applyQuestionTextLayout(string questionText)

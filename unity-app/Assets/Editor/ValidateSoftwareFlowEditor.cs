@@ -542,25 +542,25 @@ namespace MouthOfTruth.Editor
 
             assertCondition(
                 MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(82.0f, 74.0f),
+                    new Vector2(62.0f, 74.0f),
                     handFrontPosition,
                     handInnerPosition,
                     MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtFrontAnchor,
-                "Loose Leap mouth intent did not resolve to the front anchor.");
+                "Leap mouth intent near the front anchor did not resolve.");
             assertCondition(
                 MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(72.0f, 142.0f),
+                    new Vector2(58.0f, 142.0f),
                     handFrontPosition,
                     handInnerPosition,
                     MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtInnerAnchor,
-                "Loose Leap mouth intent did not resolve to the inner anchor.");
+                "Leap mouth intent near the inner anchor did not resolve.");
             assertCondition(
                 MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(150.0f, 100.0f),
+                    new Vector2(96.0f, 100.0f),
                     handFrontPosition,
                     handInnerPosition,
                     MOUTH_DIAMETER_PIXELS) == EHandAnchorState.OutsideMouth,
-                "Far off-center Leap mouth intent was accepted too broadly.");
+                "Off-mouth Leap intent was accepted too broadly.");
         }
 
         private static void validatePythonBridgeRoundTrip()

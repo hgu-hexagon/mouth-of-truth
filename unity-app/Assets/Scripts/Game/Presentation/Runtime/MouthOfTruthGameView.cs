@@ -55,7 +55,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
-        private const float TEMPLE_APPROACH_DURATION_SECONDS = 1.55f;
+        private const float TEMPLE_APPROACH_DURATION_SECONDS = 3.65f;
+        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.42f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
         private const float INTERFACE_AUDIO_VOLUME = 0.78f;
         private const float INTERFACE_AUDIO_MAX_VOLUME_SCALE = 0.74f;
@@ -404,31 +405,48 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             RectTransform backgroundRectTransform = mBackgroundImage.rectTransform;
             RectTransform carpetRectTransform = mCarpetImage.rectTransform;
             RectTransform mouthRectTransform = mMouthImage.rectTransform;
-            setRectTransformLayout(mMouthImage.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(390.0f, 390.0f));
-            mMouthImage.rectTransform.anchoredPosition = new Vector2(0.0f, 82.0f);
-            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.36f);
+            setRectTransformLayout(mouthRectTransform, new Vector2(0.5f, 0.58f), new Vector2(340.0f, 340.0f));
+            mouthRectTransform.anchoredPosition = new Vector2(0.0f, 118.0f);
+            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.58f);
+            setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), 0.40f);
 
             Vector2 carpetStartPosition = new Vector2(0.0f, 218.0f);
-            Vector2 carpetEndPosition = new Vector2(0.0f, 155.0f);
+            Vector2 carpetArrivalPosition = new Vector2(0.0f, 30.0f);
+            Vector2 carpetExitPosition = new Vector2(0.0f, -250.0f);
+            Vector2 mouthStartPosition = new Vector2(0.0f, 118.0f);
+            Vector2 mouthArrivalPosition = new Vector2(0.0f, 8.0f);
 
             await animateOverTimeAsync(
                 TEMPLE_APPROACH_DURATION_SECONDS,
                 progress =>
                 {
-                    float easedProgress = easeInOut(progress);
-                    float revealPulse = Mathf.Sin(easedProgress * Mathf.PI);
-                    backgroundRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.075f, easedProgress);
-                    carpetRectTransform.anchoredPosition = Vector2.Lerp(carpetStartPosition, carpetEndPosition, easedProgress);
-                    carpetRectTransform.localScale = Vector3.one * Mathf.Lerp(0.96f, 1.08f, easedProgress);
-                    mCarpetImage.color = new Color(0.62f, 0.56f, 0.52f, Mathf.Lerp(0.60f, 0.86f, easedProgress));
-                    mouthRectTransform.anchoredPosition = Vector2.Lerp(new Vector2(0.0f, 82.0f), Vector2.zero, easedProgress);
-                    mouthRectTransform.localScale = Vector3.one * Mathf.Lerp(0.84f, 1.0f + (revealPulse * 0.025f), easedProgress);
-                    mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.0f, 0.96f, easeOut(easedProgress)));
-                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.36f, 0.16f, easedProgress));
+                    float climbProgress = easeInOut(progress);
+                    float arrivalProgress = easeInOut(Mathf.Clamp01((progress - 0.64f) / 0.36f));
+                    float carpetPassProgress = easeInOut(Mathf.Clamp01((progress - 0.48f) / 0.52f));
+                    float revealPulse = Mathf.Sin(climbProgress * Mathf.PI);
+                    backgroundRectTransform.anchoredPosition = new Vector2(0.0f, Mathf.Lerp(0.0f, -78.0f, climbProgress));
+                    backgroundRectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.18f, climbProgress);
+                    carpetRectTransform.anchoredPosition = Vector2.Lerp(
+                        Vector2.Lerp(carpetStartPosition, carpetArrivalPosition, climbProgress),
+                        carpetExitPosition,
+                        carpetPassProgress);
+                    carpetRectTransform.localScale = Vector3.one * Mathf.Lerp(0.96f, 1.62f, climbProgress);
+                    mCarpetImage.color = new Color(0.62f, 0.56f, 0.52f, Mathf.Lerp(0.82f, 0.0f, carpetPassProgress));
+                    mouthRectTransform.anchoredPosition = Vector2.Lerp(mouthStartPosition, mouthArrivalPosition, climbProgress);
+                    mouthRectTransform.sizeDelta = Vector2.Lerp(new Vector2(340.0f, 340.0f), new Vector2(560.0f, 560.0f), climbProgress);
+                    mouthRectTransform.localScale = Vector3.one * (Mathf.Lerp(0.88f, 1.04f, climbProgress) + (revealPulse * 0.018f));
+                    mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.58f, 0.98f, climbProgress));
+                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.40f, 0.13f, arrivalProgress));
                 });
 
-            await animateOverTimeAsync(0.18f, _ => { });
+            await animateOverTimeAsync(
+                TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS,
+                progress =>
+                {
+                    float pulse = Mathf.Sin(progress * Mathf.PI);
+                    mouthRectTransform.localScale = Vector3.one * (1.04f + (pulse * 0.012f));
+                    setOverlayTint(new Color(0.020f, 0.014f, 0.010f, 1.0f), Mathf.Lerp(0.13f, 0.17f, pulse));
+                });
             resetStageMotionTransforms();
         }
 

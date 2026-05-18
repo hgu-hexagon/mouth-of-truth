@@ -61,6 +61,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.68f;
         private const float TEMPLE_APPROACH_STAIR_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS - TEMPLE_APPROACH_FORWARD_DURATION_SECONDS;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.80f;
+        private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
+        private const float TEMPLE_STAGE_MOUTH_BLEND_SECONDS = 0.38f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 2.25f;
         private const float TEMPLE_APPROACH_END_Y_OFFSET = -168.0f;
@@ -90,10 +92,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Color STAGE_CARPET_TINT = new Color(0.58f, 0.52f, 0.48f, 0.82f);
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_POSITION = new Vector2(0.0f, 90.0f);
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
+        private static readonly Vector2 HAND_FRONT_OFFSET_FACTOR =
+            (FALLBACK_HAND_FRONT_POSITION - FALLBACK_MOUTH_POSITION) / 430.0f;
+        private static readonly Vector2 HAND_INNER_OFFSET_FACTOR =
+            (FALLBACK_HAND_INNER_POSITION - FALLBACK_MOUTH_POSITION) / 430.0f;
 
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
         private readonly Vector3[] mHitTestWorldCorners = new Vector3[4];
+        private readonly Vector3[] mTempleMouthWorldCorners = new Vector3[4];
 
         private Canvas mCanvas;
         private RectTransform mCanvasRootRectTransform;
@@ -346,6 +353,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             bool isTempleApproachSceneVisible = mTempleApproachCameraObject != null;
             setObjectActive(mBackgroundImage, isTempleApproachSceneVisible == false);
             setObjectActive(mCarpetImage, isTempleApproachSceneVisible == false);
+
+            if (isTempleApproachSceneVisible)
+            {
+                setTempleApproachMouthAlpha(0.0f);
+            }
+
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, true);
@@ -448,6 +461,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mTempleApproachCameraRectTransform.localScale = Vector3.one * TEMPLE_APPROACH_STAIR_START_SCALE;
             mTempleApproachCameraRectTransform.anchoredPosition = Vector2.zero;
             setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
+            await fadeTempleApproachMouthAsync(0.0f, TEMPLE_APPROACH_MOUTH_HIDE_SECONDS);
         }
 
         public async Task PlayTempleApproachToMouthAsync()
@@ -481,6 +495,33 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     mTempleApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET);
                     setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
                 });
+        }
+
+        public async Task BlendTempleApproachMouthIntoStageMouthAsync()
+        {
+            if (isTempleApproachSceneActive() == false)
+            {
+                return;
+            }
+
+            setObjectActive(mBackgroundImage, false);
+            setObjectActive(mCarpetImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
+            setObjectActive(mMouthImage, true);
+            applyTempleApproachMouthLayoutToStageMouth(0.0f);
+
+            await animateOverTimeAsync(
+                TEMPLE_STAGE_MOUTH_BLEND_SECONDS,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    setTempleApproachMouthAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
+                    applyTempleApproachMouthLayoutToStageMouth(easedProgress);
+                });
+
+            setTempleApproachMouthAlpha(0.0f);
+            applyTempleApproachMouthLayoutToStageMouth(1.0f);
         }
 
         private void createTempleApproachScene()
@@ -738,7 +779,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.82f, easedProgress));
                     selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
 
-                    if (isTempleApproachSceneVisible == false)
+                    if (isTempleApproachSceneVisible)
+                    {
+                        setTempleApproachMouthAlpha(Mathf.Lerp(0.0f, 0.90f, easeOut(easedProgress)));
+                    }
+                    else
                     {
                         mMouthImage.rectTransform.localScale =
                             Vector3.one * Mathf.Lerp(0.94f, 1.0f, easedProgress);
@@ -746,6 +791,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 });
 
             setCardsVisible(false);
+            setTempleApproachMouthAlpha(isTempleApproachSceneVisible ? 0.90f : 0.0f);
             selectedCardView.SetAlpha(1.0f);
             selectedCardView.ResetTransformState();
             await animateOverTimeAsync(HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS, _ => { });
@@ -812,12 +858,23 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
-            destroyTempleApproachScene();
-            applyAwaitingHandInsertionLayout();
-            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, false);
+            bool isTempleSceneActive = isTempleApproachSceneActive();
+
+            if (isTempleSceneActive)
+            {
+                applyTempleStageBackgroundPresentation(0.26f);
+                applyTempleApproachMouthLayoutToStageMouth(1.0f);
+                applyHandPromptPanelLayout();
+            }
+            else
+            {
+                applyAwaitingHandInsertionLayout();
+                mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+                setBackgroundTint(STAGE_BACKGROUND_TINT);
+                setObjectActive(mBackgroundImage, true);
+                setObjectActive(mCarpetImage, false);
+            }
+
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.26f);
             configureExitButtonAsTopLeftIcon();
@@ -839,7 +896,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.text = string.Empty;
             mAnswerInputField.interactable = false;
             setText(mQuestionText, "“손을 내밀고, 진실을 답하라.”");
-            applyMouthAnchoredLayout();
+            if (isTempleSceneActive == false)
+            {
+                applyMouthAnchoredLayout();
+            }
+
             setHandVisual(0.0f);
             playInterfaceCueClean(mHandPromptClip, 0.74f);
             beginHandPromptPanelAutoFade();
@@ -850,7 +911,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             hideHandPromptPanelImmediately();
             disableAnsweringPresentation();
             disableHeldHandPresentation();
-            applyAnswerStageLayout();
+            if (isTempleApproachSceneActive())
+            {
+                applyTempleStageBackgroundPresentation(0.30f);
+                applyTopLeftExitButtonLayout();
+            }
+            else
+            {
+                applyAnswerStageLayout();
+            }
+
             setObjectActive(mHandImage, false);
             setMouthEffectImagesActive(false, false);
             setEyeBeamImagesActive(false);
@@ -914,11 +984,20 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             hideHandPromptPanelImmediately();
             disableAnalyzingPresentation();
-            applyAnswerStageLayout();
-            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, false);
+            if (isTempleApproachSceneActive())
+            {
+                applyTempleStageBackgroundPresentation(0.28f);
+                applyTopLeftExitButtonLayout();
+            }
+            else
+            {
+                applyAnswerStageLayout();
+                mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+                setBackgroundTint(STAGE_BACKGROUND_TINT);
+                setObjectActive(mBackgroundImage, true);
+                setObjectActive(mCarpetImage, false);
+            }
+
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.28f);
             configureExitButtonAsTopLeftIcon();
@@ -943,12 +1022,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             hideHandPromptPanelImmediately();
             disableAnsweringPresentation();
             disableHeldHandPresentation();
-            applyAnswerStageLayout();
+            if (isTempleApproachSceneActive())
+            {
+                applyTempleStageBackgroundPresentation(0.34f);
+                applyTopLeftExitButtonLayout();
+            }
+            else
+            {
+                applyAnswerStageLayout();
+                mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+                setBackgroundTint(STAGE_BACKGROUND_TINT);
+                setObjectActive(mBackgroundImage, true);
+                setObjectActive(mCarpetImage, false);
+            }
+
             applyAnsweringFocusLayout();
-            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, false);
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.34f);
@@ -1055,10 +1143,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyResultLayout(verdictKind);
             configureExitButtonAsTopLeftIcon();
             setCardsVisible(false);
-            mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-            setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, false);
+            if (isTempleApproachSceneActive())
+            {
+                applyTempleStageBackgroundPresentation(0.38f);
+            }
+            else
+            {
+                mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
+                setBackgroundTint(STAGE_BACKGROUND_TINT);
+                setObjectActive(mBackgroundImage, true);
+                setObjectActive(mCarpetImage, false);
+            }
+
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.38f);
@@ -1094,7 +1190,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 _ => "UNCERTAIN",
             };
             setText(mVerdictText, verdictText);
-            applyMouthAnchoredLayout();
+            if (isTempleApproachSceneActive() == false)
+            {
+                applyMouthAnchoredLayout();
+            }
+
             mMouthImage.color = Color.white;
             mMouthImage.rectTransform.localScale = Vector3.one;
             mVerdictImage.color = Color.white;
@@ -1800,6 +1900,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private Vector2 getMouthAnchorPosition()
         {
+            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out _))
+            {
+                return mouthCenter;
+            }
+
             return tryProjectWorldAnchor(
                 mMouthAnchorSet != null ? mMouthAnchorSet.TruthMouth : null,
                 FALLBACK_MOUTH_POSITION,
@@ -1822,6 +1927,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private Vector2 getHandFrontPosition()
         {
+            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
+            {
+                return mouthCenter + new Vector2(
+                    mouthSize.x * HAND_FRONT_OFFSET_FACTOR.x,
+                    mouthSize.y * HAND_FRONT_OFFSET_FACTOR.y);
+            }
+
             return tryProjectWorldAnchor(
                 mMouthAnchorSet != null ? mMouthAnchorSet.MouthFrontAnchor : null,
                 FALLBACK_HAND_FRONT_POSITION,
@@ -1832,6 +1944,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private Vector2 getHandInnerPosition()
         {
+            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
+            {
+                return mouthCenter + new Vector2(
+                    mouthSize.x * HAND_INNER_OFFSET_FACTOR.x,
+                    mouthSize.y * HAND_INNER_OFFSET_FACTOR.y);
+            }
+
             return tryProjectWorldAnchor(
                 mMouthAnchorSet != null ? mMouthAnchorSet.MouthInnerAnchor : null,
                 FALLBACK_HAND_INNER_POSITION,
@@ -1929,6 +2048,114 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.rectTransform.localScale = Vector3.one * 0.94f;
         }
 
+        private bool isTempleApproachSceneActive()
+        {
+            return mTempleApproachCameraObject != null && mTempleApproachCameraRectTransform != null;
+        }
+
+        private void applyTempleStageBackgroundPresentation(float overlayAlpha)
+        {
+            setObjectActive(mBackgroundImage, false);
+            setObjectActive(mCarpetImage, false);
+            setObjectActive(mSceneOverlayImage, true);
+            setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
+            setObjectActive(mMouthImage, true);
+            setTempleApproachMouthAlpha(0.0f);
+        }
+
+        private async Task fadeTempleApproachMouthAsync(float targetAlpha, float durationSeconds)
+        {
+            if (mTempleApproachMouthImage == null)
+            {
+                return;
+            }
+
+            float startAlpha = mTempleApproachMouthImage.color.a;
+
+            await animateOverTimeAsync(
+                durationSeconds,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    setTempleApproachMouthAlpha(Mathf.Lerp(startAlpha, targetAlpha, easedProgress));
+                });
+
+            setTempleApproachMouthAlpha(targetAlpha);
+        }
+
+        private void setTempleApproachMouthAlpha(float alpha)
+        {
+            if (mTempleApproachMouthImage == null)
+            {
+                return;
+            }
+
+            float clampedAlpha = Mathf.Clamp01(alpha);
+            mTempleApproachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, clampedAlpha);
+        }
+
+        private void applyTempleApproachMouthLayoutToStageMouth(float alpha)
+        {
+            if (mMouthImage == null || tryGetTempleApproachMouthCanvasLayout(out Vector2 center, out Vector2 size) == false)
+            {
+                return;
+            }
+
+            RectTransform mouthRectTransform = mMouthImage.rectTransform;
+            mouthRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            mouthRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            mouthRectTransform.anchoredPosition = center;
+            mouthRectTransform.sizeDelta = size;
+            mouthRectTransform.localRotation = Quaternion.identity;
+            mouthRectTransform.localScale = Vector3.one;
+            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(alpha));
+        }
+
+        private bool tryGetTempleApproachMouthCanvasLayout(out Vector2 center, out Vector2 size)
+        {
+            center = Vector2.zero;
+            size = Vector2.zero;
+
+            if (mTempleApproachMouthImage == null || mCanvasRootRectTransform == null)
+            {
+                return false;
+            }
+
+            RectTransform mouthRectTransform = mTempleApproachMouthImage.rectTransform;
+            mouthRectTransform.GetWorldCorners(mTempleMouthWorldCorners);
+            Vector2 minimum = new Vector2(float.MaxValue, float.MaxValue);
+            Vector2 maximum = new Vector2(float.MinValue, float.MinValue);
+
+            for (int index = 0; index < mTempleMouthWorldCorners.Length; index += 1)
+            {
+                Vector2 canvasPoint = mCanvasRootRectTransform.InverseTransformPoint(mTempleMouthWorldCorners[index]);
+                minimum = Vector2.Min(minimum, canvasPoint);
+                maximum = Vector2.Max(maximum, canvasPoint);
+            }
+
+            center = (minimum + maximum) * 0.5f;
+            size = maximum - minimum;
+            return size.x > 1.0f && size.y > 1.0f;
+        }
+
+        private bool tryGetActiveStageMouthLayout(out Vector2 center, out Vector2 size)
+        {
+            center = Vector2.zero;
+            size = Vector2.zero;
+
+            if (mMouthImage == null || mMouthImage.gameObject.activeInHierarchy == false)
+            {
+                return false;
+            }
+
+            RectTransform mouthRectTransform = mMouthImage.rectTransform;
+            center = mouthRectTransform.anchoredPosition;
+            size = new Vector2(
+                mouthRectTransform.rect.width * mouthRectTransform.localScale.x,
+                mouthRectTransform.rect.height * mouthRectTransform.localScale.y);
+            return size.x > 1.0f && size.y > 1.0f;
+        }
+
         private void applyCardSelectionLayout()
         {
             setRectTransformLayout(
@@ -1937,6 +2164,25 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(1080.0f, 64.0f));
             mPromptText.fontSize = 30;
             applyTopLeftExitButtonLayout();
+        }
+
+        private void applyHandPromptPanelLayout()
+        {
+            applyTopLeftExitButtonLayout();
+            setRectTransformLayout(
+                mQuestionPanelImage.rectTransform,
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1500.0f, 122.0f));
+            setRectTransformLayout(
+                mQuestionText.rectTransform,
+                new Vector2(0.5f, 0.105f),
+                new Vector2(1320.0f, 70.0f));
+            setRectTransformLayout(
+                mHandImage.rectTransform,
+                new Vector2(0.5f, 0.21f),
+                HELD_POINTER_CURSOR_SIZE_PIXELS);
+            mQuestionText.fontSize = 30;
+            mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
 
         private void applyNarrationLayout()

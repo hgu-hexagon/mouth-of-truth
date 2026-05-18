@@ -484,6 +484,7 @@ namespace MouthOfTruth.Game.App
                     selectedQuestionDefinition,
                     mLifecycleCancellationTokenSource.Token));
             await mGameView.PlayTempleApproachToMouthAsync();
+            await mGameView.BlendTempleApproachMouthIntoStageMouthAsync();
             mGameStateMachine.MarkQuestionRevealCompleted();
             mGameStateMachine.MarkQuestionNarrationCompleted();
             mGameView.ShowAwaitingHandInsertion();

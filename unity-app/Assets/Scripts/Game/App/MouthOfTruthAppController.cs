@@ -224,7 +224,7 @@ namespace MouthOfTruth.Game.App
                 await mGameView.PlayFirstRunTutorialAsync();
             }
 
-            await mGameView.PlayTempleApproachAsync();
+            await mGameView.PlayTempleApproachToCardSelectionAsync();
             mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
             await mGameView.PlayCardSelectionEntranceAsync();
             mGameStateMachine.MarkCardPresentationCompleted();
@@ -237,7 +237,7 @@ namespace MouthOfTruth.Game.App
             mGameStateMachine.TryAgain();
             resetAnswerTracking();
             resetInteractionSelectionState();
-            await mGameView.PlayTempleApproachAsync();
+            await mGameView.PlayTempleApproachToCardSelectionAsync();
             mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
             await mGameView.PlayCardSelectionEntranceAsync();
             beginBottomCenterPointerSettle();
@@ -483,6 +483,7 @@ namespace MouthOfTruth.Game.App
                 () => mQuestionNarrationService.SpeakQuestionAsync(
                     selectedQuestionDefinition,
                     mLifecycleCancellationTokenSource.Token));
+            await mGameView.PlayTempleApproachToMouthAsync();
             mGameStateMachine.MarkQuestionRevealCompleted();
             mGameStateMachine.MarkQuestionNarrationCompleted();
             mGameView.ShowAwaitingHandInsertion();
@@ -884,6 +885,7 @@ namespace MouthOfTruth.Game.App
                 QuestionDefinition selectedQuestionDefinition =
                     snapshot.CurrentRoundSelection.QuestionsBySlot[EQuestionCardSlot.CenterCard];
                 await mGameView.PlayQuestionRevealAsync(EQuestionCardSlot.CenterCard, selectedQuestionDefinition);
+                await mGameView.PlayTempleApproachToMouthAsync();
                 await waitForPresentationFrameAsync();
                 await captureScreenshotAsync(outputDirectoryPath, "04_card_launch.png");
 

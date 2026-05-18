@@ -58,8 +58,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 5.20f;
+        private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.68f;
+        private const float TEMPLE_APPROACH_STAIR_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS - TEMPLE_APPROACH_FORWARD_DURATION_SECONDS;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.80f;
-        private const float TEMPLE_APPROACH_CARD_TRANSITION_ZOOM_OUT_SECONDS = 0.38f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 2.25f;
         private const float TEMPLE_APPROACH_END_Y_OFFSET = -168.0f;
@@ -123,6 +124,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Image mMouthAnalyzingAuraImage;
         private Image mMouthLeftEyeBeamImage;
         private Image mMouthRightEyeBeamImage;
+        private GameObject mTempleApproachCameraObject;
+        private RectTransform mTempleApproachCameraRectTransform;
+        private Image mTempleApproachMouthImage;
         private Image mHandImage;
         private Image mRitualHandImage;
         private Image mPointerImage;
@@ -287,6 +291,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
+            destroyTempleApproachScene();
             resetStageMotionTransforms();
             applyStartScreenLayout();
             configureExitButtonAsTopLeftIcon();
@@ -338,8 +343,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             configureExitButtonAsTopLeftIcon();
             mBackgroundImage.sprite = mCardSelectionBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
-            setObjectActive(mBackgroundImage, true);
-            setObjectActive(mCarpetImage, true);
+            bool isTempleApproachSceneVisible = mTempleApproachCameraObject != null;
+            setObjectActive(mBackgroundImage, isTempleApproachSceneVisible == false);
+            setObjectActive(mCarpetImage, isTempleApproachSceneVisible == false);
             setObjectActive(mLogoImage, false);
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, true);
@@ -382,7 +388,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mLastCardHoverCueTimeSeconds = -999.0f;
         }
 
-        public async Task PlayTempleApproachAsync()
+        public async Task PlayTempleApproachToCardSelectionAsync()
         {
             stopHandPromptPanelAutoFade(restoreAlpha: true);
             disableAnsweringPresentation();
@@ -419,20 +425,81 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mBackToTitleButton, false);
             setCardsVisible(false);
+            createTempleApproachScene();
+            setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_START_OVERLAY_ALPHA);
 
-            GameObject templeApproachCameraObject = new GameObject("TempleApproachCameraRoot", typeof(RectTransform));
-            templeApproachCameraObject.transform.SetParent(mCanvasRootTransform, false);
-            templeApproachCameraObject.transform.SetAsFirstSibling();
-            RectTransform templeApproachCameraRectTransform = templeApproachCameraObject.GetComponent<RectTransform>();
-            templeApproachCameraRectTransform.anchorMin = Vector2.zero;
-            templeApproachCameraRectTransform.anchorMax = Vector2.one;
-            templeApproachCameraRectTransform.offsetMin = Vector2.zero;
-            templeApproachCameraRectTransform.offsetMax = Vector2.zero;
-            templeApproachCameraRectTransform.pivot = new Vector2(0.5f, 0.54f);
+            await animateOverTimeAsync(
+                TEMPLE_APPROACH_FORWARD_DURATION_SECONDS,
+                progress =>
+                {
+                    float travelProgress = easeInOut(progress);
+                    float cameraScale = Mathf.Lerp(1.0f, TEMPLE_APPROACH_STAIR_START_SCALE, travelProgress);
+                    float walkingBob = Mathf.Sin(travelProgress * Mathf.PI * 4.0f) * 0.8f;
+                    mTempleApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
+                    mTempleApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, walkingBob);
+                    mTempleApproachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.86f);
+                    float overlayAlpha = Mathf.Lerp(
+                        TEMPLE_APPROACH_START_OVERLAY_ALPHA,
+                        TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA,
+                        easeOut(progress));
+                    setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
+                });
+
+            mTempleApproachCameraRectTransform.localScale = Vector3.one * TEMPLE_APPROACH_STAIR_START_SCALE;
+            mTempleApproachCameraRectTransform.anchoredPosition = Vector2.zero;
+            setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
+        }
+
+        public async Task PlayTempleApproachToMouthAsync()
+        {
+            if (mTempleApproachCameraRectTransform == null)
+            {
+                return;
+            }
+
+            await animateOverTimeAsync(
+                TEMPLE_APPROACH_STAIR_DURATION_SECONDS,
+                progress =>
+                {
+                    float easedProgress = easeInOut(progress);
+                    float arrivalProgress = easeOut(Mathf.Clamp01((easedProgress - 0.48f) / 0.52f));
+                    float stairBob = Mathf.Sin(easedProgress * Mathf.PI * 2.0f) * easedProgress * (1.0f - arrivalProgress) * 1.8f;
+                    float cameraScale = Mathf.Lerp(TEMPLE_APPROACH_STAIR_START_SCALE, TEMPLE_APPROACH_END_SCALE, easedProgress);
+                    float cameraYOffset = Mathf.Lerp(0.0f, TEMPLE_APPROACH_END_Y_OFFSET, easedProgress) + stairBob;
+                    mTempleApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
+                    mTempleApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, cameraYOffset);
+                    mTempleApproachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.86f, 1.0f, easedProgress));
+                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
+                });
+
+            await animateOverTimeAsync(
+                TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS,
+                progress =>
+                {
+                    float pulse = Mathf.Sin(progress * Mathf.PI);
+                    mTempleApproachCameraRectTransform.localScale = Vector3.one * (TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f));
+                    mTempleApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET);
+                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
+                });
+        }
+
+        private void createTempleApproachScene()
+        {
+            destroyTempleApproachScene();
+
+            mTempleApproachCameraObject = new GameObject("TempleApproachCameraRoot", typeof(RectTransform));
+            mTempleApproachCameraObject.transform.SetParent(mCanvasRootTransform, false);
+            mTempleApproachCameraObject.transform.SetAsFirstSibling();
+            mTempleApproachCameraRectTransform = mTempleApproachCameraObject.GetComponent<RectTransform>();
+            mTempleApproachCameraRectTransform.anchorMin = Vector2.zero;
+            mTempleApproachCameraRectTransform.anchorMax = Vector2.one;
+            mTempleApproachCameraRectTransform.offsetMin = Vector2.zero;
+            mTempleApproachCameraRectTransform.offsetMax = Vector2.zero;
+            mTempleApproachCameraRectTransform.pivot = new Vector2(0.5f, 0.54f);
 
             Image approachBackgroundImage = createFullScreenImage(
                 "TempleApproachBackground",
-                templeApproachCameraRectTransform,
+                mTempleApproachCameraRectTransform,
                 mBackgroundImage.color);
             approachBackgroundImage.sprite = mBackgroundImage.sprite;
             approachBackgroundImage.type = mBackgroundImage.type;
@@ -441,7 +508,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             Image approachCarpetImage = createImage(
                 "TempleApproachCarpet",
-                templeApproachCameraRectTransform,
+                mTempleApproachCameraRectTransform,
                 new Vector2(0.5f, 0.0f),
                 new Vector2(0.5f, 0.0f),
                 STAGE_CARPET_POSITION,
@@ -450,67 +517,28 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             approachCarpetImage.sprite = mCarpetImage.sprite;
             approachCarpetImage.raycastTarget = false;
 
-            Image approachMouthImage = createImage(
+            mTempleApproachMouthImage = createImage(
                 "TempleApproachMouth",
-                templeApproachCameraRectTransform,
+                mTempleApproachCameraRectTransform,
                 new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f),
                 TEMPLE_APPROACH_MOUTH_POSITION,
                 TEMPLE_APPROACH_MOUTH_SIZE,
                 new Color(1.0f, 1.0f, 1.0f, 0.86f));
-            approachMouthImage.sprite = mMouthImage.sprite;
-            approachMouthImage.raycastTarget = false;
-            setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_START_OVERLAY_ALPHA);
+            mTempleApproachMouthImage.sprite = mMouthImage.sprite;
+            mTempleApproachMouthImage.raycastTarget = false;
+        }
 
-            await animateOverTimeAsync(
-                TEMPLE_APPROACH_DURATION_SECONDS,
-                progress =>
-                {
-                    float travelProgress = easeInOut(progress);
-                    float cameraScale = Mathf.Lerp(1.0f, TEMPLE_APPROACH_END_SCALE, travelProgress);
-                    float stairProgress = easeInOut(Mathf.InverseLerp(
-                        TEMPLE_APPROACH_STAIR_START_SCALE,
-                        TEMPLE_APPROACH_END_SCALE,
-                        cameraScale));
-                    float arrivalProgress = easeOut(Mathf.Clamp01((stairProgress - 0.48f) / 0.52f));
-                    float walkingProgress = Mathf.InverseLerp(1.0f, TEMPLE_APPROACH_STAIR_START_SCALE, cameraScale);
-                    float walkingBob = Mathf.Sin(walkingProgress * Mathf.PI * 4.0f) * (1.0f - stairProgress) * 0.8f;
-                    float stairBob = Mathf.Sin(stairProgress * Mathf.PI * 2.0f) * stairProgress * (1.0f - arrivalProgress) * 1.8f;
-                    float cameraYOffset = Mathf.Lerp(0.0f, TEMPLE_APPROACH_END_Y_OFFSET, stairProgress) + walkingBob + stairBob;
-                    templeApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
-                    templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, cameraYOffset);
-                    approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.86f, 1.0f, stairProgress));
-                    float overlayAlpha = Mathf.Lerp(
-                        TEMPLE_APPROACH_START_OVERLAY_ALPHA,
-                        TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA,
-                        arrivalProgress);
-                    setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
-                });
+        private void destroyTempleApproachScene()
+        {
+            if (mTempleApproachCameraObject != null)
+            {
+                Destroy(mTempleApproachCameraObject);
+            }
 
-            await animateOverTimeAsync(
-                TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS,
-                progress =>
-                {
-                    float pulse = Mathf.Sin(progress * Mathf.PI);
-                    templeApproachCameraRectTransform.localScale = Vector3.one * (TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f));
-                    templeApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET);
-                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
-                });
-
-            await animateOverTimeAsync(
-                TEMPLE_APPROACH_CARD_TRANSITION_ZOOM_OUT_SECONDS,
-                progress =>
-                {
-                    float easedProgress = easeInOut(progress);
-                    templeApproachCameraRectTransform.localScale =
-                        Vector3.one * Mathf.Lerp(TEMPLE_APPROACH_END_SCALE, 1.0f, easedProgress);
-                    templeApproachCameraRectTransform.anchoredPosition =
-                        Vector2.Lerp(new Vector2(0.0f, TEMPLE_APPROACH_END_Y_OFFSET), Vector2.zero, easedProgress);
-                    approachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(1.0f, 0.88f, easedProgress));
-                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
-                });
-            Destroy(templeApproachCameraObject);
-            resetStageMotionTransforms();
+            mTempleApproachCameraObject = null;
+            mTempleApproachCameraRectTransform = null;
+            mTempleApproachMouthImage = null;
         }
 
         public async Task PlayCardSelectionEntranceAsync()
@@ -688,9 +716,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     selectedCardView.SetScale(1.26f + pulse);
                 });
 
-            prepareCardLaunchPresentation();
+            bool isTempleApproachSceneVisible = mTempleApproachCameraObject != null;
+            prepareCardLaunchPresentation(isTempleApproachSceneVisible);
             Vector2 launchStartPosition = selectedCardView.RectTransform.anchoredPosition;
-            Vector2 launchTargetPosition = getMouthAnchorPosition() + new Vector2(0.0f, -24.0f);
+            Vector2 launchTargetPosition = isTempleApproachSceneVisible
+                ? getTempleApproachMouthCanvasPosition() + new Vector2(0.0f, -24.0f)
+                : getMouthAnchorPosition() + new Vector2(0.0f, -24.0f);
 
             await animateOverTimeAsync(
                 0.78f,
@@ -706,8 +737,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         basePosition + new Vector2(0.0f, arcLift);
                     selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.82f, easedProgress));
                     selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
-                    mMouthImage.rectTransform.localScale =
-                        Vector3.one * Mathf.Lerp(0.94f, 1.0f, easedProgress);
+
+                    if (isTempleApproachSceneVisible == false)
+                    {
+                        mMouthImage.rectTransform.localScale =
+                            Vector3.one * Mathf.Lerp(0.94f, 1.0f, easedProgress);
+                    }
                 });
 
             setCardsVisible(false);
@@ -777,6 +812,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
+            destroyTempleApproachScene();
             applyAwaitingHandInsertionLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);
@@ -1772,6 +1808,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 : FALLBACK_MOUTH_POSITION;
         }
 
+        private Vector2 getTempleApproachMouthCanvasPosition()
+        {
+            if (mTempleApproachMouthImage == null || mCanvasRootRectTransform == null)
+            {
+                return getMouthAnchorPosition();
+            }
+
+            RectTransform mouthRectTransform = mTempleApproachMouthImage.rectTransform;
+            Vector3 mouthWorldPosition = mouthRectTransform.TransformPoint(mouthRectTransform.rect.center);
+            return mCanvasRootRectTransform.InverseTransformPoint(mouthWorldPosition);
+        }
+
         private Vector2 getHandFrontPosition()
         {
             return tryProjectWorldAnchor(
@@ -1847,8 +1895,23 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyTopLeftExitButtonLayout();
         }
 
-        private void prepareCardLaunchPresentation()
+        private void prepareCardLaunchPresentation(bool preserveTempleApproachScene)
         {
+            if (preserveTempleApproachScene)
+            {
+                setObjectActive(mBackgroundImage, false);
+                setObjectActive(mCarpetImage, false);
+                setObjectActive(mMouthImage, false);
+                setObjectActive(mSceneOverlayImage, true);
+                setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
+                setObjectActive(mPromptText, false);
+                setObjectActive(mStatusText, false);
+                setObjectActive(mQuestionPanelImage, false);
+                setObjectActive(mQuestionText, false);
+                setObjectActive(mRitualHandImage, false);
+                return;
+            }
+
             applyNarrationLayout();
             mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
             setBackgroundTint(STAGE_BACKGROUND_TINT);

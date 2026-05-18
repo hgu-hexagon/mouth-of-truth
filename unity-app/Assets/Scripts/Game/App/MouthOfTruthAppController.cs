@@ -484,7 +484,7 @@ namespace MouthOfTruth.Game.App
                     selectedQuestionDefinition,
                     mLifecycleCancellationTokenSource.Token));
             await mGameView.PlayTempleApproachToMouthAsync();
-            await mGameView.BlendTempleApproachMouthIntoStageMouthAsync();
+            await mGameView.PrepareTempleGameplayBackdropAsync();
             mGameStateMachine.MarkQuestionRevealCompleted();
             mGameStateMachine.MarkQuestionNarrationCompleted();
             mGameView.ShowAwaitingHandInsertion();
@@ -882,15 +882,23 @@ namespace MouthOfTruth.Game.App
                 await waitForPresentationFrameAsync();
                 await captureScreenshotAsync(outputDirectoryPath, "03_card_focus.png");
 
+                EQuestionCardSlot? confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(
+                    EQuestionCardSlot.CenterCard,
+                    CARD_SELECTION_DWELL_SECONDS);
+                if (confirmedQuestionCardSlot.HasValue == false)
+                {
+                    throw new InvalidOperationException("Presentation capture could not confirm the center card.");
+                }
+
                 GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
                 QuestionDefinition selectedQuestionDefinition =
                     snapshot.CurrentRoundSelection.QuestionsBySlot[EQuestionCardSlot.CenterCard];
                 await mGameView.PlayQuestionRevealAsync(EQuestionCardSlot.CenterCard, selectedQuestionDefinition);
                 await mGameView.PlayTempleApproachToMouthAsync();
+                await mGameView.PrepareTempleGameplayBackdropAsync();
                 await waitForPresentationFrameAsync();
                 await captureScreenshotAsync(outputDirectoryPath, "04_card_launch.png");
 
-                mGameStateMachine.UpdateCardSelection(EQuestionCardSlot.CenterCard, 0.7f);
                 mGameStateMachine.MarkQuestionRevealCompleted();
                 mGameStateMachine.MarkQuestionNarrationCompleted();
                 mGameView.ShowAwaitingHandInsertion();

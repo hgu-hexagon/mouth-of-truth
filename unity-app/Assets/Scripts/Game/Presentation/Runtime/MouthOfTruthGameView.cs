@@ -62,10 +62,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float TEMPLE_APPROACH_STAIR_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS - TEMPLE_APPROACH_FORWARD_DURATION_SECONDS;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.80f;
         private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
-        private const float TEMPLE_STAGE_MOUTH_BLEND_SECONDS = 0.38f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 2.25f;
         private const float TEMPLE_APPROACH_END_Y_OFFSET = -168.0f;
+        private const float TEMPLE_ANSWER_FOCUS_SCALE = 2.88f;
+        private const float TEMPLE_ANSWER_FOCUS_Y_OFFSET = -246.0f;
+        private const float TEMPLE_ANALYSIS_FOCUS_SCALE = 3.04f;
+        private const float TEMPLE_ANALYSIS_FOCUS_Y_OFFSET = -278.0f;
+        private const float TEMPLE_RESULT_FOCUS_SCALE = 2.96f;
+        private const float TEMPLE_RESULT_FOCUS_Y_OFFSET = -266.0f;
         private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
         private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
         private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.18f;
@@ -92,11 +97,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Color STAGE_CARPET_TINT = new Color(0.58f, 0.52f, 0.48f, 0.82f);
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_POSITION = new Vector2(0.0f, 90.0f);
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
-        private static readonly Vector2 HAND_FRONT_OFFSET_FACTOR =
-            (FALLBACK_HAND_FRONT_POSITION - FALLBACK_MOUTH_POSITION) / 430.0f;
-        private static readonly Vector2 HAND_INNER_OFFSET_FACTOR =
-            (FALLBACK_HAND_INNER_POSITION - FALLBACK_MOUTH_POSITION) / 430.0f;
-
+        private static readonly Vector2 TEMPLE_HAND_FRONT_OFFSET_FACTOR = new Vector2(0.0f, -0.20f);
+        private static readonly Vector2 TEMPLE_HAND_INNER_OFFSET_FACTOR = new Vector2(0.0f, -0.055f);
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
         private readonly Vector3[] mHitTestWorldCorners = new Vector3[4];
@@ -246,6 +248,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float quickPulse = (Mathf.Sin(elapsedSeconds * 4.8f) + 1.0f) * 0.5f;
             float breathScale = Mathf.Lerp(1.0f, 1.035f, slowPulse);
             setOverlayTint(new Color(0.018f, 0.012f, 0.010f, 1.0f), Mathf.Lerp(0.38f, 0.48f, slowPulse));
+
+            if (isTempleApproachSceneActive())
+            {
+                float cameraPulse = slowPulse * 0.024f;
+                float cameraYOffset = TEMPLE_ANSWER_FOCUS_Y_OFFSET - (slowPulse * 4.0f);
+                setTempleCameraPose(TEMPLE_ANSWER_FOCUS_SCALE + cameraPulse, cameraYOffset);
+                setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.93f, 1.0f, slowPulse), Mathf.Lerp(0.78f, 0.94f, slowPulse), 1.0f));
+                syncTempleStageMouthOverlay(0.0f);
+                updateAnsweringEyeBeamImages(slowPulse, quickPulse);
+                return;
+            }
+
             mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.93f, 1.0f, slowPulse), Mathf.Lerp(0.78f, 0.94f, slowPulse), 1.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * breathScale;
             updateAnsweringEyeBeamImages(slowPulse, quickPulse);
@@ -277,6 +291,28 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float tremor = Mathf.Sin(elapsedSeconds * 10.5f) * 4.5f;
             float focusProgress = Mathf.Clamp01(elapsedSeconds / 0.85f);
             setOverlayTint(new Color(0.026f, 0.018f, 0.010f, 1.0f), Mathf.Lerp(0.50f, 0.62f, pulse));
+
+            if (isTempleApproachSceneActive())
+            {
+                float focusScale = Mathf.Lerp(TEMPLE_ANSWER_FOCUS_SCALE, TEMPLE_ANALYSIS_FOCUS_SCALE, easeOut(focusProgress));
+                float cameraScale = focusScale + (pulse * 0.050f);
+                float cameraYOffset = Mathf.Lerp(TEMPLE_ANSWER_FOCUS_Y_OFFSET, TEMPLE_ANALYSIS_FOCUS_Y_OFFSET, easeOut(focusProgress)) - (pulse * 6.0f);
+                setTempleCameraPose(cameraScale, cameraYOffset, tremor * 0.45f);
+                setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.72f, 0.92f, pulse), Mathf.Lerp(0.48f, 0.70f, pulse), Mathf.Lerp(0.82f, 1.0f, pulse)));
+                syncTempleStageMouthOverlay(0.0f);
+                updateMouthEffectImage(
+                    mMouthListeningAuraImage,
+                    new Color(1.0f, 0.62f, 0.20f, Mathf.Lerp(0.24f, 0.42f, pulse)),
+                    0.76f + (surge * 0.10f),
+                    -elapsedSeconds * 18.0f);
+                updateMouthEffectImage(
+                    mMouthAnalyzingAuraImage,
+                    new Color(1.0f, 0.44f, 0.10f, Mathf.Lerp(0.34f, 0.62f, surge)),
+                    0.88f + (pulse * 0.18f),
+                    elapsedSeconds * 28.0f);
+                return;
+            }
+
             mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.72f, 0.92f, pulse), Mathf.Lerp(0.48f, 0.70f, pulse), Mathf.Lerp(0.64f, 0.84f, pulse));
             mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor, 0.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.02f, 1.13f, easeOut(focusProgress)) + (pulse * 0.065f));
@@ -497,11 +533,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 });
         }
 
-        public async Task BlendTempleApproachMouthIntoStageMouthAsync()
+        public Task PrepareTempleGameplayBackdropAsync()
         {
             if (isTempleApproachSceneActive() == false)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             setObjectActive(mBackgroundImage, false);
@@ -509,19 +545,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mSceneOverlayImage, true);
             setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
             setObjectActive(mMouthImage, true);
-            applyTempleApproachMouthLayoutToStageMouth(0.0f);
-
-            await animateOverTimeAsync(
-                TEMPLE_STAGE_MOUTH_BLEND_SECONDS,
-                progress =>
-                {
-                    float easedProgress = easeInOut(progress);
-                    setTempleApproachMouthAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
-                    applyTempleApproachMouthLayoutToStageMouth(easedProgress);
-                });
-
-            setTempleApproachMouthAlpha(0.0f);
-            applyTempleApproachMouthLayoutToStageMouth(1.0f);
+            setTempleApproachMouthAlpha(1.0f);
+            syncTempleStageMouthOverlay(0.0f);
+            return Task.CompletedTask;
         }
 
         private void createTempleApproachScene()
@@ -863,7 +889,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (isTempleSceneActive)
             {
                 applyTempleStageBackgroundPresentation(0.26f);
-                applyTempleApproachMouthLayoutToStageMouth(1.0f);
                 applyHandPromptPanelLayout();
             }
             else
@@ -958,8 +983,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         handScale,
                         Mathf.Lerp(-5.0f, 2.0f, easedProgress));
                     setOverlayAlpha(Mathf.Lerp(0.30f, 0.48f, mouthPulse));
-                    mMouthImage.rectTransform.localScale =
-                        Vector3.one * (1.0f + (mouthPulse * 0.12f) + (mouthPull * 0.055f));
+
+                    if (isTempleApproachSceneActive())
+                    {
+                        setTempleApproachMouthColor(new Color(1.0f, 0.96f, 0.86f, 1.0f));
+                        syncTempleStageMouthOverlay(0.0f);
+                    }
+                    else
+                    {
+                        mMouthImage.rectTransform.localScale =
+                            Vector3.one * (1.0f + (mouthPulse * 0.12f) + (mouthPull * 0.055f));
+                    }
                 });
 
             await animateOverTimeAsync(
@@ -1010,7 +1044,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mAnswerTimerText, false);
             setObjectActive(mHandImage, false);
             setObjectActive(mRitualHandImage, false);
-            applyAnsweringFocusLayout();
+            if (isTempleApproachSceneActive())
+            {
+                syncTempleStageMouthOverlay(0.0f);
+                syncMouthEffectImageLayout(mMouthListeningAuraImage, 1.26f);
+                syncMouthEffectImageLayout(mMouthAnalyzingAuraImage, 1.18f);
+            }
+            else
+            {
+                applyAnsweringFocusLayout();
+            }
+
             setMouthEffectImagesActive(false, false);
             setEyeBeamImagesActive(true);
             disableHeldHandPresentation();
@@ -1036,7 +1080,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 setObjectActive(mCarpetImage, false);
             }
 
-            applyAnsweringFocusLayout();
+            if (isTempleApproachSceneActive())
+            {
+                syncTempleStageMouthOverlay(0.0f);
+                syncMouthEffectImageLayout(mMouthListeningAuraImage, 1.26f);
+                syncMouthEffectImageLayout(mMouthAnalyzingAuraImage, 1.18f);
+            }
+            else
+            {
+                applyAnsweringFocusLayout();
+            }
+
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
             setOverlayAlpha(0.34f);
@@ -1060,6 +1114,48 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             if (mIsAnalyzingPresentationActive == false)
             {
+                return;
+            }
+
+            if (isTempleApproachSceneActive())
+            {
+                float templeStartScale = mTempleApproachCameraRectTransform.localScale.x;
+                Vector2 templeStartPosition = mTempleApproachCameraRectTransform.anchoredPosition;
+
+                await animateOverTimeAsync(
+                    0.54f,
+                    progress =>
+                    {
+                        float easedProgress = easeInOut(progress);
+                        float pulse = Mathf.Sin(progress * Mathf.PI);
+                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_RESULT_FOCUS_SCALE, easedProgress) + (pulse * 0.018f);
+                        float cameraYOffset = Mathf.Lerp(templeStartPosition.y, TEMPLE_RESULT_FOCUS_Y_OFFSET, easedProgress);
+                        setTempleCameraPose(cameraScale, cameraYOffset);
+                        setOverlayTint(new Color(0.02f, 0.015f, 0.018f, 1.0f), Mathf.Lerp(0.56f, 0.40f, easedProgress));
+                        setTempleApproachMouthColor(new Color(1.0f, 0.93f, 0.82f, Mathf.Lerp(0.88f, 1.0f, easedProgress)));
+
+                        if (mMouthListeningAuraImage != null)
+                        {
+                            Color listeningAuraColor = mMouthListeningAuraImage.color;
+                            mMouthListeningAuraImage.color = new Color(
+                                listeningAuraColor.r,
+                                listeningAuraColor.g,
+                                listeningAuraColor.b,
+                                Mathf.Lerp(listeningAuraColor.a, 0.0f, easedProgress));
+                        }
+
+                        if (mMouthAnalyzingAuraImage != null)
+                        {
+                            Color auraColor = mMouthAnalyzingAuraImage.color;
+                            mMouthAnalyzingAuraImage.color = new Color(
+                                auraColor.r,
+                                auraColor.g,
+                                auraColor.b,
+                                Mathf.Lerp(auraColor.a, 0.0f, easedProgress));
+                        }
+                    });
+
+                disableAnalyzingPresentation(preserveMouthLayout: true);
                 return;
             }
 
@@ -1110,6 +1206,28 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private async Task playMouthJudgementFocusTransitionAsync()
         {
+            if (isTempleApproachSceneActive())
+            {
+                float templeStartScale = mTempleApproachCameraRectTransform.localScale.x;
+                Vector2 templeStartPosition = mTempleApproachCameraRectTransform.anchoredPosition;
+
+                await animateOverTimeAsync(
+                    MOUTH_JUDGEMENT_FOCUS_SECONDS * 1.28f,
+                    progress =>
+                    {
+                        float easedProgress = easeInOut(progress);
+                        float pulse = Mathf.Sin(progress * Mathf.PI);
+                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_ANSWER_FOCUS_SCALE, easedProgress) + (pulse * 0.018f);
+                        float cameraYOffset = Mathf.Lerp(templeStartPosition.y, TEMPLE_ANSWER_FOCUS_Y_OFFSET, easedProgress);
+                        setTempleCameraPose(cameraScale, cameraYOffset);
+                        setOverlayTint(new Color(0.025f, 0.015f, 0.012f, 1.0f), Mathf.Lerp(0.36f, 0.46f, easedProgress));
+                        setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.96f, 0.92f, easedProgress), Mathf.Lerp(0.86f, 0.78f, easedProgress), 1.0f));
+                    });
+
+                syncTempleStageMouthOverlay(0.0f);
+                return;
+            }
+
             RectTransform mouthRectTransform = mMouthImage.rectTransform;
             Vector2 startAnchor = mouthRectTransform.anchorMin;
             Vector2 startPosition = mouthRectTransform.anchoredPosition;
@@ -1195,8 +1313,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 applyMouthAnchoredLayout();
             }
 
-            mMouthImage.color = Color.white;
-            mMouthImage.rectTransform.localScale = Vector3.one;
+            if (isTempleApproachSceneActive())
+            {
+                setTempleApproachMouthColor(Color.white);
+                syncTempleStageMouthOverlay(0.0f);
+            }
+            else
+            {
+                mMouthImage.color = Color.white;
+                mMouthImage.rectTransform.localScale = Vector3.one;
+            }
+
             mVerdictImage.color = Color.white;
             mVerdictImage.rectTransform.localRotation = Quaternion.identity;
             mVerdictImage.rectTransform.localScale = Vector3.one;
@@ -1207,7 +1334,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             setObjectActive(mTryAgainButton, false);
 
-            if (verdictKind == EVerdictKind.True)
+            if (isTempleApproachSceneActive())
+            {
+                await playTempleResultRevealAnimationAsync(verdictKind);
+            }
+            else if (verdictKind == EVerdictKind.True)
             {
                 await playTrueRevealAnimationAsync();
             }
@@ -1222,11 +1353,54 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             setObjectActive(mTryAgainButton, true);
             setOverlayAlpha(0.38f);
-            mMouthImage.color = Color.white;
-            mMouthImage.rectTransform.localScale = Vector3.one;
+            if (isTempleApproachSceneActive())
+            {
+                setTempleApproachMouthColor(Color.white);
+                syncTempleStageMouthOverlay(0.0f);
+            }
+            else
+            {
+                mMouthImage.color = Color.white;
+                mMouthImage.rectTransform.localScale = Vector3.one;
+            }
+
             mVerdictImage.color = Color.white;
             mVerdictImage.rectTransform.localRotation = Quaternion.identity;
             mVerdictImage.rectTransform.localScale = Vector3.one;
+        }
+
+        private async Task playTempleResultRevealAnimationAsync(EVerdictKind verdictKind)
+        {
+            mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+            Color overlayTint = verdictKind switch
+            {
+                EVerdictKind.True => new Color(0.05f, 0.11f, 0.06f, 1.0f),
+                EVerdictKind.False => new Color(0.22f, 0.006f, 0.006f, 1.0f),
+                _ => new Color(0.055f, 0.055f, 0.075f, 1.0f),
+            };
+            Color mouthTint = verdictKind switch
+            {
+                EVerdictKind.True => new Color(0.88f, 1.0f, 0.82f, 1.0f),
+                EVerdictKind.False => new Color(1.0f, 0.68f, 0.58f, 1.0f),
+                _ => new Color(0.74f, 0.76f, 0.82f, 1.0f),
+            };
+
+            await animateOverTimeAsync(
+                verdictKind == EVerdictKind.False ? 0.88f : 0.72f,
+                progress =>
+                {
+                    float easedProgress = easeOut(progress);
+                    float pulse = Mathf.Sin(progress * Mathf.PI);
+                    float shake = verdictKind == EVerdictKind.False
+                        ? Mathf.Sin(progress * Mathf.PI * 12.0f) * (1.0f - easedProgress)
+                        : 0.0f;
+                    setTempleCameraPose(TEMPLE_RESULT_FOCUS_SCALE + (pulse * 0.018f), TEMPLE_RESULT_FOCUS_Y_OFFSET, shake * 1.4f);
+                    setOverlayTint(overlayTint, Mathf.Lerp(0.48f, 0.38f, easedProgress));
+                    setTempleApproachMouthColor(Color.Lerp(Color.white, mouthTint, 1.0f - easedProgress * 0.25f));
+                    mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);
+                    mVerdictImage.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, shake * 2.4f);
+                    mVerdictImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.92f + (pulse * 0.08f), 1.0f, easedProgress);
+                });
         }
 
         private async Task playTrueRevealAnimationAsync()
@@ -1411,6 +1585,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     out Vector2 pointerCanvasPosition) == false)
             {
                 return EHandAnchorState.OutsideMouth;
+            }
+
+            if (isTempleApproachSceneActive())
+            {
+                syncTempleStageMouthOverlay(0.0f);
             }
 
             float mouthDiameterPixels = Mathf.Max(
@@ -1930,8 +2109,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
             {
                 return mouthCenter + new Vector2(
-                    mouthSize.x * HAND_FRONT_OFFSET_FACTOR.x,
-                    mouthSize.y * HAND_FRONT_OFFSET_FACTOR.y);
+                    mouthSize.x * TEMPLE_HAND_FRONT_OFFSET_FACTOR.x,
+                    mouthSize.y * TEMPLE_HAND_FRONT_OFFSET_FACTOR.y);
             }
 
             return tryProjectWorldAnchor(
@@ -1947,8 +2126,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
             {
                 return mouthCenter + new Vector2(
-                    mouthSize.x * HAND_INNER_OFFSET_FACTOR.x,
-                    mouthSize.y * HAND_INNER_OFFSET_FACTOR.y);
+                    mouthSize.x * TEMPLE_HAND_INNER_OFFSET_FACTOR.x,
+                    mouthSize.y * TEMPLE_HAND_INNER_OFFSET_FACTOR.y);
             }
 
             return tryProjectWorldAnchor(
@@ -2060,7 +2239,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mSceneOverlayImage, true);
             setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
             setObjectActive(mMouthImage, true);
-            setTempleApproachMouthAlpha(0.0f);
+            setTempleApproachMouthAlpha(1.0f);
+            syncTempleStageMouthOverlay(0.0f);
         }
 
         private async Task fadeTempleApproachMouthAsync(float targetAlpha, float durationSeconds)
@@ -2091,10 +2271,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             float clampedAlpha = Mathf.Clamp01(alpha);
-            mTempleApproachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, clampedAlpha);
+            Color currentColor = mTempleApproachMouthImage.color;
+            mTempleApproachMouthImage.color = new Color(currentColor.r, currentColor.g, currentColor.b, clampedAlpha);
         }
 
-        private void applyTempleApproachMouthLayoutToStageMouth(float alpha)
+        private void setTempleApproachMouthColor(Color color)
+        {
+            if (mTempleApproachMouthImage == null)
+            {
+                return;
+            }
+
+            mTempleApproachMouthImage.color = color;
+        }
+
+        private void syncTempleStageMouthOverlay(float alpha)
         {
             if (mMouthImage == null || tryGetTempleApproachMouthCanvasLayout(out Vector2 center, out Vector2 size) == false)
             {
@@ -2109,6 +2300,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mouthRectTransform.localRotation = Quaternion.identity;
             mouthRectTransform.localScale = Vector3.one;
             mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(alpha));
+        }
+
+        private void setTempleCameraPose(float scale, float yOffset, float xOffset = 0.0f)
+        {
+            if (mTempleApproachCameraRectTransform == null)
+            {
+                return;
+            }
+
+            mTempleApproachCameraRectTransform.localScale = Vector3.one * scale;
+            mTempleApproachCameraRectTransform.anchoredPosition = new Vector2(xOffset, yOffset);
+            syncTempleStageMouthOverlay(0.0f);
         }
 
         private bool tryGetTempleApproachMouthCanvasLayout(out Vector2 center, out Vector2 size)
@@ -2142,6 +2345,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             center = Vector2.zero;
             size = Vector2.zero;
+
+            if (isTempleApproachSceneActive() && tryGetTempleApproachMouthCanvasLayout(out center, out size))
+            {
+                return true;
+            }
 
             if (mMouthImage == null || mMouthImage.gameObject.activeInHierarchy == false)
             {
@@ -2410,11 +2618,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void applyResultLayout(EVerdictKind verdictKind)
         {
-            setRectTransformLayout(
-                mMouthImage.rectTransform,
-                RESULT_MOUTH_ANCHOR,
-                RESULT_MOUTH_SIZE_PIXELS);
-            mMouthImage.rectTransform.localScale = Vector3.one;
+            if (isTempleApproachSceneActive())
+            {
+                syncTempleStageMouthOverlay(0.0f);
+            }
+            else
+            {
+                setRectTransformLayout(
+                    mMouthImage.rectTransform,
+                    RESULT_MOUTH_ANCHOR,
+                    RESULT_MOUTH_SIZE_PIXELS);
+                mMouthImage.rectTransform.localScale = Vector3.one;
+            }
+
             setRectTransformLayout(
                 mVerdictImage.rectTransform,
                 new Vector2(0.5f, 0.54f),
@@ -3681,8 +3897,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             mIsAnalyzingPresentationActive = true;
             mAnalyzingPresentationStartedAtSeconds = Time.unscaledTime;
-            mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.56f);
-            mMouthImage.rectTransform.localScale = Vector3.one;
+
+            if (isTempleApproachSceneActive())
+            {
+                syncTempleStageMouthOverlay(0.0f);
+            }
+            else
+            {
+                mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.56f);
+                mMouthImage.rectTransform.localScale = Vector3.one;
+            }
+
             setObjectActive(mAnalyzingDotsText, false);
             setText(mAnalyzingDotsText, string.Empty);
         }
@@ -3692,7 +3917,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mIsAnalyzingPresentationActive = false;
             setEyeBeamImagesActive(false);
 
-            if (mMouthImage != null && preserveMouthLayout == false)
+            if (mMouthImage != null && preserveMouthLayout == false && isTempleApproachSceneActive() == false)
             {
                 mMouthImage.rectTransform.anchoredPosition = getMouthAnchorPosition();
                 mMouthImage.color = Color.white;

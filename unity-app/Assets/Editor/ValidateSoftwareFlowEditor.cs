@@ -542,21 +542,21 @@ namespace MouthOfTruth.Editor
 
             assertCondition(
                 MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(32.0f, 74.0f),
+                    new Vector2(24.0f, 74.0f),
                     handFrontPosition,
                     handInnerPosition,
                     MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtFrontAnchor,
                 "Leap mouth intent near the front anchor did not resolve.");
             assertCondition(
                 MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(30.0f, 142.0f),
+                    new Vector2(22.0f, 142.0f),
                     handFrontPosition,
                     handInnerPosition,
                     MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtInnerAnchor,
                 "Leap mouth intent near the inner anchor did not resolve.");
             assertCondition(
                 MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(52.0f, 100.0f),
+                    new Vector2(36.0f, 100.0f),
                     handFrontPosition,
                     handInnerPosition,
                     MOUTH_DIAMETER_PIXELS) == EHandAnchorState.OutsideMouth,

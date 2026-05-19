@@ -24,19 +24,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 FALLBACK_HAND_INNER_POSITION = new Vector2(0.0f, 230.0f);
         private static readonly Color TITLE_BACKGROUND_TINT = new Color(0.95f, 0.95f, 0.97f, 1.0f);
         private static readonly Color STAGE_BACKGROUND_TINT = new Color(0.82f, 0.82f, 0.86f, 1.0f);
-        private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.075f;
-        private const float INNER_ANCHOR_RADIUS_FACTOR = 0.045f;
-        private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.046f;
-        private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.060f;
-        private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.032f;
-        private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.042f;
+        private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.066f;
+        private const float INNER_ANCHOR_RADIUS_FACTOR = 0.040f;
+        private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.039f;
+        private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.050f;
+        private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.027f;
+        private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.036f;
         private const float CARD_INTENT_LEFT_MAX_NORMALIZED_X = 0.39f;
         private const float CARD_INTENT_RIGHT_MIN_NORMALIZED_X = 0.61f;
         private const float CARD_INTENT_MIN_NORMALIZED_Y = 0.28f;
         private const float CARD_INTENT_MAX_NORMALIZED_Y = 0.84f;
-        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.078f;
-        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.052f;
-        private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.050f;
+        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.064f;
+        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.042f;
+        private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.040f;
         private const float MOUTH_INTENT_INNER_SWITCH_FACTOR = 0.58f;
         private const float BUTTON_INTENT_EXPANSION_PIXELS = 54.0f;
         private const float EXIT_BUTTON_INTENT_EXPANSION_PIXELS = 32.0f;
@@ -84,6 +84,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 ANSWERING_FOCUS_MOUTH_SIZE_PIXELS = new Vector2(1120.0f, 1120.0f);
         private static readonly Vector2 RESULT_MOUTH_ANCHOR = new Vector2(0.5f, 0.52f);
         private static readonly Vector2 RESULT_MOUTH_SIZE_PIXELS = new Vector2(1680.0f, 1680.0f);
+        private static readonly Vector2 RESULT_VERDICT_SIZE_PIXELS = new Vector2(900.0f, 220.0f);
         private static readonly Color SCENE_OVERLAY_COLOR = new Color(0.03f, 0.02f, 0.02f, 1.0f);
         private static readonly Color STAGE_OVERLAY_TINT = new Color(0.020f, 0.014f, 0.010f, 1.0f);
         private static readonly Vector2 TEMPLE_MOUTH_FOCUS_CENTER = Vector2.zero;
@@ -424,7 +425,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             applyCardAnchorPositions();
-            setText(mPromptText, "원하는 질문을 손가락으로 선택하세요.");
+            setText(mPromptText, "원하는 카드를 손으로 선택하세요.");
             setText(mStatusText, string.Empty);
             setText(mAnswerTimerText, string.Empty);
             mLastAudibleHoveredCardSlot = null;
@@ -904,7 +905,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.26f);
+            setGameplayOverlayAlpha(0.26f);
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mExitButton, true);
             setObjectActive(mMouthImage, true);
@@ -985,7 +986,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         handAlpha,
                         handScale,
                         Mathf.Lerp(-5.0f, 2.0f, easedProgress));
-                    setOverlayAlpha(Mathf.Lerp(0.30f, 0.48f, mouthPulse));
+                    setGameplayOverlayAlpha(Mathf.Lerp(0.30f, 0.48f, mouthPulse));
 
                     if (isTempleApproachSceneActive())
                     {
@@ -1010,7 +1011,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         Mathf.Lerp(0.72f, 0.0f, easedProgress),
                         Mathf.Lerp(0.94f, 0.82f, easedProgress),
                         Mathf.Lerp(2.0f, 0.0f, easedProgress));
-                    setOverlayAlpha(Mathf.Lerp(0.48f, 0.36f, easedProgress));
+                    setGameplayOverlayAlpha(Mathf.Lerp(0.48f, 0.36f, easedProgress));
                 });
 
             setObjectActive(mRitualHandImage, false);
@@ -1036,7 +1037,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.28f);
+            setGameplayOverlayAlpha(0.28f);
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mExitButton, true);
             setObjectActive(mQuestionPanelImage, false);
@@ -1096,7 +1097,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.34f);
+            setGameplayOverlayAlpha(0.34f);
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mExitButton, true);
             setObjectActive(mQuestionPanelImage, false);
@@ -1284,7 +1285,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             setObjectActive(mTitleVignetteImage, false);
             setObjectActive(mSceneOverlayImage, true);
-            setOverlayAlpha(0.38f);
+            setGameplayOverlayAlpha(0.38f);
             setObjectActive(mQuestionText, false);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mStatusPanelImage, false);
@@ -1361,7 +1362,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             setObjectActive(mTryAgainButton, true);
-            setOverlayAlpha(0.38f);
+            setGameplayOverlayAlpha(0.38f);
             if (isTempleApproachSceneActive())
             {
                 setTempleApproachMouthColor(Color.white);
@@ -2682,9 +2683,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setRectTransformLayout(
                 mVerdictImage.rectTransform,
                 new Vector2(0.5f, 0.54f),
-                verdictKind == EVerdictKind.Uncertain
-                    ? new Vector2(1320.0f, 306.0f)
-                    : new Vector2(1040.0f, 270.0f));
+                RESULT_VERDICT_SIZE_PIXELS);
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.18f),
@@ -2707,6 +2706,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void setOverlayAlpha(float alpha)
         {
             setOverlayTint(SCENE_OVERLAY_COLOR, alpha);
+        }
+
+        private void setGameplayOverlayAlpha(float alpha)
+        {
+            if (isTempleApproachSceneActive())
+            {
+                setOverlayTint(STAGE_OVERLAY_TINT, alpha);
+                return;
+            }
+
+            setOverlayAlpha(alpha);
         }
 
         private void setOverlayTint(Color tintColor, float alpha)

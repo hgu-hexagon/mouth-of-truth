@@ -23,7 +23,6 @@ namespace MouthOfTruth.Editor
         private const string ARCH_PREFAB_PATH = "Assets/ThirdParty/Environment/DungeonModularPack/Prefabs/Arch_A.prefab";
         private const string RED_RUNNER_TEXTURE_PATH = "Assets/StreamingAssets/art/environment/floor_red_carpet_runner.png";
         private const string RED_RUNNER_MATERIAL_PATH = "Assets/Materials/GeneratedEnvironment/M_FloorRedRunner.mat";
-        private const string TORCH_SAFE_MATERIAL_PATH = "Assets/Materials/GeneratedEnvironment/M_Torch_SceneSafe.mat";
         private static readonly string[] THIRD_PARTY_MODEL_DIRECTORIES =
         {
             "Assets/ThirdParty/Environment/DungeonModularPack/Meshes",
@@ -71,7 +70,6 @@ namespace MouthOfTruth.Editor
             ensureEventSystem(scene);
             ensureApplicationRoot(scene);
             buildPresentationStage(scene, environmentBounds, corridorAxes);
-            applySceneSafeTorchMaterial(scene);
             configureEnvironmentLighting(scene);
             unpackScenePrefabInstances(scene);
             EditorSceneManager.MarkSceneDirty(scene);
@@ -514,11 +512,11 @@ namespace MouthOfTruth.Editor
         private static void configureEnvironmentLighting(Scene scene)
         {
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.86f, 0.74f, 0.62f, 1.0f);
+            RenderSettings.ambientLight = new Color(0.17f, 0.17f, 0.20f, 1.0f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(0.22f, 0.17f, 0.12f, 1.0f);
-            RenderSettings.fogDensity = 0.0045f;
+            RenderSettings.fogColor = new Color(0.10f, 0.10f, 0.12f, 1.0f);
+            RenderSettings.fogDensity = 0.015f;
 
             foreach (Light light in Resources.FindObjectsOfTypeAll<Light>())
             {
@@ -530,117 +528,24 @@ namespace MouthOfTruth.Editor
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        light.color = new Color(0.86f, 0.83f, 0.78f, 1.0f);
-                        light.intensity = 0.56f;
+                        light.color = new Color(0.78f, 0.81f, 0.88f, 1.0f);
+                        light.intensity = 0.16f;
                         light.shadows = LightShadows.Soft;
-                        light.shadowStrength = 0.12f;
+                        light.shadowStrength = 0.48f;
                         break;
 
                     case LightType.Point:
                     case LightType.Spot:
-                        light.color = new Color(0.98f, 0.58f, 0.28f, 1.0f);
-                        light.intensity = 0.26f;
-                        light.range = Mathf.Min(Mathf.Max(3.2f, light.range), 3.8f);
+                        light.color = new Color(0.92f, 0.68f, 0.40f, 1.0f);
+                        light.intensity = Mathf.Max(3.0f, light.intensity);
+                        light.range = Mathf.Max(6.0f, light.range);
                         light.shadows = LightShadows.Soft;
-                        light.shadowStrength = 0.03f;
+                        light.shadowStrength = 0.50f;
                         break;
                 }
 
                 EditorUtility.SetDirty(light);
             }
-        }
-
-        private static void applySceneSafeTorchMaterial(Scene scene)
-        {
-            Material sourceTorchMaterial = AssetDatabase.LoadAssetAtPath<Material>(
-                "Assets/ThirdParty/Environment/DungeonModularPack/Materials/M_Torch.mat");
-            Material safeTorchMaterial = getOrCreateSceneSafeTorchMaterial(sourceTorchMaterial);
-
-            if (sourceTorchMaterial == null || safeTorchMaterial == null)
-            {
-                return;
-            }
-
-            foreach (GameObject rootGameObject in scene.GetRootGameObjects())
-            {
-                Renderer[] renderers = rootGameObject.GetComponentsInChildren<Renderer>(true);
-
-                foreach (Renderer renderer in renderers)
-                {
-                    Material[] materials = renderer.sharedMaterials;
-                    bool wasUpdated = false;
-
-                    for (int materialIndex = 0; materialIndex < materials.Length; materialIndex += 1)
-                    {
-                        if (materials[materialIndex] != sourceTorchMaterial)
-                        {
-                            continue;
-                        }
-
-                        materials[materialIndex] = safeTorchMaterial;
-                        wasUpdated = true;
-                    }
-
-                    if (wasUpdated)
-                    {
-                        renderer.sharedMaterials = materials;
-                        EditorUtility.SetDirty(renderer);
-                    }
-                }
-            }
-        }
-
-        private static Material getOrCreateSceneSafeTorchMaterial(Material sourceTorchMaterial)
-        {
-            if (sourceTorchMaterial == null)
-            {
-                return null;
-            }
-
-            ensureFolderHierarchy(GENERATED_MATERIAL_DIRECTORY_PATH);
-
-            Shader safeShader = Shader.Find("Universal Render Pipeline/Unlit")
-                ?? Shader.Find("Unlit/Texture")
-                ?? Shader.Find("Unlit/Color");
-
-            if (safeShader == null)
-            {
-                return null;
-            }
-
-            Material safeMaterial = AssetDatabase.LoadAssetAtPath<Material>(TORCH_SAFE_MATERIAL_PATH);
-
-            if (safeMaterial == null)
-            {
-                safeMaterial = new Material(safeShader);
-                AssetDatabase.CreateAsset(safeMaterial, TORCH_SAFE_MATERIAL_PATH);
-            }
-
-            safeMaterial.shader = safeShader;
-            if (safeMaterial.HasProperty("_BaseMap"))
-            {
-                safeMaterial.SetTexture("_BaseMap", null);
-            }
-
-            if (safeMaterial.HasProperty("_MainTex"))
-            {
-                safeMaterial.SetTexture("_MainTex", null);
-            }
-
-            Color torchTint = new Color(0.26f, 0.16f, 0.10f, 1.0f);
-
-            if (safeMaterial.HasProperty("_BaseColor"))
-            {
-                safeMaterial.SetColor("_BaseColor", torchTint);
-            }
-
-            if (safeMaterial.HasProperty("_Color"))
-            {
-                safeMaterial.SetColor("_Color", torchTint);
-            }
-
-            EditorUtility.SetDirty(safeMaterial);
-            return safeMaterial;
         }
 
         private static Bounds calculateCombinedBounds(Transform rootTransform)
@@ -778,12 +683,7 @@ namespace MouthOfTruth.Editor
                 return;
             }
 
-            Texture baseTexture = getFirstAvailableTexture(
-                sourceMaterial,
-                "_Color_Texture",
-                "_BaseMap",
-                "_MainTex",
-                "_BaseColorMap");
+            Texture baseTexture = getFirstAvailableTexture(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
 
             if (baseTexture != null && safeMaterial.HasProperty("_BaseMap"))
             {

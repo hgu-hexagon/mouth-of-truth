@@ -23,20 +23,20 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 FALLBACK_HAND_FRONT_POSITION = new Vector2(0.0f, -20.0f);
         private static readonly Vector2 FALLBACK_HAND_INNER_POSITION = new Vector2(0.0f, 230.0f);
         private static readonly Color TITLE_BACKGROUND_TINT = new Color(0.95f, 0.95f, 0.97f, 1.0f);
-        private static readonly Color STAGE_BACKGROUND_TINT = new Color(0.90f, 0.84f, 0.76f, 1.0f);
-        private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.092f;
-        private const float INNER_ANCHOR_RADIUS_FACTOR = 0.052f;
-        private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.056f;
-        private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.072f;
-        private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.038f;
-        private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.048f;
+        private static readonly Color STAGE_BACKGROUND_TINT = new Color(0.82f, 0.82f, 0.86f, 1.0f);
+        private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.075f;
+        private const float INNER_ANCHOR_RADIUS_FACTOR = 0.045f;
+        private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.046f;
+        private const float FRONT_ENTRY_HALF_HEIGHT_FACTOR = 0.060f;
+        private const float INNER_ENTRY_HALF_WIDTH_FACTOR = 0.032f;
+        private const float INNER_ENTRY_HALF_HEIGHT_FACTOR = 0.042f;
         private const float CARD_INTENT_LEFT_MAX_NORMALIZED_X = 0.39f;
         private const float CARD_INTENT_RIGHT_MIN_NORMALIZED_X = 0.61f;
         private const float CARD_INTENT_MIN_NORMALIZED_Y = 0.28f;
         private const float CARD_INTENT_MAX_NORMALIZED_Y = 0.84f;
-        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.095f;
-        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.075f;
-        private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.065f;
+        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.078f;
+        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.052f;
+        private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.050f;
         private const float MOUTH_INTENT_INNER_SWITCH_FACTOR = 0.58f;
         private const float BUTTON_INTENT_EXPANSION_PIXELS = 54.0f;
         private const float EXIT_BUTTON_INTENT_EXPANSION_PIXELS = 32.0f;
@@ -67,9 +67,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float TEMPLE_ANSWER_FOCUS_SCALE = 4.36f;
         private const float TEMPLE_ANALYSIS_FOCUS_SCALE = 4.44f;
         private const float TEMPLE_RESULT_FOCUS_SCALE = 4.36f;
-        private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.34f;
-        private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.16f;
-        private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.16f;
+        private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
+        private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
+        private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.18f;
         private const float CARD_SELECTION_ENTRANCE_SECONDS = 0.82f;
         private const float CARD_SELECTION_ENTRANCE_SETTLE_SECONDS = 0.22f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
@@ -859,7 +859,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float firstSegmentProgress = Mathf.Clamp01(progress / 0.48f);
-                    float secondSegmentProgress = Mathf.Clamp01((progress - 0.38f) / 0.62f);
+                    float secondSegmentProgress = Mathf.Clamp01((progress - 0.48f) / 0.52f);
                     Vector2 hoverStartPosition = new Vector2(0.0f, -130.0f);
                     Vector2 hoverReadyPosition = new Vector2(0.0f, -18.0f);
                     handRectTransform.anchoredPosition = progress < 0.48f
@@ -3765,26 +3765,24 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             float clampedProgress = Mathf.Clamp01(progress);
 
-            if (clampedProgress < 0.33f)
+            Vector2 centerPosition = new Vector2(0.0f, -18.0f);
+            Vector2 leftPosition = new Vector2(-220.0f, -20.0f);
+            Vector2 rightPosition = new Vector2(220.0f, -20.0f);
+
+            if (clampedProgress < 0.28f)
             {
-                return Vector2.Lerp(
-                    new Vector2(-220.0f, -20.0f),
-                    new Vector2(0.0f, -4.0f),
-                    easeInOutStatic(clampedProgress / 0.33f));
+                return Vector2.Lerp(centerPosition, leftPosition, easeInOutStatic(clampedProgress / 0.28f));
             }
 
-            if (clampedProgress < 0.66f)
+            if (clampedProgress < 0.65f)
             {
                 return Vector2.Lerp(
-                    new Vector2(0.0f, -4.0f),
-                    new Vector2(220.0f, -20.0f),
-                    easeInOutStatic((clampedProgress - 0.33f) / 0.33f));
+                    leftPosition,
+                    rightPosition,
+                    easeInOutStatic((clampedProgress - 0.28f) / 0.37f));
             }
 
-            return Vector2.Lerp(
-                new Vector2(220.0f, -20.0f),
-                new Vector2(0.0f, -4.0f),
-                easeInOutStatic((clampedProgress - 0.66f) / 0.34f));
+            return Vector2.Lerp(rightPosition, centerPosition, easeInOutStatic((clampedProgress - 0.65f) / 0.35f));
         }
 
         private static float getFirstRunTutorialDurationSeconds()

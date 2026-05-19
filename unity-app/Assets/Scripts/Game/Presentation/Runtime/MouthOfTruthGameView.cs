@@ -23,7 +23,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 FALLBACK_HAND_FRONT_POSITION = new Vector2(0.0f, -20.0f);
         private static readonly Vector2 FALLBACK_HAND_INNER_POSITION = new Vector2(0.0f, 230.0f);
         private static readonly Color TITLE_BACKGROUND_TINT = new Color(0.95f, 0.95f, 0.97f, 1.0f);
-        private static readonly Color STAGE_BACKGROUND_TINT = new Color(0.62f, 0.58f, 0.54f, 1.0f);
+        private static readonly Color STAGE_BACKGROUND_TINT = new Color(0.90f, 0.84f, 0.76f, 1.0f);
         private const float FRONT_ANCHOR_RADIUS_FACTOR = 0.092f;
         private const float INNER_ANCHOR_RADIUS_FACTOR = 0.052f;
         private const float FRONT_ENTRY_HALF_WIDTH_FACTOR = 0.056f;
@@ -57,19 +57,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
         private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
-        private const float TEMPLE_APPROACH_DURATION_SECONDS = 5.55f;
-        private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.68f;
+        private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.05f;
+        private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.64f;
         private const float TEMPLE_APPROACH_STAIR_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS - TEMPLE_APPROACH_FORWARD_DURATION_SECONDS;
         private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.80f;
         private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
-        private const float TEMPLE_APPROACH_END_SCALE = 3.36f;
-        private const float TEMPLE_ANSWER_FOCUS_SCALE = 3.36f;
-        private const float TEMPLE_ANALYSIS_FOCUS_SCALE = 3.42f;
-        private const float TEMPLE_RESULT_FOCUS_SCALE = 3.36f;
-        private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.48f;
-        private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.32f;
-        private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.32f;
+        private const float TEMPLE_APPROACH_END_SCALE = 4.36f;
+        private const float TEMPLE_ANSWER_FOCUS_SCALE = 4.36f;
+        private const float TEMPLE_ANALYSIS_FOCUS_SCALE = 4.44f;
+        private const float TEMPLE_RESULT_FOCUS_SCALE = 4.36f;
+        private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.34f;
+        private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.16f;
+        private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.16f;
         private const float CARD_SELECTION_ENTRANCE_SECONDS = 0.82f;
         private const float CARD_SELECTION_ENTRANCE_SETTLE_SECONDS = 0.22f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
@@ -95,7 +95,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_POSITION = new Vector2(0.0f, 90.0f);
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
         private static readonly Vector2 TEMPLE_HAND_FRONT_OFFSET_FACTOR = new Vector2(0.0f, -0.20f);
-        private static readonly Vector2 TEMPLE_HAND_INNER_OFFSET_FACTOR = new Vector2(0.0f, -0.055f);
+        private static readonly Vector2 TEMPLE_HAND_INNER_OFFSET_FACTOR = new Vector2(0.0f, -0.17f);
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
             new Dictionary<EQuestionCardSlot, QuestionCardView>();
         private readonly Vector3[] mHitTestWorldCorners = new Vector3[4];
@@ -303,7 +303,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 updateMouthEffectImage(
                     mMouthAnalyzingAuraImage,
                     new Color(1.0f, 0.44f, 0.10f, Mathf.Lerp(0.34f, 0.62f, surge)),
-                    0.88f + (pulse * 0.18f),
+                    1.02f + (pulse * 0.18f),
                     elapsedSeconds * 28.0f);
                 return;
             }
@@ -319,7 +319,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             updateMouthEffectImage(
                 mMouthAnalyzingAuraImage,
                 new Color(1.0f, 0.44f, 0.10f, Mathf.Lerp(0.34f, 0.62f, surge)),
-                0.88f + (pulse * 0.18f),
+                1.02f + (pulse * 0.18f),
                 elapsedSeconds * 28.0f);
         }
 
@@ -2691,7 +2691,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 HELD_POINTER_CURSOR_SIZE_PIXELS);
             setRectTransformLayout(
                 mTryAgainButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.225f),
+                new Vector2(0.5f, 0.105f),
                 new Vector2(360.0f, 100.0f));
             applyTopLeftExitButtonLayout();
         }

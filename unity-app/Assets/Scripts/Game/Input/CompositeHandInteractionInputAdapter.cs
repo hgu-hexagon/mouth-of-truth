@@ -10,7 +10,7 @@ namespace MouthOfTruth.Game.Input
         public CompositeHandInteractionInputAdapter(
             params IHandInteractionInputAdapter[] inputAdapters)
         {
-            mInputAdapters = inputAdapters ?? new IHandInteractionInputAdapter[0];
+            mInputAdapters = inputAdapters == null ? new IHandInteractionInputAdapter[0] : inputAdapters;
         }
 
         public bool TryGetPointerScreenPosition(out Vector2 screenPosition)

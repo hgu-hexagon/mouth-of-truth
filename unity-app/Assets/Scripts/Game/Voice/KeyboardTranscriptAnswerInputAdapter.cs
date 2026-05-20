@@ -16,7 +16,12 @@ namespace MouthOfTruth.Game.Voice
 
         public KeyboardTranscriptAnswerInputAdapter(MouthOfTruthGameView gameView)
         {
-            mGameView = gameView ?? throw new ArgumentNullException(nameof(gameView));
+            if (gameView == null)
+            {
+                throw new ArgumentNullException(nameof(gameView));
+            }
+
+            mGameView = gameView;
         }
 
         public bool RequiresManualTextEntry => true;

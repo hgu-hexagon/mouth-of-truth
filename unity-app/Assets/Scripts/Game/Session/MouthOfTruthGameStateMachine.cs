@@ -24,12 +24,24 @@ namespace MouthOfTruth.Game.Session
             CardDwellSelectionTracker cardDwellSelectionTracker,
             AnswerCollectionPolicy answerCollectionPolicy)
         {
-            mQuestionDeckService = questionDeckService
-                ?? throw new ArgumentNullException(nameof(questionDeckService));
-            mCardDwellSelectionTracker = cardDwellSelectionTracker
-                ?? throw new ArgumentNullException(nameof(cardDwellSelectionTracker));
-            mAnswerCollectionPolicy = answerCollectionPolicy
-                ?? throw new ArgumentNullException(nameof(answerCollectionPolicy));
+            if (questionDeckService == null)
+            {
+                throw new ArgumentNullException(nameof(questionDeckService));
+            }
+
+            if (cardDwellSelectionTracker == null)
+            {
+                throw new ArgumentNullException(nameof(cardDwellSelectionTracker));
+            }
+
+            if (answerCollectionPolicy == null)
+            {
+                throw new ArgumentNullException(nameof(answerCollectionPolicy));
+            }
+
+            mQuestionDeckService = questionDeckService;
+            mCardDwellSelectionTracker = cardDwellSelectionTracker;
+            mAnswerCollectionPolicy = answerCollectionPolicy;
             CurrentState = EGameFlowState.StartScreen;
         }
 
@@ -154,7 +166,7 @@ namespace MouthOfTruth.Game.Session
 
         public void UpdateAnswerTranscript(string answerTranscript)
         {
-            mCurrentAnswerTranscript = answerTranscript ?? string.Empty;
+            mCurrentAnswerTranscript = string.IsNullOrEmpty(answerTranscript) ? string.Empty : answerTranscript;
         }
 
         public void ResetCardSelectionHover()

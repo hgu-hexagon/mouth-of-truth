@@ -33,32 +33,33 @@ namespace MouthOfTruth.Game.Voice
                 Directory.CreateDirectory(directoryPath);
             }
 
-            using FileStream fileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write);
-            using BinaryWriter binaryWriter = new BinaryWriter(fileStream);
-
-            int bytesPerSample = sizeof(short);
-            int channelCount = 1;
-            int byteRate = sampleRate * channelCount * bytesPerSample;
-            int dataChunkSize = monoSamples.Length * bytesPerSample;
-
-            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
-            binaryWriter.Write(36 + dataChunkSize);
-            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
-            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
-            binaryWriter.Write(16);
-            binaryWriter.Write((short)1);
-            binaryWriter.Write((short)channelCount);
-            binaryWriter.Write(sampleRate);
-            binaryWriter.Write(byteRate);
-            binaryWriter.Write((short)(channelCount * bytesPerSample));
-            binaryWriter.Write((short)(bytesPerSample * 8));
-            binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("data"));
-            binaryWriter.Write(dataChunkSize);
-
-            foreach (float sample in monoSamples)
+            using (FileStream fileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
+            using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
             {
-                short pcmSample = (short)Mathf.Clamp(sample * short.MaxValue, short.MinValue, short.MaxValue);
-                binaryWriter.Write(pcmSample);
+                int bytesPerSample = sizeof(short);
+                int channelCount = 1;
+                int byteRate = sampleRate * channelCount * bytesPerSample;
+                int dataChunkSize = monoSamples.Length * bytesPerSample;
+
+                binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+                binaryWriter.Write(36 + dataChunkSize);
+                binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+                binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+                binaryWriter.Write(16);
+                binaryWriter.Write((short)1);
+                binaryWriter.Write((short)channelCount);
+                binaryWriter.Write(sampleRate);
+                binaryWriter.Write(byteRate);
+                binaryWriter.Write((short)(channelCount * bytesPerSample));
+                binaryWriter.Write((short)(bytesPerSample * 8));
+                binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+                binaryWriter.Write(dataChunkSize);
+
+                foreach (float sample in monoSamples)
+                {
+                    short pcmSample = (short)Mathf.Clamp(sample * short.MaxValue, short.MinValue, short.MaxValue);
+                    binaryWriter.Write(pcmSample);
+                }
             }
 
             return outputFilePath;

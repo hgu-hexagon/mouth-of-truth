@@ -6,7 +6,7 @@ namespace MouthOfTruth.Game.Face
             string faceFramesDirectoryPath,
             int capturedFrameCount)
         {
-            FaceFramesDirectoryPath = faceFramesDirectoryPath ?? string.Empty;
+            FaceFramesDirectoryPath = string.IsNullOrEmpty(faceFramesDirectoryPath) ? string.Empty : faceFramesDirectoryPath;
             CapturedFrameCount = capturedFrameCount;
         }
 

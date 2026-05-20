@@ -42,11 +42,15 @@ namespace MouthOfTruth.Game.Data
                         $"Question definition text cannot be empty: {questionDefinitionJsonRecord.id}");
                 }
 
+                string category = string.IsNullOrEmpty(questionDefinitionJsonRecord.category)
+                    ? string.Empty
+                    : questionDefinitionJsonRecord.category;
+
                 questionDefinitions.Add(
                     new QuestionDefinition(
                         questionDefinitionJsonRecord.id,
                         questionDefinitionJsonRecord.text,
-                        questionDefinitionJsonRecord.category ?? string.Empty,
+                        category,
                         questionDefinitionJsonRecord.difficulty,
                         questionDefinitionJsonRecord.enabled));
             }

@@ -7,8 +7,8 @@ namespace MouthOfTruth.Game.Voice
             string audioFilePath,
             int voiceSegmentCount)
         {
-            TranscriptText = transcriptText ?? string.Empty;
-            AudioFilePath = audioFilePath ?? string.Empty;
+            TranscriptText = string.IsNullOrEmpty(transcriptText) ? string.Empty : transcriptText;
+            AudioFilePath = string.IsNullOrEmpty(audioFilePath) ? string.Empty : audioFilePath;
             VoiceSegmentCount = voiceSegmentCount;
         }
 

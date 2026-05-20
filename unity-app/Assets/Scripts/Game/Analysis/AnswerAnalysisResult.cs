@@ -11,8 +11,8 @@ namespace MouthOfTruth.Game.Analysis
             IReadOnlyList<string> reasonCodes)
         {
             VerdictKind = verdictKind;
-            AnswerTranscript = answerTranscript ?? string.Empty;
-            ReasonCodes = reasonCodes ?? Array.Empty<string>();
+            AnswerTranscript = string.IsNullOrEmpty(answerTranscript) ? string.Empty : answerTranscript;
+            ReasonCodes = reasonCodes == null ? Array.Empty<string>() : reasonCodes;
         }
 
         public EVerdictKind VerdictKind { get; }

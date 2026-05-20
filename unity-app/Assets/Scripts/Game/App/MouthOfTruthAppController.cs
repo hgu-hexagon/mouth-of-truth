@@ -76,7 +76,12 @@ namespace MouthOfTruth.Game.App
                 mLifecycleCancellationTokenSource = new CancellationTokenSource();
                 mAnswerAnalysisClient = createAnalysisClient();
                 _ = warmUpAnalysisClientAsync();
-                mGameView = GetComponent<MouthOfTruthGameView>() ?? gameObject.AddComponent<MouthOfTruthGameView>();
+                mGameView = GetComponent<MouthOfTruthGameView>();
+                if (mGameView == null)
+                {
+                    mGameView = gameObject.AddComponent<MouthOfTruthGameView>();
+                }
+
                 await mGameView.InitializeAsync();
                 Debug.Log("MouthOfTruthGameView initialized.");
                 applyRuntimeCursorPresentation(isFocused: true);
@@ -226,7 +231,11 @@ namespace MouthOfTruth.Game.App
                 cardDwellSelectionTracker,
                 answerCollectionPolicy);
             mQuestionNarrationService = createNarrationService();
-            mAnswerAnalysisClient ??= createAnalysisClient();
+            if (mAnswerAnalysisClient == null)
+            {
+                mAnswerAnalysisClient = createAnalysisClient();
+            }
+
             mHandInteractionInputAdapter = createHandInteractionInputAdapter();
             mAnswerCaptureInputAdapter = createAnswerCaptureInputAdapter();
             prepareAnswerAudioSession();
@@ -860,7 +869,7 @@ namespace MouthOfTruth.Game.App
 
         private void applyTranscriptUpdate(string transcriptText)
         {
-            string normalizedTranscriptText = transcriptText ?? string.Empty;
+            string normalizedTranscriptText = string.IsNullOrEmpty(transcriptText) ? string.Empty : transcriptText;
 
             if (string.Equals(normalizedTranscriptText, mLastObservedTranscript, StringComparison.Ordinal))
             {
@@ -1078,7 +1087,13 @@ namespace MouthOfTruth.Game.App
                 return false;
             }
 
-            Debug.LogException(task.Exception?.GetBaseException() ?? task.Exception);
+            Exception taskException = task.Exception;
+            if (task.Exception != null)
+            {
+                taskException = task.Exception.GetBaseException();
+            }
+
+            Debug.LogException(taskException);
             return true;
         }
 

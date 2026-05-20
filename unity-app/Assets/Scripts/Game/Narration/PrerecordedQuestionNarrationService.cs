@@ -24,8 +24,10 @@ namespace MouthOfTruth.Game.Narration
             string questionAudioDirectoryPath,
             IQuestionNarrationService fallbackNarrationService)
         {
-            mQuestionAudioDirectoryPath = questionAudioDirectoryPath ?? string.Empty;
-            mFallbackNarrationService = fallbackNarrationService ?? new SilentQuestionNarrationService();
+            mQuestionAudioDirectoryPath = string.IsNullOrEmpty(questionAudioDirectoryPath) ? string.Empty : questionAudioDirectoryPath;
+            mFallbackNarrationService = fallbackNarrationService == null
+                ? new SilentQuestionNarrationService()
+                : fallbackNarrationService;
             GameObject audioSourceObject = new GameObject("QuestionNarrationAudioSource");
             Object.DontDestroyOnLoad(audioSourceObject);
             mAudioSource = audioSourceObject.AddComponent<AudioSource>();

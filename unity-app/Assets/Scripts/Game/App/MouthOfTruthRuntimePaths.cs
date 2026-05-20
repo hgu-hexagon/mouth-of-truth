@@ -33,9 +33,18 @@ namespace MouthOfTruth.Game.App
                 }
             }
 
-            DirectoryInfo unityProjectDirectoryInfo = Directory.GetParent(Application.dataPath)
-                ?? new DirectoryInfo(Application.dataPath);
-            return unityProjectDirectoryInfo.Parent?.FullName ?? unityProjectDirectoryInfo.FullName;
+            DirectoryInfo unityProjectDirectoryInfo = Directory.GetParent(Application.dataPath);
+            if (unityProjectDirectoryInfo == null)
+            {
+                unityProjectDirectoryInfo = new DirectoryInfo(Application.dataPath);
+            }
+
+            if (unityProjectDirectoryInfo.Parent != null)
+            {
+                return unityProjectDirectoryInfo.Parent.FullName;
+            }
+
+            return unityProjectDirectoryInfo.FullName;
         }
 
         public static string GetBridgeDirectoryPath()

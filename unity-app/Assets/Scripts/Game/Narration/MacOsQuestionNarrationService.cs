@@ -15,7 +15,7 @@ namespace MouthOfTruth.Game.Narration
 
         public async Task SpeakQuestionAsync(QuestionDefinition questionDefinition, CancellationToken cancellationToken)
         {
-            string questionText = questionDefinition?.Text ?? string.Empty;
+            string questionText = questionDefinition == null ? string.Empty : questionDefinition.Text;
 
             if (string.IsNullOrWhiteSpace(questionText))
             {
@@ -29,20 +29,22 @@ namespace MouthOfTruth.Game.Narration
                 return;
             }
 
-            using Process speechProcess = new Process();
-            speechProcess.StartInfo.FileName = "/usr/bin/say";
-            speechProcess.StartInfo.Arguments =
-                $"--voice \"{escapeArgument(getVoiceName())}\" --rate {DEFAULT_SPEECH_RATE} "
-                + $"\"{escapeArgument(questionText)}\"";
-            speechProcess.StartInfo.UseShellExecute = false;
-            speechProcess.StartInfo.CreateNoWindow = true;
-
-            speechProcess.Start();
-
-            while (speechProcess.HasExited == false)
+            using (Process speechProcess = new Process())
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(100, cancellationToken);
+                speechProcess.StartInfo.FileName = "/usr/bin/say";
+                speechProcess.StartInfo.Arguments =
+                    $"--voice \"{escapeArgument(getVoiceName())}\" --rate {DEFAULT_SPEECH_RATE} "
+                    + $"\"{escapeArgument(questionText)}\"";
+                speechProcess.StartInfo.UseShellExecute = false;
+                speechProcess.StartInfo.CreateNoWindow = true;
+
+                speechProcess.Start();
+
+                while (speechProcess.HasExited == false)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(100, cancellationToken);
+                }
             }
         }
 

@@ -63,7 +63,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private static Vector4 getImplicitBorder(string filePath, int width, int height)
         {
-            string normalizedFilePath = (filePath ?? string.Empty)
+            string safeFilePath = string.IsNullOrEmpty(filePath) ? string.Empty : filePath;
+            string normalizedFilePath = safeFilePath
                 .Replace('\\', '/')
                 .ToLowerInvariant();
 

@@ -88,10 +88,16 @@ namespace MouthOfTruth.Game.Analysis
                 throw new InvalidDataException("Python analysis returned an unexpected request identifier.");
             }
 
+            string[] reasonCodes = bridgeAnalysisResultFileData.ReasonCodes;
+            if (reasonCodes == null)
+            {
+                reasonCodes = Array.Empty<string>();
+            }
+
             return new AnswerAnalysisResult(
                 parseVerdictKind(bridgeAnalysisResultFileData.Verdict),
                 bridgeAnalysisResultFileData.AnswerTranscript,
-                bridgeAnalysisResultFileData.ReasonCodes ?? Array.Empty<string>());
+                reasonCodes);
         }
 
         public void Dispose()
@@ -179,7 +185,11 @@ namespace MouthOfTruth.Game.Analysis
 
             lock (mWorkerReadyLock)
             {
-                mWorkerReadyTask ??= readWorkerReadyAsync();
+                if (mWorkerReadyTask == null)
+                {
+                    mWorkerReadyTask = readWorkerReadyAsync();
+                }
+
                 return mWorkerReadyTask;
             }
         }
@@ -342,43 +352,45 @@ namespace MouthOfTruth.Game.Analysis
                 throw new FileNotFoundException("The Python bridge launcher script was not found.", bridgeLauncherScriptPath);
             }
 
-            using Process process = buildPythonProcess(
+            using (Process process = buildPythonProcess(
                 bridgeLauncherScriptPath,
-                buildBridgeLauncherArguments(requestFilePath, resultFilePath));
-            if (process.Start() == false)
+                buildBridgeLauncherArguments(requestFilePath, resultFilePath)))
             {
-                throw new InvalidOperationException("Failed to start the Python analysis process.");
-            }
-
-            Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync();
-            Task<string> standardErrorTask = process.StandardError.ReadToEndAsync();
-
-            bool exitedWithinTimeout = await Task.Run(
-                () => process.WaitForExit(DEFAULT_TIMEOUT_MILLISECONDS),
-                cancellationToken).ConfigureAwait(false);
-
-            if (exitedWithinTimeout == false)
-            {
-                try
+                if (process.Start() == false)
                 {
-                    process.Kill();
-                }
-                catch (InvalidOperationException)
-                {
+                    throw new InvalidOperationException("Failed to start the Python analysis process.");
                 }
 
-                throw new TimeoutException("Timed out while waiting for the Python analysis process.");
-            }
+                Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync();
+                Task<string> standardErrorTask = process.StandardError.ReadToEndAsync();
 
-            string standardOutput = await standardOutputTask.ConfigureAwait(false);
-            string standardError = await standardErrorTask.ConfigureAwait(false);
+                bool exitedWithinTimeout = await Task.Run(
+                    () => process.WaitForExit(DEFAULT_TIMEOUT_MILLISECONDS),
+                    cancellationToken).ConfigureAwait(false);
 
-            if (process.ExitCode != 0)
-            {
-                throw new InvalidOperationException(
-                    "Python analysis failed.\n"
-                    + $"stdout:\n{standardOutput}\n"
-                    + $"stderr:\n{standardError}");
+                if (exitedWithinTimeout == false)
+                {
+                    try
+                    {
+                        process.Kill();
+                    }
+                    catch (InvalidOperationException)
+                    {
+                    }
+
+                    throw new TimeoutException("Timed out while waiting for the Python analysis process.");
+                }
+
+                string standardOutput = await standardOutputTask.ConfigureAwait(false);
+                string standardError = await standardErrorTask.ConfigureAwait(false);
+
+                if (process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException(
+                        "Python analysis failed.\n"
+                        + $"stdout:\n{standardOutput}\n"
+                        + $"stderr:\n{standardError}");
+                }
             }
         }
 

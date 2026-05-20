@@ -4,7 +4,7 @@ namespace MouthOfTruth.Game.Voice
     {
         public AnswerCaptureFrameSnapshot(string transcriptText, bool isSpeechDetected)
         {
-            TranscriptText = transcriptText ?? string.Empty;
+            TranscriptText = string.IsNullOrEmpty(transcriptText) ? string.Empty : transcriptText;
             IsSpeechDetected = isSpeechDetected;
         }
 

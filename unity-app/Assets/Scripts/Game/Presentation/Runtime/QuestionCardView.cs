@@ -40,8 +40,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Font koreanFallbackFont)
         {
             QuestionCardSlot = questionCardSlot;
-            mPrimaryUiFont = primaryUiFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            mKoreanFallbackFont = koreanFallbackFont ?? mPrimaryUiFont;
+            mPrimaryUiFont = primaryUiFont == null
+                ? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
+                : primaryUiFont;
+            mKoreanFallbackFont = koreanFallbackFont == null ? mPrimaryUiFont : koreanFallbackFont;
             transform.SetParent(parentTransform, false);
             gameObject.name = questionCardSlot.ToString();
 

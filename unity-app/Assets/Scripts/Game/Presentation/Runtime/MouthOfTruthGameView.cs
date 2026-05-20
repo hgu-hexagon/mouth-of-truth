@@ -66,8 +66,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 4.36f;
         private const float TEMPLE_ANSWER_FOCUS_SCALE = 4.36f;
-        private const float TEMPLE_ANALYSIS_FOCUS_SCALE = 5.36f;
-        private const float TEMPLE_RESULT_FOCUS_SCALE = 5.18f;
+        private const float TEMPLE_ANALYSIS_FOCUS_SCALE = 6.82f;
+        private const float TEMPLE_RESULT_FOCUS_SCALE = 6.62f;
         private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
         private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
         private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.18f;
@@ -205,6 +205,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public float AnalysisFocusRampDurationSeconds => ANALYSIS_FOCUS_RAMP_SECONDS;
 
+        public float HandPromptPanelAutoFadeTotalDurationSeconds => getHandPromptPanelHoldSeconds() + HAND_PROMPT_PANEL_FADE_SECONDS;
+
         [Serializable]
         private sealed class TutorialSequenceMetadata
         {
@@ -215,13 +217,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task InitializeAsync()
         {
+            Debug.Log("MouthOfTruthGameView initialization started.");
             ensureEventSystemExists();
             loadUiFonts();
             buildCanvas();
             cacheWorldPresentationReferences();
             buildAudioSources();
+            Debug.Log("MouthOfTruthGameView loading sprites.");
             await loadSpritesAsync();
+            Debug.Log("MouthOfTruthGameView loading audio.");
             await loadAudioClipsAsync();
+            Debug.Log("MouthOfTruthGameView applying theme.");
             applyTheme();
             refreshWorldPresentationLayout();
             ShowStartScreen();
@@ -248,7 +254,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float slowPulse = (Mathf.Sin(elapsedSeconds * 1.85f) + 1.0f) * 0.5f;
             float quickPulse = (Mathf.Sin(elapsedSeconds * 4.8f) + 1.0f) * 0.5f;
             float breathScale = Mathf.Lerp(1.0f, 1.035f, slowPulse);
-            setOverlayTint(new Color(0.018f, 0.012f, 0.010f, 1.0f), Mathf.Lerp(0.32f, 0.40f, slowPulse));
+            setOverlayTint(new Color(0.018f, 0.012f, 0.010f, 1.0f), Mathf.Lerp(0.30f, 0.36f, slowPulse));
 
             if (isTempleApproachSceneActive())
             {
@@ -288,43 +294,44 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float elapsedSeconds = Time.unscaledTime - mAnalyzingPresentationStartedAtSeconds;
             float pulse = (Mathf.Sin(elapsedSeconds * 3.4f) + 1.0f) * 0.5f;
             float surge = (Mathf.Sin(elapsedSeconds * 5.8f) + 1.0f) * 0.5f;
-            float tremor = Mathf.Sin(elapsedSeconds * 10.5f) * 3.4f;
+            float tremor = Mathf.Sin(elapsedSeconds * 10.5f) * 4.8f;
+            float verticalTremor = Mathf.Sin(elapsedSeconds * 13.2f) * 1.6f;
             float focusProgress = Mathf.Clamp01(elapsedSeconds / ANALYSIS_FOCUS_RAMP_SECONDS);
-            setOverlayTint(new Color(0.024f, 0.016f, 0.012f, 1.0f), Mathf.Lerp(0.42f, 0.50f, pulse));
+            setOverlayTint(new Color(0.024f, 0.016f, 0.012f, 1.0f), Mathf.Lerp(0.34f, 0.40f, pulse));
 
             if (isTempleApproachSceneActive())
             {
                 float focusScale = Mathf.Lerp(TEMPLE_ANSWER_FOCUS_SCALE, TEMPLE_ANALYSIS_FOCUS_SCALE, easeOut(focusProgress));
-                float cameraScale = focusScale + (pulse * 0.024f);
-                setTempleCameraPoseCenteredOnMouth(cameraScale, TEMPLE_MOUTH_FOCUS_CENTER, tremor * 0.34f);
-                setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.84f, 0.96f, pulse), Mathf.Lerp(0.70f, 0.86f, pulse), Mathf.Lerp(0.90f, 1.0f, pulse)));
+                float cameraScale = focusScale + (pulse * 0.026f);
+                setTempleCameraPoseCenteredOnMouth(cameraScale, TEMPLE_MOUTH_FOCUS_CENTER, tremor * 0.72f, verticalTremor * 0.48f);
+                setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.86f, 0.98f, pulse), Mathf.Lerp(0.74f, 0.90f, pulse), Mathf.Lerp(0.92f, 1.0f, pulse)));
                 syncTempleStageMouthOverlay(0.0f);
                 updateMouthEffectImage(
                     mMouthListeningAuraImage,
-                    new Color(1.0f, 0.58f, 0.34f, Mathf.Lerp(0.08f, 0.16f, pulse)),
-                    1.10f + (surge * 0.08f),
-                    -elapsedSeconds * 10.0f);
+                    new Color(1.0f, 0.62f, 0.38f, Mathf.Lerp(0.16f, 0.26f, pulse)),
+                    0.86f + (surge * 0.06f),
+                    -elapsedSeconds * 9.0f);
                 updateMouthEffectImage(
                     mMouthAnalyzingAuraImage,
-                    new Color(1.0f, 0.42f, 0.24f, Mathf.Lerp(0.20f, 0.38f, surge)),
-                    1.30f + (pulse * 0.10f),
-                    elapsedSeconds * 16.0f);
+                    new Color(1.0f, 0.36f, 0.28f, Mathf.Lerp(0.24f, 0.36f, surge)),
+                    0.90f + (pulse * 0.08f),
+                    elapsedSeconds * 14.0f);
                 return;
             }
 
-            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.84f, 0.96f, pulse), Mathf.Lerp(0.70f, 0.86f, pulse), Mathf.Lerp(0.70f, 0.90f, pulse));
-            mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor, 0.0f);
+            mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.86f, 0.98f, pulse), Mathf.Lerp(0.74f, 0.90f, pulse), Mathf.Lerp(0.74f, 0.92f, pulse));
+            mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor * 1.2f, 0.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.02f, 1.13f, easeOut(focusProgress)) + (pulse * 0.035f));
             updateMouthEffectImage(
                 mMouthListeningAuraImage,
-                new Color(1.0f, 0.58f, 0.34f, Mathf.Lerp(0.08f, 0.16f, pulse)),
-                1.10f + (surge * 0.08f),
-                -elapsedSeconds * 10.0f);
+                new Color(1.0f, 0.62f, 0.38f, Mathf.Lerp(0.16f, 0.26f, pulse)),
+                0.86f + (surge * 0.06f),
+                -elapsedSeconds * 9.0f);
             updateMouthEffectImage(
                 mMouthAnalyzingAuraImage,
-                new Color(1.0f, 0.42f, 0.24f, Mathf.Lerp(0.20f, 0.38f, surge)),
-                1.30f + (pulse * 0.10f),
-                elapsedSeconds * 16.0f);
+                new Color(1.0f, 0.36f, 0.28f, Mathf.Lerp(0.24f, 0.36f, surge)),
+                0.90f + (pulse * 0.08f),
+                elapsedSeconds * 14.0f);
         }
 
         public void ShowStartScreen()
@@ -694,6 +701,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             setText(mPromptText, string.Empty);
+        }
+
+        public Vector2 GetQuestionCardScreenCenter(EQuestionCardSlot questionCardSlot)
+        {
+            if (mCardViews.TryGetValue(questionCardSlot, out QuestionCardView questionCardView) == false)
+            {
+                return new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            }
+
+            RectTransform cardRectTransform = questionCardView.RectTransform;
+            Vector3 worldCenter = cardRectTransform.TransformPoint(cardRectTransform.rect.center);
+            return RectTransformUtility.WorldToScreenPoint(mCanvas.worldCamera, worldCenter);
         }
 
         public async Task PlayQuestionRevealAsync(
@@ -1075,7 +1094,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             disableHeldHandPresentation();
             if (isTempleApproachSceneActive())
             {
-                applyTempleStageBackgroundPresentation(0.42f);
+                applyTempleStageBackgroundPresentation(0.36f);
                 applyTopLeftExitButtonLayout();
             }
             else
@@ -1100,7 +1119,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             mAnswerInputField.interactable = false;
             setObjectActive(mSceneOverlayImage, true);
-            setGameplayOverlayAlpha(0.42f);
+            setGameplayOverlayAlpha(0.36f);
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mExitButton, true);
             setObjectActive(mQuestionPanelImage, false);
@@ -1138,11 +1157,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     {
                         float easedProgress = easeInOut(progress);
                         float pulse = Mathf.Sin(progress * Mathf.PI);
-                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_RESULT_FOCUS_SCALE, easedProgress) + (pulse * 0.018f);
+                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_RESULT_FOCUS_SCALE, easedProgress) + (pulse * 0.020f);
                         Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, easedProgress);
                         setTempleCameraPose(cameraScale, cameraPosition.y, cameraPosition.x);
-                        setOverlayTint(new Color(0.022f, 0.016f, 0.014f, 1.0f), Mathf.Lerp(0.46f, 0.38f, easedProgress));
-                        setTempleApproachMouthColor(new Color(1.0f, 0.93f, 0.82f, Mathf.Lerp(0.88f, 1.0f, easedProgress)));
+                        setOverlayTint(new Color(0.022f, 0.016f, 0.014f, 1.0f), Mathf.Lerp(0.39f, 0.38f, easedProgress));
+                        setTempleApproachMouthColor(new Color(1.0f, 0.94f, 0.84f, Mathf.Lerp(0.90f, 1.0f, easedProgress)));
 
                         if (mMouthListeningAuraImage != null)
                         {
@@ -2551,9 +2570,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
-            float beamAlpha = Mathf.Lerp(0.22f, 0.40f, Mathf.Pow(quickPulse, 1.18f));
-            float beamHeight = mouthHeight * Mathf.Lerp(0.48f, 0.62f, slowPulse);
-            Vector2 beamSize = new Vector2(mouthWidth * Mathf.Lerp(0.28f, 0.38f, slowPulse), beamHeight);
+            float beamAlpha = Mathf.Lerp(0.42f, 0.72f, Mathf.Pow(quickPulse, 1.18f));
+            float beamHeight = mouthHeight * Mathf.Lerp(0.56f, 0.72f, slowPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * Mathf.Lerp(1.12f, 1.48f, slowPulse), beamHeight);
             float eyeYOffset = Mathf.Lerp(mouthHeight * 0.102f, mouthHeight * 0.114f, slowPulse);
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
             updateEyeBeamImage(
@@ -2635,16 +2654,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            if (mMouthListeningAuraImage != null
-                && mMouthListeningAuraImage.transform.GetSiblingIndex() > mMouthImage.transform.GetSiblingIndex())
+            int mouthSiblingIndex = mMouthImage.transform.GetSiblingIndex();
+
+            if (mMouthListeningAuraImage != null)
             {
-                mMouthListeningAuraImage.transform.SetSiblingIndex(mMouthImage.transform.GetSiblingIndex());
+                int targetSiblingIndex = Mathf.Min(mCanvasRootTransform.childCount - 1, mouthSiblingIndex + 1);
+                mMouthListeningAuraImage.transform.SetSiblingIndex(targetSiblingIndex);
             }
 
-            if (mMouthAnalyzingAuraImage != null
-                && mMouthAnalyzingAuraImage.transform.GetSiblingIndex() > mMouthImage.transform.GetSiblingIndex())
+            if (mMouthAnalyzingAuraImage != null)
             {
-                mMouthAnalyzingAuraImage.transform.SetSiblingIndex(mMouthImage.transform.GetSiblingIndex());
+                int targetSiblingIndex = Mathf.Min(mCanvasRootTransform.childCount - 1, mouthSiblingIndex + 2);
+                mMouthAnalyzingAuraImage.transform.SetSiblingIndex(targetSiblingIndex);
             }
         }
 
@@ -2741,10 +2762,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             stopHandPromptPanelAutoFade(restoreAlpha: true);
             setHandPromptPanelAlpha(1.0f);
-            float holdSeconds = mHandPromptClip != null
+            mHandPromptPanelFadeCoroutine = StartCoroutine(fadeHandPromptPanelAfterDelay(getHandPromptPanelHoldSeconds()));
+        }
+
+        private float getHandPromptPanelHoldSeconds()
+        {
+            return mHandPromptClip != null
                 ? Mathf.Max(0.55f, mHandPromptClip.length)
                 : HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS;
-            mHandPromptPanelFadeCoroutine = StartCoroutine(fadeHandPromptPanelAfterDelay(holdSeconds));
         }
 
         private IEnumerator fadeHandPromptPanelAfterDelay(float holdSeconds)
@@ -3363,10 +3388,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     float halfWidth = Mathf.Lerp(0.018f, 0.50f, Mathf.Pow(downProgress, 0.88f));
                     float horizontalDistance = Mathf.Abs(normalizedX - sourceCenterX) / halfWidth;
                     float edgeFade = Mathf.Pow(Mathf.Clamp01(1.0f - horizontalDistance), 0.72f);
-                    float verticalFade = Mathf.Lerp(0.95f, 0.36f, downProgress);
+                    float verticalFade = Mathf.Lerp(1.0f, 0.76f, downProgress);
                     float sourceFlare = Mathf.Pow(Mathf.Clamp01(1.0f - (downProgress * 7.5f)), 2.0f);
                     float alpha = horizontalDistance <= 1.0f
-                        ? (edgeFade * verticalFade * 0.78f) + (sourceFlare * 0.35f)
+                        ? (edgeFade * verticalFade) + (sourceFlare * 0.62f)
                         : 0.0f;
                     pixels[(y * TEXTURE_WIDTH) + x] = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(alpha));
                 }

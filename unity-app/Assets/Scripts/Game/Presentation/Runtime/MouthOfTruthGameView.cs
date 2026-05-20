@@ -263,13 +263,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 setTempleCameraPoseCenteredOnMouth(TEMPLE_ANSWER_FOCUS_SCALE + cameraPulse, TEMPLE_MOUTH_FOCUS_CENTER);
                 setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.93f, 1.0f, slowPulse), Mathf.Lerp(0.78f, 0.94f, slowPulse), 1.0f));
                 syncTempleStageMouthOverlay(0.0f);
-                updateAnsweringEyeBeamImages(slowPulse, quickPulse);
+                updateAnsweringEyeBeamImages(quickPulse);
                 return;
             }
 
             mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.93f, 1.0f, slowPulse), Mathf.Lerp(0.78f, 0.94f, slowPulse), 1.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * breathScale;
-            updateAnsweringEyeBeamImages(slowPulse, quickPulse);
+            updateAnsweringEyeBeamImages(quickPulse);
         }
 
         private void updateHeldHandPresentation()
@@ -2563,7 +2563,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             placeMouthEffectImagesBehindMouth();
         }
 
-        private void updateAnsweringEyeBeamImages(float slowPulse, float quickPulse)
+        private void updateAnsweringEyeBeamImages(float quickPulse)
         {
             if (mMouthImage == null)
             {
@@ -2574,14 +2574,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
             float beamReachPulse = Mathf.Pow(quickPulse, 0.86f);
             float beamAlpha = Mathf.Lerp(0.42f, 0.72f, Mathf.Pow(quickPulse, 1.18f));
-            float beamHeight = mouthHeight * Mathf.Lerp(0.25f, 0.76f, beamReachPulse);
-            Vector2 beamSize = new Vector2(mouthWidth * Mathf.Lerp(0.765f, 1.003f, slowPulse), beamHeight);
+            float beamFillAmount = Mathf.Lerp(0.34f, 1.0f, beamReachPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * 1.003f, mouthHeight * 0.76f);
             float eyeYOffset = mouthHeight * 0.108f;
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
             updateEyeBeamImage(
                 mMouthLeftEyeBeamImage,
                 new Vector2(-(mouthWidth * 0.084f), eyeYOffset),
                 beamSize,
+                beamFillAmount,
                 beamColor,
                 -2.6f,
                 new Vector2(0.5f, 1.0f));
@@ -2589,6 +2590,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mMouthRightEyeBeamImage,
                 new Vector2(mouthWidth * 0.058f, eyeYOffset),
                 beamSize,
+                beamFillAmount,
                 beamColor,
                 2.6f,
                 new Vector2(0.5f, 1.0f));
@@ -2598,6 +2600,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Image beamImage,
             Vector2 offsetFromMouthCenter,
             Vector2 sizeDelta,
+            float fillAmount,
             Color color,
             float rotationDegrees,
             Vector2 pivot)
@@ -2616,6 +2619,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             beamRectTransform.sizeDelta = sizeDelta;
             beamRectTransform.localScale = Vector3.one;
             beamRectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, rotationDegrees);
+            beamImage.fillAmount = Mathf.Clamp01(fillAmount);
             beamImage.color = color;
             placeEyeBeamImagesAboveMouth();
         }
@@ -3050,6 +3054,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(360.0f, 72.0f),
                 Color.clear);
             mMouthLeftEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: false);
+            mMouthLeftEyeBeamImage.type = Image.Type.Filled;
+            mMouthLeftEyeBeamImage.fillMethod = Image.FillMethod.Vertical;
+            mMouthLeftEyeBeamImage.fillOrigin = (int)Image.OriginVertical.Top;
             mMouthLeftEyeBeamImage.raycastTarget = false;
             mMouthRightEyeBeamImage = createImage(
                 "MouthRightEyeBeam",
@@ -3060,6 +3067,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 new Vector2(360.0f, 72.0f),
                 Color.clear);
             mMouthRightEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: true);
+            mMouthRightEyeBeamImage.type = Image.Type.Filled;
+            mMouthRightEyeBeamImage.fillMethod = Image.FillMethod.Vertical;
+            mMouthRightEyeBeamImage.fillOrigin = (int)Image.OriginVertical.Top;
             mMouthRightEyeBeamImage.raycastTarget = false;
             placeMouthEffectImagesBehindMouth();
             mHandImage = createImage(

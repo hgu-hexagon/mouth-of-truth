@@ -309,9 +309,24 @@ namespace MouthOfTruth.Editor
                 + "setlocal EnableExtensions\r\n"
                 + "set \"SCRIPT_DIRECTORY_PATH=%~dp0\"\r\n"
                 + "for %%I in (\"%SCRIPT_DIRECTORY_PATH%.\") do set \"MOUTH_OF_TRUTH_RUNTIME_ROOT=%%~fI\"\r\n"
-                + "start \"Mouth of Truth\" \"%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\MouthOfTruth.exe\"\r\n";
+                + "start \"Mouth of Truth\" \"%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\MouthOfTruth.exe\" -screen-fullscreen 1\r\n";
 
             File.WriteAllText(launcherScriptPath, launcherScriptContents);
+
+            string testLauncherScriptPath = Path.Combine(distributionRootPath, "Run Mouth of Truth Presentation Test.bat");
+            string testLauncherScriptContents =
+                "@echo off\r\n"
+                + "setlocal EnableExtensions\r\n"
+                + "set \"SCRIPT_DIRECTORY_PATH=%~dp0\"\r\n"
+                + "for %%I in (\"%SCRIPT_DIRECTORY_PATH%.\") do set \"MOUTH_OF_TRUTH_RUNTIME_ROOT=%%~fI\"\r\n"
+                + "set \"CAPTURE_OUTPUT_DIRECTORY_PATH=%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\PresentationTestCaptures\"\r\n"
+                + "if exist \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\" rmdir /s /q \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n"
+                + "mkdir \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n"
+                + "set \"MOUTH_OF_TRUTH_PRESENTATION_CAPTURE=1\"\r\n"
+                + "set \"MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR=%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n"
+                + "start /wait \"Mouth of Truth Presentation Test\" \"%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\MouthOfTruth.exe\" -presentation-capture -screen-fullscreen 1 -logFile \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\\presentation-test.log\"\r\n";
+
+            File.WriteAllText(testLauncherScriptPath, testLauncherScriptContents);
         }
     }
 }

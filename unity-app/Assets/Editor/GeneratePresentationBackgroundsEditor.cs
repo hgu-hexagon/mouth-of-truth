@@ -18,7 +18,12 @@ namespace MouthOfTruth.Editor
         {
             EditorSceneManager.OpenScene(MAIN_SCENE_PATH, OpenSceneMode.Single);
 
-            Camera mainCamera = Camera.main ?? Object.FindAnyObjectByType<Camera>();
+            Camera mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                mainCamera = Object.FindAnyObjectByType<Camera>();
+            }
+
             CardPresentationAnchorSet cardPresentationAnchorSet =
                 Object.FindAnyObjectByType<CardPresentationAnchorSet>();
             MouthAnchorSet mouthAnchorSet = Object.FindAnyObjectByType<MouthAnchorSet>();

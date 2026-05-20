@@ -457,9 +457,13 @@ namespace MouthOfTruth.Editor
             ensureFolderHierarchy(GENERATED_MATERIAL_DIRECTORY_PATH);
             Material material = AssetDatabase.LoadAssetAtPath<Material>(RED_RUNNER_MATERIAL_PATH);
             Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(RED_RUNNER_TEXTURE_PATH);
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit")
-                ?? Shader.Find("Universal Render Pipeline/Simple Lit")
-                ?? Shader.Find("Standard");
+            Shader shader = findFirstAvailableShader(
+                new[]
+                {
+                    "Universal Render Pipeline/Lit",
+                    "Universal Render Pipeline/Simple Lit",
+                    "Standard",
+                });
 
             if (texture == null || shader == null)
             {
@@ -630,6 +634,20 @@ namespace MouthOfTruth.Editor
             }
         }
 
+        private static Shader findFirstAvailableShader(IReadOnlyList<string> shaderNames)
+        {
+            foreach (string shaderName in shaderNames)
+            {
+                Shader shader = Shader.Find(shaderName);
+                if (shader != null)
+                {
+                    return shader;
+                }
+            }
+
+            return null;
+        }
+
         private static bool shouldSanitizeMaterial(Material material)
         {
             Shader shader = material.shader;
@@ -647,10 +665,14 @@ namespace MouthOfTruth.Editor
 
             string sanitizedMaterialAssetPath = $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
             string existingMaterialAssetPath = $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
-            Shader safeShader = Shader.Find("Universal Render Pipeline/Unlit")
-                ?? Shader.Find("Universal Render Pipeline/Lit")
-                ?? Shader.Find("Unlit/Texture")
-                ?? Shader.Find("Unlit/Color");
+            Shader safeShader = findFirstAvailableShader(
+                new[]
+                {
+                    "Universal Render Pipeline/Unlit",
+                    "Universal Render Pipeline/Lit",
+                    "Unlit/Texture",
+                    "Unlit/Color",
+                });
 
             if (safeShader == null)
             {

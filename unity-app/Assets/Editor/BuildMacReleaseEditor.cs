@@ -146,33 +146,35 @@ namespace MouthOfTruth.Editor
                 throw new BuildFailedException($"Python runtime packaging script is missing: {packageScriptPath}");
             }
 
-            using Process packageProcess = new Process();
-            packageProcess.StartInfo = new ProcessStartInfo
+            using (Process packageProcess = new Process())
             {
-                FileName = "/bin/zsh",
-                Arguments = $"\"{packageScriptPath}\"",
-                WorkingDirectory = runtimeRootPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
+                packageProcess.StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/zsh",
+                    Arguments = $"\"{packageScriptPath}\"",
+                    WorkingDirectory = runtimeRootPath,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
 
-            if (packageProcess.Start() == false)
-            {
-                throw new BuildFailedException("Failed to start the python runtime packaging process.");
-            }
+                if (packageProcess.Start() == false)
+                {
+                    throw new BuildFailedException("Failed to start the python runtime packaging process.");
+                }
 
-            string standardOutput = packageProcess.StandardOutput.ReadToEnd();
-            string standardError = packageProcess.StandardError.ReadToEnd();
-            packageProcess.WaitForExit();
+                string standardOutput = packageProcess.StandardOutput.ReadToEnd();
+                string standardError = packageProcess.StandardError.ReadToEnd();
+                packageProcess.WaitForExit();
 
-            if (packageProcess.ExitCode != 0)
-            {
-                throw new BuildFailedException(
-                    "Python runtime packaging failed.\n"
-                    + $"stdout:\n{standardOutput}\n"
-                    + $"stderr:\n{standardError}");
+                if (packageProcess.ExitCode != 0)
+                {
+                    throw new BuildFailedException(
+                        "Python runtime packaging failed.\n"
+                        + $"stdout:\n{standardOutput}\n"
+                        + $"stderr:\n{standardError}");
+                }
             }
         }
 
@@ -202,7 +204,8 @@ namespace MouthOfTruth.Editor
         {
             if (File.Exists(sourcePath))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? destinationPath);
+                string destinationDirectoryPath = Path.GetDirectoryName(destinationPath);
+                Directory.CreateDirectory(string.IsNullOrEmpty(destinationDirectoryPath) ? destinationPath : destinationDirectoryPath);
                 FileUtil.CopyFileOrDirectory(sourcePath, destinationPath);
                 return;
             }
@@ -340,7 +343,8 @@ namespace MouthOfTruth.Editor
                 File.Delete(archivePath);
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(archivePath) ?? runtimeRootPath);
+            string archiveDirectoryPath = Path.GetDirectoryName(archivePath);
+            Directory.CreateDirectory(string.IsNullOrEmpty(archiveDirectoryPath) ? runtimeRootPath : archiveDirectoryPath);
             runProcess(
                 "/usr/bin/ditto",
                 $"-c -k --norsrc --noextattr --noqtn --noacl --keepParent \"{distributionRootPath}\" \"{archivePath}\"",
@@ -349,33 +353,35 @@ namespace MouthOfTruth.Editor
 
         private static void runProcess(string fileName, string arguments, string workingDirectory)
         {
-            using Process process = new Process();
-            process.StartInfo = new ProcessStartInfo
+            using (Process process = new Process())
             {
-                FileName = fileName,
-                Arguments = arguments,
-                WorkingDirectory = workingDirectory,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
+                process.StartInfo = new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    WorkingDirectory = workingDirectory,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
 
-            if (process.Start() == false)
-            {
-                throw new BuildFailedException($"Failed to start process: {fileName}");
-            }
+                if (process.Start() == false)
+                {
+                    throw new BuildFailedException($"Failed to start process: {fileName}");
+                }
 
-            string standardOutput = process.StandardOutput.ReadToEnd();
-            string standardError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+                string standardOutput = process.StandardOutput.ReadToEnd();
+                string standardError = process.StandardError.ReadToEnd();
+                process.WaitForExit();
 
-            if (process.ExitCode != 0)
-            {
-                throw new BuildFailedException(
-                    $"{fileName} failed with exit code {process.ExitCode}.\n"
-                    + $"stdout:\n{standardOutput}\n"
-                    + $"stderr:\n{standardError}");
+                if (process.ExitCode != 0)
+                {
+                    throw new BuildFailedException(
+                        $"{fileName} failed with exit code {process.ExitCode}.\n"
+                        + $"stdout:\n{standardOutput}\n"
+                        + $"stderr:\n{standardError}");
+                }
             }
         }
     }

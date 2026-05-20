@@ -571,60 +571,62 @@ namespace MouthOfTruth.Editor
                 throw new InvalidOperationException("Python bridge runtime prerequisites are missing.");
             }
 
-            using PythonBridgeAnalysisClient pythonBridgeAnalysisClient = new PythonBridgeAnalysisClient();
-            QuestionDefinition questionDefinition =
-                new QuestionDefinition("QBRIDGE", "Bridge validation question", "test", 1, true);
-            AnswerAnalysisResult bridgeAnalysisResult = runPythonBridgeAnalysis(
-                pythonBridgeAnalysisClient,
-                questionDefinition,
-                "Bridge validation transcript",
-                faceFrameCount: 0,
-                voiceSegmentCount: 1);
-
-            if (bridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
+            using (PythonBridgeAnalysisClient pythonBridgeAnalysisClient = new PythonBridgeAnalysisClient())
             {
-                throw new InvalidOperationException("Python bridge should keep voice-only input UNCERTAIN without a face signal.");
-            }
+                QuestionDefinition questionDefinition =
+                    new QuestionDefinition("QBRIDGE", "Bridge validation question", "test", 1, true);
+                AnswerAnalysisResult bridgeAnalysisResult = runPythonBridgeAnalysis(
+                    pythonBridgeAnalysisClient,
+                    questionDefinition,
+                    "Bridge validation transcript",
+                    faceFrameCount: 0,
+                    voiceSegmentCount: 1);
 
-            if (bridgeAnalysisResult.AnswerTranscript != "Bridge validation transcript")
-            {
-                throw new InvalidOperationException("Python bridge did not preserve the provided transcript.");
-            }
+                if (bridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
+                {
+                    throw new InvalidOperationException("Python bridge should keep voice-only input UNCERTAIN without a face signal.");
+                }
 
-            if (bridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data") == false)
-            {
-                throw new InvalidOperationException("Python bridge did not surface the insufficient_face_data reason code.");
-            }
+                if (bridgeAnalysisResult.AnswerTranscript != "Bridge validation transcript")
+                {
+                    throw new InvalidOperationException("Python bridge did not preserve the provided transcript.");
+                }
 
-            if (bridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data") == false)
-            {
-                throw new InvalidOperationException("Python bridge should treat count-only voice input as insufficient evidence.");
-            }
+                if (bridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data") == false)
+                {
+                    throw new InvalidOperationException("Python bridge did not surface the insufficient_face_data reason code.");
+                }
 
-            AnswerAnalysisResult voiceMissingBridgeAnalysisResult = runPythonBridgeAnalysis(
-                pythonBridgeAnalysisClient,
-                questionDefinition,
-                "Bridge validation transcript",
-                faceFrameCount: 6,
-                voiceSegmentCount: 0);
+                if (bridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data") == false)
+                {
+                    throw new InvalidOperationException("Python bridge should treat count-only voice input as insufficient evidence.");
+                }
 
-            if (voiceMissingBridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
-            {
-                throw new InvalidOperationException(
-                    "Python bridge should keep the verdict UNCERTAIN "
-                    + "until voice input is present.");
-            }
+                AnswerAnalysisResult voiceMissingBridgeAnalysisResult = runPythonBridgeAnalysis(
+                    pythonBridgeAnalysisClient,
+                    questionDefinition,
+                    "Bridge validation transcript",
+                    faceFrameCount: 6,
+                    voiceSegmentCount: 0);
 
-            if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data")
-                == false)
-            {
-                throw new InvalidOperationException("Python bridge did not surface the insufficient_voice_data reason code.");
-            }
+                if (voiceMissingBridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
+                {
+                    throw new InvalidOperationException(
+                        "Python bridge should keep the verdict UNCERTAIN "
+                        + "until voice input is present.");
+                }
 
-            if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data")
-                == false)
-            {
-                throw new InvalidOperationException("Python bridge should treat count-only face input as insufficient evidence.");
+                if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data")
+                    == false)
+                {
+                    throw new InvalidOperationException("Python bridge did not surface the insufficient_voice_data reason code.");
+                }
+
+                if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data")
+                    == false)
+                {
+                    throw new InvalidOperationException("Python bridge should treat count-only face input as insufficient evidence.");
+                }
             }
         }
 

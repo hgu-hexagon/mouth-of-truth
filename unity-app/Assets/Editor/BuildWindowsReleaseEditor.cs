@@ -156,33 +156,35 @@ namespace MouthOfTruth.Editor
                     + "or you must set MOUTH_OF_TRUTH_WINDOWS_PYTHON_RUNTIME_ROOT to a prepared runtime folder.");
             }
 
-            using Process packageProcess = new Process();
-            packageProcess.StartInfo = new ProcessStartInfo
+            using (Process packageProcess = new Process())
             {
-                FileName = "powershell.exe",
-                Arguments = $"-ExecutionPolicy Bypass -File \"{packageScriptPath}\"",
-                WorkingDirectory = runtimeRootPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
+                packageProcess.StartInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-ExecutionPolicy Bypass -File \"{packageScriptPath}\"",
+                    WorkingDirectory = runtimeRootPath,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
 
-            if (packageProcess.Start() == false)
-            {
-                throw new BuildFailedException("Failed to start the Windows python runtime packaging process.");
-            }
+                if (packageProcess.Start() == false)
+                {
+                    throw new BuildFailedException("Failed to start the Windows python runtime packaging process.");
+                }
 
-            string standardOutput = packageProcess.StandardOutput.ReadToEnd();
-            string standardError = packageProcess.StandardError.ReadToEnd();
-            packageProcess.WaitForExit();
+                string standardOutput = packageProcess.StandardOutput.ReadToEnd();
+                string standardError = packageProcess.StandardError.ReadToEnd();
+                packageProcess.WaitForExit();
 
-            if (packageProcess.ExitCode != 0)
-            {
-                throw new BuildFailedException(
-                    "Windows python runtime packaging failed.\n"
-                    + $"stdout:\n{standardOutput}\n"
-                    + $"stderr:\n{standardError}");
+                if (packageProcess.ExitCode != 0)
+                {
+                    throw new BuildFailedException(
+                        "Windows python runtime packaging failed.\n"
+                        + $"stdout:\n{standardOutput}\n"
+                        + $"stderr:\n{standardError}");
+                }
             }
         }
 
@@ -212,7 +214,8 @@ namespace MouthOfTruth.Editor
         {
             if (File.Exists(sourcePath))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? destinationPath);
+                string destinationDirectoryPath = Path.GetDirectoryName(destinationPath);
+                Directory.CreateDirectory(string.IsNullOrEmpty(destinationDirectoryPath) ? destinationPath : destinationDirectoryPath);
                 FileUtil.CopyFileOrDirectory(sourcePath, destinationPath);
                 return;
             }

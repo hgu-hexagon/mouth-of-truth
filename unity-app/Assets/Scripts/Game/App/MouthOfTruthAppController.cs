@@ -533,7 +533,7 @@ namespace MouthOfTruth.Game.App
         {
             mIsTransitionBusy = true;
             mGameView.ShowAnalyzing();
-            float analysisPresentationStartedAtSeconds = Time.unscaledTime;
+            float analysisPresentationStartedAtSeconds = Time.unscaledTime + mGameView.AnalysisFocusRampDurationSeconds;
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
             System.Diagnostics.Stopwatch captureStopwatch = System.Diagnostics.Stopwatch.StartNew();
             Task<AnswerCaptureResult> answerCaptureTask = mAnswerCaptureInputAdapter.CompleteCollectionAsync(
@@ -911,6 +911,9 @@ namespace MouthOfTruth.Game.App
                 await captureScreenshotAsync(outputDirectoryPath, "06_answering.png");
 
                 mGameView.ShowAnalyzing();
+                await waitForRealtimeSecondsAsync(
+                    mGameView.AnalysisFocusRampDurationSeconds + 0.35f,
+                    mLifecycleCancellationTokenSource.Token);
                 await waitForPresentationFrameAsync();
                 await captureScreenshotAsync(outputDirectoryPath, "07_analyzing.png");
 

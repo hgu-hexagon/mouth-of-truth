@@ -1,282 +1,254 @@
 # Mouth of Truth Build and Distribution Guide
 
-## Overview
+## 1. Purpose
 
-This document explains how to build and distribute Mouth of Truth as a macOS
-and Windows product package.
+This document explains how to build Mouth of Truth as a distributable macOS or
+Windows product package.
 
-After completing this guide, you should be able to:
+After following this guide, a developer should be able to create:
 
-- prepare the distributable Python runtime
-- run the macOS release build
-- run the Windows release build
-- identify the folders that must be delivered to users
-- tell users which file they must launch
+- the macOS release folder and ZIP
+- the macOS presentation/capture test launcher
+- the Windows release folder
+- the Windows presentation/capture test launcher
+- clear user-facing launch instructions
 
-## Build-host requirements
+## 2. Release Package Structure
 
-### macOS build host
+The product is not shipped as a Unity player alone. A release package includes:
 
-Prepare the following:
+- the Unity player
+- `python-engine/`
+- the packaged Python runtime
+- `bridge/`
+- art, audio, questions, and tutorial data inside `StreamingAssets`
+
+End users do not need Unity Editor or a Python development environment. Demo
+machines that use Leap Motion input do need the Ultraleap tracking runtime
+installed and running.
+
+## 3. Build Host Requirements
+
+### macOS
+
+Install:
 
 - macOS
+- Unity Hub
 - Unity Editor `6000.4.1f1`
-- conda environment `mouth-truth` or `mouth-of-truth`
+- Miniforge or Mambaforge
 - `conda-pack`
 
-### Windows build host
+### Windows
 
-Prepare the following:
+Install:
 
 - Windows
+- Unity Hub
 - Unity Editor `6000.4.1f1`
 - `Windows Build Support (IL2CPP)`
-- Visual Studio 2026
+- Visual Studio 2026, or another Visual Studio version compatible with Unity `6000.4.1f1`
 - the `Desktop development with C++` workload
 - `MSVC x64/x86 build tools`
 - `Windows 11 SDK`
-- conda environment `mouth-truth` or `mouth-of-truth`
+- Miniforge or Mambaforge
 - `conda-pack`
 
-Important:
+If Unity Hub does not list `6000.4.1f1`, install it from the Unity Download
+Archive. The Windows package should be built from a Windows Unity Editor.
 
-- If Unity Hub does not list `6000.4.1f1`, install it from the Unity Download Archive.
-- The Windows distribution should be built from a Windows Unity Editor.
+## 4. Pre-Release Validation
 
-## Pre-release checklist
-
-Verify the following first.
+Check the following from the repository root.
 
 - The Unity project opens from `unity-app/`.
-- The main scene is `Assets/Scenes/Main.unity`.
-- Runtime art assets are present under `unity-app/Assets/StreamingAssets/art/`.
+- The main scene is `unity-app/Assets/Scenes/Main.unity`.
 - `python -m compileall python-engine/src` passes.
-- On macOS, `python-engine/scripts/validate_bridge_runtime.sh` passes.
-- `Mouth Of Truth > Validate Software Flow` passes.
-- `Mouth Of Truth > Validate Product Readiness` passes.
+- `Mouth Of Truth > Validate Software Flow` passes in Unity.
+- `Mouth Of Truth > Validate Product Readiness` passes in Unity.
+- `unity-app/Assets/StreamingAssets/audio/questions/` contains narration audio matching the current question IDs.
+- `unity-app/Assets/StreamingAssets/art/` contains the product PNG/JPEG assets.
 
-## Build the distributable Python runtime
+## 5. Package the Python Runtime
 
-Do not ship the Unity player alone.
-The release package must include the Python runtime.
+### macOS
 
-### macOS Python runtime
-
-Run this command from the repository root.
+Run from the repository root:
 
 ```bash
+conda env create -f python-engine/environment.yml
 conda activate mouth-of-truth
 python-engine/scripts/package_python_runtime.sh
 ```
 
-The script performs the following actions.
-
-- packages the `mouth-truth` or `mouth-of-truth` conda environment
-- creates `python-runtime/` at the repository root
-- expands the distributable Python executable and packages into that directory
-
-If you use a different environment name, set it first.
+If the environment already exists, skip `conda env create`. If the environment
+uses a different name, set it explicitly.
 
 ```bash
 MOUTH_OF_TRUTH_CONDA_ENV=<conda-env-name> \
 python-engine/scripts/package_python_runtime.sh
 ```
 
-### Windows Python runtime
+After completion, `python-runtime/` must exist at the repository root.
 
-Open Windows PowerShell at the repository root and run:
+### Windows
+
+Run from Windows PowerShell at the repository root:
 
 ```powershell
+conda env create -f python-engine/environment.yml
 conda activate mouth-of-truth
 .\python-engine\scripts\package_python_runtime.ps1
 ```
 
-The script performs the following actions.
-
-- packages the `mouth-truth` or `mouth-of-truth` conda environment
-- creates `python-runtime-windows/` at the repository root
-- expands the distributable Windows Python executable and packages into that directory
-
-If you use a different environment name, set it first.
+If the environment already exists, skip `conda env create`. If the environment
+uses a different name, set it explicitly.
 
 ```powershell
 $env:MOUTH_OF_TRUTH_CONDA_ENV = "<conda-env-name>"
 .\python-engine\scripts\package_python_runtime.ps1
 ```
 
-## Build the macOS release
+After completion, `python-runtime-windows/` must exist at the repository root.
 
-### 1. Refresh the main scene
+## 6. Build the macOS Release
 
-Run this Unity menu item.
-
-- `Mouth Of Truth > Build Main Scene`
-
-### 2. Run the macOS release build
-
-Run this Unity menu item.
-
-- `Mouth Of Truth > Build Mac Release`
-
-You can also run the repository script from the repository root.
+Run from the repository root:
 
 ```bash
+UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
 ./tools/build-macos-release.sh
 ```
 
-The build creates the following output.
+If Unity is installed elsewhere, change `UNITY_EDITOR_PATH`.
+
+Successful output:
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
+- `dist/macos/MouthOfTruth/Run Mouth of Truth Presentation Test.command`
 - `dist/macos/MouthOfTruth/python-engine/`
 - `dist/macos/MouthOfTruth/python-runtime/`
 - `dist/macos/MouthOfTruth/bridge/`
+- `dist/macos/MouthOfTruth-macos.zip`
 
-## Build the Windows release
+`MouthOfTruth-macos.zip` is the default package to send to macOS users.
 
-Run the Windows release from a Windows Unity Editor that has Windows Build
-Support installed.
+## 7. Build the Windows Release
 
-### 1. Refresh the main scene
-
-Run this Unity menu item.
-
-- `Mouth Of Truth > Build Main Scene`
-
-### 2. Run the Windows release build
-
-Run this Unity menu item.
-
-- `Mouth Of Truth > Build Windows Release`
-
-You can also run the repository PowerShell script.
+Run from Windows PowerShell at the repository root:
 
 ```powershell
 .\tools\build-windows-release.ps1
 ```
 
-If Unity is installed in a different path, pass it explicitly.
+If Unity is installed elsewhere, pass the editor path explicitly.
 
 ```powershell
 .\tools\build-windows-release.ps1 -UnityEditorPath "C:\Path\To\Unity.exe"
 ```
 
-The build creates the following output.
+Successful output:
 
 - `dist/windows/MouthOfTruth/MouthOfTruth.exe`
 - `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
+- `dist/windows/MouthOfTruth/Run Mouth of Truth Presentation Test.bat`
 - `dist/windows/MouthOfTruth/MouthOfTruth_Data/`
 - `dist/windows/MouthOfTruth/python-engine/`
 - `dist/windows/MouthOfTruth/python-runtime/`
 - `dist/windows/MouthOfTruth/bridge/`
 
-## Folders that must exist after the build
+Zip and deliver the full `dist/windows/MouthOfTruth/` folder to Windows users.
 
-Verify that all of the following exist for macOS.
+## 8. User Launch Instructions
 
-- `dist/macos/MouthOfTruth/MouthOfTruth.app`
-- `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
-- `dist/macos/MouthOfTruth/python-engine/`
-- `dist/macos/MouthOfTruth/python-runtime/`
-- `dist/macos/MouthOfTruth/bridge/`
+### macOS
 
-Verify that all of the following exist for Windows.
+Deliver:
 
-- `dist/windows/MouthOfTruth/MouthOfTruth.exe`
-- `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
-- `dist/windows/MouthOfTruth/MouthOfTruth_Data/`
-- `dist/windows/MouthOfTruth/python-engine/`
-- `dist/windows/MouthOfTruth/python-runtime/`
-- `dist/windows/MouthOfTruth/bridge/`
+- `MouthOfTruth-macos.zip`
 
-Do not ship the build if any required item is missing.
+Run:
 
-## Folders to deliver to users
+1. Extract the ZIP.
+2. Launch `MouthOfTruth/Run Mouth of Truth.command`.
+3. If macOS blocks execution, right-click the file in Finder and choose **Open**.
+4. Allow camera and microphone permissions.
 
-Deliver the entire directory below.
+### Windows
 
-- `dist/macos/MouthOfTruth/`
-- `dist/windows/MouthOfTruth/`
+Deliver:
 
-Recommended delivery method:
+- a ZIP of the Windows-built `MouthOfTruth/` folder
 
-- compress each platform-specific `MouthOfTruth/` directory as a ZIP file
+Run:
 
-Important:
+1. Extract the ZIP.
+2. Launch `MouthOfTruth\Run Mouth of Truth.bat`.
+3. Allow camera and microphone permissions.
 
-- Do not ship `MouthOfTruth.app` by itself on macOS.
-- Do not ship `MouthOfTruth.exe` by itself on Windows.
-- Always ship the full `MouthOfTruth/` directory.
+### Leap Motion
 
-## File the user should launch
+For Leap Motion demos, the target machine must have the Ultraleap tracking
+runtime installed and running. The device must be visible to the operating
+system and hand tracking must be active in the Ultraleap runtime.
 
-After extracting the package, the user should launch:
+## 9. Presentation Test Launcher
 
-- macOS:
-  - `Run Mouth of Truth.command`
-- Windows:
-  - `Run Mouth of Truth.bat`
+The macOS package includes:
 
-The launcher sets the runtime root correctly and then opens the correct player
-for the platform.
+- `Run Mouth of Truth Presentation Test.command`
 
-As a secondary option, the user can launch:
+This runs the same product in presentation-capture mode and writes captures to
+`presentation-captures/test-run/`. It does not require a spoken answer and is
+intended to validate the visual flow for `TRUE`, `FALSE`, and `UNCERTAIN`.
 
-- `MouthOfTruth.app`
-- `MouthOfTruth.exe`
+The Windows package includes:
 
-For support and operation, the platform-specific launcher should be the default
-instruction.
+- `Run Mouth of Truth Presentation Test.bat`
 
-## First-launch instructions for users
+## 10. Final Release Checklist
 
-The first launch can prompt for:
+Before distribution, run the normal launcher and verify:
 
-- camera permission
-- microphone permission
+- the title screen opens
+- `START GAME` works
+- the first-run tutorial appears
+- the temple approach sequence plays
+- three cards appear
+- card hover/dwell selection works
+- the selected card flips and question narration plays
+- the view approaches the Mouth of Truth
+- hand insertion starts answer collection
+- answer collection shows the eye-beam effect
+- analysis shows zoom, aura, and shake effects
+- the result screen appears
+- `TRY AGAIN` returns to the card-selection flow
+- the top-left exit button works
 
-The user must allow both permissions for the analysis features to work.
-
-On macOS, also tell the user:
-
-- if execution is blocked, right-click the file in Finder and select **Open**
-
-## Final release verification
-
-Verify the following flow before distribution.
-
-- The title screen opens.
-- `START GAME` works.
-- `EXIT GAME` works.
-- Card selection works.
-- Question TTS plays.
-- Answer collection starts after hand insertion.
-- Answer pause works when the hand is removed.
-- Answer resume works when the hand returns.
-- A result screen appears.
-- `TRY AGAIN` works.
-- `EXIT GAME` works on the result screen.
-
-## Troubleshooting
+## 11. Troubleshooting
 
 ### The app opens, but analysis does not run
 
-Cause:
+Check that the release folder contains:
 
-- `python-runtime/` or `python-engine/` may be missing.
+- `python-engine/`
+- `python-runtime/`
+- `bridge/`
 
-Action:
+### Leap Motion pointer does not move
 
-- Verify that both directories are present in the release package.
+Check that:
 
-### The Windows build fails before the player is produced
+- the Ultraleap tracking runtime is installed
+- the runtime is running
+- the Leap Motion device is detected by the OS and Ultraleap Control Panel
+- real hand tracking is visible in the runtime
 
-Cause:
+### Windows build fails
 
-- `Windows Build Support (IL2CPP)` may be missing, or
-- the Visual Studio C++ build toolchain may be incomplete.
+Check that:
 
-Action:
-
-- Install `Windows Build Support (IL2CPP)` from Unity Hub.
-- Verify the `Desktop development with C++` workload in Visual Studio Installer.
+- Unity has `Windows Build Support (IL2CPP)`
+- Visual Studio has the `Desktop development with C++` workload
+- `MSVC x64/x86 build tools` and `Windows 11 SDK` are installed

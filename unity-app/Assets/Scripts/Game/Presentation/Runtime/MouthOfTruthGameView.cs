@@ -306,8 +306,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     -elapsedSeconds * 10.0f);
                 updateMouthEffectImage(
                     mMouthAnalyzingAuraImage,
-                    new Color(1.0f, 0.28f, 0.18f, Mathf.Lerp(0.15f, 0.30f, surge)),
-                    1.24f + (pulse * 0.12f),
+                    new Color(1.0f, 0.42f, 0.24f, Mathf.Lerp(0.20f, 0.38f, surge)),
+                    1.30f + (pulse * 0.10f),
                     elapsedSeconds * 16.0f);
                 return;
             }
@@ -322,8 +322,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 -elapsedSeconds * 10.0f);
             updateMouthEffectImage(
                 mMouthAnalyzingAuraImage,
-                new Color(1.0f, 0.28f, 0.18f, Mathf.Lerp(0.15f, 0.30f, surge)),
-                1.24f + (pulse * 0.12f),
+                new Color(1.0f, 0.42f, 0.24f, Mathf.Lerp(0.20f, 0.38f, surge)),
+                1.30f + (pulse * 0.10f),
                 elapsedSeconds * 16.0f);
         }
 

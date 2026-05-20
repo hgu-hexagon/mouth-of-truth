@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -28,8 +29,10 @@ namespace MouthOfTruth.Game.App
         private const float POINTER_REACQUIRE_GUARD_SECONDS = 0.45f;
         private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 0.0f;
         private const float MINIMUM_ANALYSIS_PRESENTATION_SECONDS = 2.5f;
+        private const float PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS = 1.2f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
+        private const string PRESENTATION_CAPTURE_ARGUMENT_NAME = "-presentation-capture";
 
         private MouthOfTruthGameView mGameView;
         private MouthOfTruthGameStateMachine mGameStateMachine;
@@ -51,26 +54,47 @@ namespace MouthOfTruth.Game.App
         private string mLastObservedTranscript = string.Empty;
         private EHandAnchorState mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
 
-        private async void Start()
+        private void Awake()
         {
-            mLifecycleCancellationTokenSource = new CancellationTokenSource();
-            mAnswerAnalysisClient = createAnalysisClient();
-            _ = warmUpAnalysisClientAsync();
-            mGameView = GetComponent<MouthOfTruthGameView>() ?? gameObject.AddComponent<MouthOfTruthGameView>();
-            await mGameView.InitializeAsync();
-            applyRuntimeCursorPresentation(isFocused: true);
-
-            if (isPresentationCaptureEnabled() == false)
-            {
-                await requestCaptureAuthorizationsAsync();
-            }
-
-            initializeStateMachine();
-            mIsInitialized = true;
+            Application.runInBackground = true;
 
             if (isPresentationCaptureEnabled())
             {
-                _ = runPresentationCaptureSequenceAsync();
+                QualitySettings.vSyncCount = 0;
+                Application.targetFrameRate = 60;
+                Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
+            }
+        }
+
+        private async void Start()
+        {
+            try
+            {
+                Debug.Log($"MouthOfTruthAppController started. Presentation capture enabled: {isPresentationCaptureEnabled()}.");
+                mLifecycleCancellationTokenSource = new CancellationTokenSource();
+                mAnswerAnalysisClient = createAnalysisClient();
+                _ = warmUpAnalysisClientAsync();
+                mGameView = GetComponent<MouthOfTruthGameView>() ?? gameObject.AddComponent<MouthOfTruthGameView>();
+                await mGameView.InitializeAsync();
+                Debug.Log("MouthOfTruthGameView initialized.");
+                applyRuntimeCursorPresentation(isFocused: true);
+
+                if (isPresentationCaptureEnabled() == false)
+                {
+                    await requestCaptureAuthorizationsAsync();
+                }
+
+                initializeStateMachine();
+                mIsInitialized = true;
+
+                if (isPresentationCaptureEnabled())
+                {
+                    StartCoroutine(runPresentationCaptureSequenceCoroutine());
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
             }
         }
 
@@ -706,6 +730,11 @@ namespace MouthOfTruth.Game.App
 
         private IAnswerAnalysisClient createAnalysisClient()
         {
+            if (isPresentationCaptureEnabled())
+            {
+                return new DeterministicAnswerAnalysisClient();
+            }
+
             string analysisMode = Environment.GetEnvironmentVariable("MOUTH_OF_TRUTH_ANALYSIS_MODE");
 
             if (string.Equals(analysisMode, "python", StringComparison.OrdinalIgnoreCase))
@@ -747,6 +776,11 @@ namespace MouthOfTruth.Game.App
 
         private IHandInteractionInputAdapter createHandInteractionInputAdapter()
         {
+            if (isPresentationCaptureEnabled())
+            {
+                return new KeyboardHandInputAdapter();
+            }
+
             return new CompositeHandInteractionInputAdapter(
                 new LeapHandInputAdapter(),
                 new KeyboardHandInputAdapter());
@@ -754,6 +788,11 @@ namespace MouthOfTruth.Game.App
 
         private IAnswerCaptureInputAdapter createAnswerCaptureInputAdapter()
         {
+            if (isPresentationCaptureEnabled())
+            {
+                return new PresentationCaptureAnswerInputAdapter();
+            }
+
             MicrophoneAnswerInputAdapter microphoneAnswerInputAdapter = new MicrophoneAnswerInputAdapter();
 
             if (microphoneAnswerInputAdapter.HasAvailableDevice())
@@ -787,6 +826,11 @@ namespace MouthOfTruth.Game.App
 
         private IFaceCaptureInputAdapter createFaceCaptureInputAdapter()
         {
+            if (isPresentationCaptureEnabled())
+            {
+                return new NoOpFaceCaptureInputAdapter();
+            }
+
             return new WebcamFaceCaptureInputAdapter();
         }
 
@@ -851,108 +895,272 @@ namespace MouthOfTruth.Game.App
         {
             string rawValue = Environment.GetEnvironmentVariable(
                 PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME);
-            return string.Equals(rawValue, "1", StringComparison.OrdinalIgnoreCase)
+            bool isEnvironmentEnabled = string.Equals(rawValue, "1", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(rawValue, "true", StringComparison.OrdinalIgnoreCase);
+            return isEnvironmentEnabled
+                || Array.Exists(Environment.GetCommandLineArgs(), argument =>
+                    string.Equals(argument, PRESENTATION_CAPTURE_ARGUMENT_NAME, StringComparison.OrdinalIgnoreCase));
         }
 
-        private async Task runPresentationCaptureSequenceAsync()
+        private IEnumerator runPresentationCaptureSequenceCoroutine()
         {
             mIsPresentationCaptureRunning = true;
 
-            try
+            string outputDirectoryPath =
+                Environment.GetEnvironmentVariable(PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME);
+
+            if (string.IsNullOrWhiteSpace(outputDirectoryPath))
             {
-                string outputDirectoryPath =
-                    Environment.GetEnvironmentVariable(PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME);
-
-                if (string.IsNullOrWhiteSpace(outputDirectoryPath))
-                {
-                    outputDirectoryPath = Path.Combine(Directory.GetCurrentDirectory(), "presentation-captures");
-                }
-
-                Directory.CreateDirectory(outputDirectoryPath);
-
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "01_start.png");
-
-                await startGameAsync();
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "02_cards.png");
-
-                mGameView.PreviewCardSelectionFocus(EQuestionCardSlot.CenterCard);
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "03_card_focus.png");
-
-                EQuestionCardSlot? confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(
-                    EQuestionCardSlot.CenterCard,
-                    CARD_SELECTION_DWELL_SECONDS);
-                if (confirmedQuestionCardSlot.HasValue == false)
-                {
-                    throw new InvalidOperationException("Presentation capture could not confirm the center card.");
-                }
-
-                GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
-                QuestionDefinition selectedQuestionDefinition =
-                    snapshot.CurrentRoundSelection.QuestionsBySlot[EQuestionCardSlot.CenterCard];
-                await mGameView.PlayQuestionRevealAsync(EQuestionCardSlot.CenterCard, selectedQuestionDefinition);
-                await mGameView.PlayTempleApproachToMouthAsync();
-                await mGameView.PrepareTempleGameplayBackdropAsync();
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "04_card_launch.png");
-
-                mGameStateMachine.MarkQuestionRevealCompleted();
-                mGameStateMachine.MarkQuestionNarrationCompleted();
-                mGameView.ShowAwaitingHandInsertion();
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "05_hand_prompt.png");
-
-                await mGameView.AnimateHandInsertionAsync();
-                mGameView.ShowAnswering();
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "06_answering.png");
-
-                mGameView.ShowAnalyzing();
-                await waitForRealtimeSecondsAsync(
-                    mGameView.AnalysisFocusRampDurationSeconds + 0.35f,
-                    mLifecycleCancellationTokenSource.Token);
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "07_analyzing.png");
-
-                mGameView.ShowResult(EVerdictKind.True, string.Empty);
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "08_result_true.png");
-
-                mGameView.ShowResult(EVerdictKind.False, string.Empty);
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "09_result_false.png");
-
-                mGameView.ShowResult(EVerdictKind.Uncertain, string.Empty);
-                await waitForPresentationFrameAsync();
-                await captureScreenshotAsync(outputDirectoryPath, "10_result_uncertain.png");
+                outputDirectoryPath = Path.Combine(Directory.GetCurrentDirectory(), "presentation-captures");
             }
-            finally
+
+            Directory.CreateDirectory(outputDirectoryPath);
+            Debug.Log($"Presentation capture sequence started. Output: {outputDirectoryPath}");
+
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "01_start.png");
+
+            mGameStateMachine.StartGame();
+            resetInteractionSelectionState();
+
+            Task firstRunTutorialTask = mGameView.PlayFirstRunTutorialAsync();
+            yield return waitForRealtimeSecondsCoroutine(1.4f);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "02_first_run_tutorial.png");
+            yield return waitForTaskCoroutine(firstRunTutorialTask);
+
+            if (tryLogTaskFailure(firstRunTutorialTask))
             {
-                mIsPresentationCaptureRunning = false;
-                await Task.Delay(500);
-
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
-                Application.Quit();
-#endif
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
             }
+
+            Task approachToCardSelectionTask = mGameView.PlayTempleApproachToCardSelectionAsync();
+            yield return waitForRealtimeSecondsCoroutine(2.8f);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "03_temple_approach.png");
+            yield return waitForTaskCoroutine(approachToCardSelectionTask);
+
+            if (tryLogTaskFailure(approachToCardSelectionTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
+
+            mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
+            Task cardEntranceTask = mGameView.PlayCardSelectionEntranceAsync();
+            yield return waitForTaskCoroutine(cardEntranceTask);
+
+            if (tryLogTaskFailure(cardEntranceTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
+
+            mGameStateMachine.MarkCardPresentationCompleted();
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "04_cards.png");
+
+            Task<EQuestionCardSlot> dwellSelectionTask = dwellSelectPresentationCardAsync(EQuestionCardSlot.CenterCard);
+            yield return waitForTaskCoroutine(dwellSelectionTask);
+
+            if (tryLogTaskFailure(dwellSelectionTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
+
+            EQuestionCardSlot confirmedQuestionCardSlot = dwellSelectionTask.Result;
+            mGameView.PreviewCardSelectionFocus(confirmedQuestionCardSlot);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "05_card_focus.png");
+
+            GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
+            QuestionDefinition selectedQuestionDefinition =
+                snapshot.CurrentRoundSelection.QuestionsBySlot[confirmedQuestionCardSlot];
+            Task revealQuestionTask = mGameView.PlayQuestionRevealAsync(
+                confirmedQuestionCardSlot,
+                selectedQuestionDefinition,
+                () => mQuestionNarrationService.SpeakQuestionAsync(
+                    selectedQuestionDefinition,
+                    mLifecycleCancellationTokenSource.Token));
+            yield return waitForRealtimeSecondsCoroutine(2.65f);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "06_card_question.png");
+            yield return waitForTaskCoroutine(revealQuestionTask);
+
+            if (tryLogTaskFailure(revealQuestionTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
+
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "07_card_launch_complete.png");
+
+            Task approachToMouthTask = mGameView.PlayTempleApproachToMouthAsync();
+            yield return waitForTaskCoroutine(approachToMouthTask);
+
+            if (tryLogTaskFailure(approachToMouthTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
+
+            Task prepareBackdropTask = mGameView.PrepareTempleGameplayBackdropAsync();
+            yield return waitForTaskCoroutine(prepareBackdropTask);
+
+            if (tryLogTaskFailure(prepareBackdropTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
+
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "08_mouth_arrival.png");
+
+            mGameStateMachine.MarkQuestionRevealCompleted();
+            mGameStateMachine.MarkQuestionNarrationCompleted();
+            mGameView.ShowAwaitingHandInsertion();
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "09_hand_prompt.png");
+            yield return waitForRealtimeSecondsCoroutine(
+                mGameView.HandPromptPanelAutoFadeTotalDurationSeconds + PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS);
+
+            Task handInsertionTask = mGameView.AnimateHandInsertionAsync();
+            yield return waitForTaskCoroutine(handInsertionTask);
+
+            if (tryLogTaskFailure(handInsertionTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
+
+            mGameView.ShowAnswering();
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "10_answering.png");
+
+            mGameView.ShowAnalyzing();
+            yield return waitForRealtimeSecondsCoroutine(mGameView.AnalysisFocusRampDurationSeconds + 0.35f);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "11_analyzing.png");
+
+            mGameView.ShowResult(EVerdictKind.True, string.Empty);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "12_result_true.png");
+
+            mGameView.ShowResult(EVerdictKind.False, string.Empty);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "13_result_false.png");
+
+            mGameView.ShowResult(EVerdictKind.Uncertain, string.Empty);
+            yield return waitForPresentationFrameCoroutine();
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "14_result_uncertain.png");
+            Debug.Log("Presentation capture sequence completed.");
+            yield return finalizePresentationCaptureCoroutine();
         }
 
-        private async Task waitForPresentationFrameAsync()
+        private IEnumerator waitForTaskCoroutine(Task task)
         {
-            await Task.Yield();
-            await Task.Delay(420);
+            while (task.IsCompleted == false)
+            {
+                yield return null;
+            }
         }
 
-        private async Task captureScreenshotAsync(string outputDirectoryPath, string fileName)
+        private bool tryLogTaskFailure(Task task)
+        {
+            if (task.IsFaulted == false)
+            {
+                return false;
+            }
+
+            Debug.LogException(task.Exception?.GetBaseException() ?? task.Exception);
+            return true;
+        }
+
+        private IEnumerator waitForPresentationFrameCoroutine()
+        {
+            Debug.Log("Presentation capture waiting for render frames.");
+
+            for (int frameIndex = 0; frameIndex < 24; frameIndex++)
+            {
+                yield return null;
+            }
+
+            Debug.Log("Presentation capture render frame wait completed.");
+        }
+
+        private IEnumerator waitForRealtimeSecondsCoroutine(float durationSeconds)
+        {
+            if (durationSeconds <= 0.0f)
+            {
+                yield break;
+            }
+
+            float targetTimeSeconds = Time.unscaledTime + durationSeconds;
+
+            while (Time.unscaledTime < targetTimeSeconds)
+            {
+                yield return null;
+            }
+        }
+
+        private IEnumerator captureScreenshotCoroutine(string outputDirectoryPath, string fileName)
         {
             string screenshotFilePath = Path.Combine(outputDirectoryPath, fileName);
             ScreenCapture.CaptureScreenshot(screenshotFilePath, superSize: 1);
-            await Task.Delay(520);
+            float timeoutAtSeconds = Time.unscaledTime + 2.0f;
+
+            while (File.Exists(screenshotFilePath) == false && Time.unscaledTime < timeoutAtSeconds)
+            {
+                yield return null;
+            }
+
+            yield return waitForRealtimeSecondsCoroutine(0.2f);
+        }
+
+        private IEnumerator finalizePresentationCaptureCoroutine()
+        {
+            mIsPresentationCaptureRunning = false;
+            yield return waitForRealtimeSecondsCoroutine(0.5f);
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+
+        private async Task<EQuestionCardSlot> dwellSelectPresentationCardAsync(EQuestionCardSlot questionCardSlot)
+        {
+            Vector2 cardScreenCenter = mGameView.GetQuestionCardScreenCenter(questionCardSlot);
+            EQuestionCardSlot? confirmedQuestionCardSlot = null;
+            float elapsedSeconds = 0.0f;
+
+            while (elapsedSeconds < CARD_SELECTION_DWELL_SECONDS && confirmedQuestionCardSlot.HasValue == false)
+            {
+                float deltaSeconds = Mathf.Max(Time.deltaTime, 1.0f / 60.0f);
+                elapsedSeconds = Mathf.Min(CARD_SELECTION_DWELL_SECONDS, elapsedSeconds + deltaSeconds);
+                mGameView.UpdatePointerVisual(true, cardScreenCenter);
+                mGameView.UpdateCardHoverVisual(questionCardSlot, Mathf.Clamp01(elapsedSeconds / CARD_SELECTION_DWELL_SECONDS));
+                confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(questionCardSlot, deltaSeconds);
+                await Task.Yield();
+            }
+
+            if (confirmedQuestionCardSlot.HasValue == false)
+            {
+                confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(questionCardSlot, 1.0f / 60.0f);
+            }
+
+            if (confirmedQuestionCardSlot.HasValue == false)
+            {
+                throw new InvalidOperationException("Presentation capture could not confirm the center card.");
+            }
+
+            mGameView.UpdatePointerVisual(true, cardScreenCenter);
+            mGameView.UpdateCardHoverVisual(questionCardSlot, 1.0f);
+            return confirmedQuestionCardSlot.Value;
         }
 
     }

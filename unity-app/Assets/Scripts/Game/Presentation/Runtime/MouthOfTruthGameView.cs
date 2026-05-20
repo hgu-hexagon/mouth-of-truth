@@ -85,7 +85,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 ANSWERING_FOCUS_MOUTH_SIZE_PIXELS = new Vector2(1120.0f, 1120.0f);
         private static readonly Vector2 RESULT_MOUTH_ANCHOR = new Vector2(0.5f, 0.52f);
         private static readonly Vector2 RESULT_MOUTH_SIZE_PIXELS = new Vector2(1680.0f, 1680.0f);
-        private static readonly Vector2 RESULT_VERDICT_SIZE_PIXELS = new Vector2(1120.0f, 260.0f);
+        private static readonly Vector2 RESULT_VERDICT_SIZE_PIXELS = new Vector2(1260.0f, 292.0f);
         private static readonly Color SCENE_OVERLAY_COLOR = new Color(0.03f, 0.02f, 0.02f, 1.0f);
         private static readonly Color STAGE_OVERLAY_TINT = new Color(0.020f, 0.014f, 0.010f, 1.0f);
         private static readonly Vector2 TEMPLE_MOUTH_FOCUS_CENTER = Vector2.zero;
@@ -294,8 +294,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float elapsedSeconds = Time.unscaledTime - mAnalyzingPresentationStartedAtSeconds;
             float pulse = (Mathf.Sin(elapsedSeconds * 3.4f) + 1.0f) * 0.5f;
             float surge = (Mathf.Sin(elapsedSeconds * 5.8f) + 1.0f) * 0.5f;
-            float tremor = Mathf.Sin(elapsedSeconds * 10.5f) * 4.8f;
-            float verticalTremor = Mathf.Sin(elapsedSeconds * 13.2f) * 1.6f;
+            float tremor = Mathf.Sin(elapsedSeconds * 10.5f) * 6.6f;
+            float verticalTremor = Mathf.Sin(elapsedSeconds * 13.2f) * 2.4f;
             float focusProgress = Mathf.Clamp01(elapsedSeconds / ANALYSIS_FOCUS_RAMP_SECONDS);
             setOverlayTint(new Color(0.024f, 0.016f, 0.012f, 1.0f), Mathf.Lerp(0.34f, 0.40f, pulse));
 
@@ -303,34 +303,34 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 float focusScale = Mathf.Lerp(TEMPLE_ANSWER_FOCUS_SCALE, TEMPLE_ANALYSIS_FOCUS_SCALE, easeOut(focusProgress));
                 float cameraScale = focusScale + (pulse * 0.026f);
-                setTempleCameraPoseCenteredOnMouth(cameraScale, TEMPLE_MOUTH_FOCUS_CENTER, tremor * 0.72f, verticalTremor * 0.48f);
+                setTempleCameraPoseCenteredOnMouth(cameraScale, TEMPLE_MOUTH_FOCUS_CENTER, tremor * 0.94f, verticalTremor * 0.68f);
                 setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.86f, 0.98f, pulse), Mathf.Lerp(0.74f, 0.90f, pulse), Mathf.Lerp(0.92f, 1.0f, pulse)));
                 syncTempleStageMouthOverlay(0.0f);
                 updateMouthEffectImage(
                     mMouthListeningAuraImage,
-                    new Color(1.0f, 0.62f, 0.38f, Mathf.Lerp(0.16f, 0.26f, pulse)),
-                    0.86f + (surge * 0.06f),
+                    new Color(1.0f, 0.64f, 0.40f, Mathf.Lerp(0.12f, 0.20f, pulse)),
+                    1.10f + (surge * 0.12f),
                     -elapsedSeconds * 9.0f);
                 updateMouthEffectImage(
                     mMouthAnalyzingAuraImage,
-                    new Color(1.0f, 0.36f, 0.28f, Mathf.Lerp(0.24f, 0.36f, surge)),
-                    0.90f + (pulse * 0.08f),
+                    new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.16f, 0.26f, surge)),
+                    1.20f + (pulse * 0.16f),
                     elapsedSeconds * 14.0f);
                 return;
             }
 
             mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.86f, 0.98f, pulse), Mathf.Lerp(0.74f, 0.90f, pulse), Mathf.Lerp(0.74f, 0.92f, pulse));
-            mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor * 1.2f, 0.0f);
+            mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor * 1.34f, verticalTremor * 0.72f);
             mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.02f, 1.13f, easeOut(focusProgress)) + (pulse * 0.035f));
             updateMouthEffectImage(
                 mMouthListeningAuraImage,
-                new Color(1.0f, 0.62f, 0.38f, Mathf.Lerp(0.16f, 0.26f, pulse)),
-                0.86f + (surge * 0.06f),
+                new Color(1.0f, 0.64f, 0.40f, Mathf.Lerp(0.12f, 0.20f, pulse)),
+                1.10f + (surge * 0.12f),
                 -elapsedSeconds * 9.0f);
             updateMouthEffectImage(
                 mMouthAnalyzingAuraImage,
-                new Color(1.0f, 0.36f, 0.28f, Mathf.Lerp(0.24f, 0.36f, surge)),
-                0.90f + (pulse * 0.08f),
+                new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.16f, 0.26f, surge)),
+                1.20f + (pulse * 0.16f),
                 elapsedSeconds * 14.0f);
         }
 
@@ -698,6 +698,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 bool isSelected = pair.Key == selectedQuestionCardSlot;
                 pair.Value.SetVisualState(isDimmed: isSelected == false, isSelected, 0.0f);
+                pair.Value.gameObject.SetActive(isSelected);
             }
 
             setText(mPromptText, string.Empty);
@@ -2554,7 +2555,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            syncMouthEffectImageLayout(effectImage, 1.12f);
+            syncMouthEffectImageLayout(effectImage, 1.28f);
             effectImage.color = color;
             effectImage.rectTransform.localScale = mMouthImage.rectTransform.localScale * Mathf.Max(0.01f, scale);
             effectImage.rectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, rotationDegrees);
@@ -2570,10 +2571,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
+            float beamReachPulse = Mathf.Pow(quickPulse, 0.86f);
             float beamAlpha = Mathf.Lerp(0.42f, 0.72f, Mathf.Pow(quickPulse, 1.18f));
-            float beamHeight = mouthHeight * Mathf.Lerp(0.56f, 0.72f, slowPulse);
-            Vector2 beamSize = new Vector2(mouthWidth * Mathf.Lerp(1.12f, 1.48f, slowPulse), beamHeight);
-            float eyeYOffset = Mathf.Lerp(mouthHeight * 0.102f, mouthHeight * 0.114f, slowPulse);
+            float beamHeight = mouthHeight * Mathf.Lerp(0.46f, 0.74f, beamReachPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * Mathf.Lerp(0.90f, 1.18f, slowPulse), beamHeight);
+            float eyeYOffset = mouthHeight * 0.108f;
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
             updateEyeBeamImage(
                 mMouthLeftEyeBeamImage,
@@ -3160,8 +3162,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mTutorialTitleText = createText(
                 "FirstRunTutorialTitle",
                 mCanvasRootTransform,
-                new Vector2(0.5f, 0.72f),
-                new Vector2(0.5f, 0.72f),
+                new Vector2(0.5f, 0.755f),
+                new Vector2(0.5f, 0.755f),
                 Vector2.zero,
                 new Vector2(980.0f, 64.0f),
                 34,

@@ -57,12 +57,14 @@ namespace MouthOfTruth.Game.App
         private void Awake()
         {
             Application.runInBackground = true;
+            Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+            Screen.fullScreen = true;
 
             if (isPresentationCaptureEnabled())
             {
                 QualitySettings.vSyncCount = 0;
                 Application.targetFrameRate = 60;
-                Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
+                Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.FullScreenWindow);
             }
         }
 
@@ -1037,6 +1039,7 @@ namespace MouthOfTruth.Game.App
             }
 
             mGameView.ShowAnswering();
+            yield return waitForRealtimeSecondsCoroutine(3.0f);
             yield return waitForPresentationFrameCoroutine();
             yield return captureScreenshotCoroutine(outputDirectoryPath, "10_answering.png");
 

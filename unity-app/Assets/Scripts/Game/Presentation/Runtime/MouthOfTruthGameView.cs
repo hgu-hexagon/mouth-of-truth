@@ -67,7 +67,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float TEMPLE_APPROACH_END_SCALE = 4.36f;
         private const float TEMPLE_ANSWER_FOCUS_SCALE = 4.36f;
         private const float TEMPLE_ANALYSIS_FOCUS_SCALE = 6.82f;
-        private const float TEMPLE_RESULT_FOCUS_SCALE = 6.62f;
+        private const float TEMPLE_RESULT_FOCUS_SCALE = TEMPLE_ANALYSIS_FOCUS_SCALE;
         private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
         private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
         private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.18f;
@@ -85,8 +85,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 ANSWERING_FOCUS_MOUTH_SIZE_PIXELS = new Vector2(1120.0f, 1120.0f);
         private static readonly Vector2 RESULT_MOUTH_ANCHOR = new Vector2(0.5f, 0.52f);
         private static readonly Vector2 RESULT_MOUTH_SIZE_PIXELS = new Vector2(1680.0f, 1680.0f);
-        private static readonly Vector2 RESULT_VERDICT_SIZE_PIXELS = new Vector2(1260.0f, 292.0f);
-        private static readonly Vector2 RESULT_SHORT_VERDICT_SIZE_PIXELS = new Vector2(1460.0f, 338.0f);
+        private static readonly Vector2 RESULT_VERDICT_SIZE_PIXELS = new Vector2(1390.0f, 322.0f);
+        private static readonly Vector2 RESULT_SHORT_VERDICT_SIZE_PIXELS = new Vector2(1580.0f, 365.0f);
         private static readonly Color SCENE_OVERLAY_COLOR = new Color(0.03f, 0.02f, 0.02f, 1.0f);
         private static readonly Color STAGE_OVERLAY_TINT = new Color(0.020f, 0.014f, 0.010f, 1.0f);
         private static readonly Vector2 TEMPLE_MOUTH_FOCUS_CENTER = Vector2.zero;
@@ -1159,9 +1159,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     {
                         float easedProgress = easeInOut(progress);
                         float pulse = Mathf.Sin(progress * Mathf.PI);
+                        float shakeFalloff = 1.0f - easedProgress;
+                        float residualShake = Mathf.Sin(progress * Mathf.PI * 7.0f) * shakeFalloff * 4.2f;
+                        float residualVerticalShake = Mathf.Sin(progress * Mathf.PI * 8.0f) * shakeFalloff * 1.8f;
                         float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_RESULT_FOCUS_SCALE, easedProgress) + (pulse * 0.020f);
                         Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, easedProgress);
-                        setTempleCameraPose(cameraScale, cameraPosition.y, cameraPosition.x);
+                        setTempleCameraPose(cameraScale, cameraPosition.y + residualVerticalShake, cameraPosition.x + residualShake);
                         setOverlayTint(new Color(0.022f, 0.016f, 0.014f, 1.0f), Mathf.Lerp(0.39f, 0.38f, easedProgress));
                         setTempleApproachMouthColor(new Color(1.0f, 0.94f, 0.84f, Mathf.Lerp(0.90f, 1.0f, easedProgress)));
 
@@ -1425,13 +1428,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 {
                     float easedProgress = easeOut(progress);
                     float pulse = Mathf.Sin(progress * Mathf.PI);
+                    float falloff = 1.0f - easedProgress;
+                    float residualShake = Mathf.Sin(progress * Mathf.PI * 8.0f) * falloff;
                     float shake = verdictKind == EVerdictKind.False
-                        ? Mathf.Sin(progress * Mathf.PI * 12.0f) * (1.0f - easedProgress)
-                        : 0.0f;
+                        ? Mathf.Sin(progress * Mathf.PI * 12.0f) * falloff
+                        : residualShake * 0.45f;
+                    float verticalShake = Mathf.Sin(progress * Mathf.PI * 7.0f) * falloff * 0.72f;
                     setTempleCameraPoseCenteredOnMouth(
                         TEMPLE_RESULT_FOCUS_SCALE + (pulse * 0.018f),
                         TEMPLE_MOUTH_FOCUS_CENTER,
-                        shake * 1.4f);
+                        shake * 1.4f,
+                        verticalShake);
                     setOverlayTint(overlayTint, Mathf.Lerp(0.48f, 0.38f, easedProgress));
                     setTempleApproachMouthColor(Color.Lerp(Color.white, mouthTint, 1.0f - easedProgress * 0.25f));
                     mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);

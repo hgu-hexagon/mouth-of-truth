@@ -86,6 +86,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 RESULT_MOUTH_ANCHOR = new Vector2(0.5f, 0.52f);
         private static readonly Vector2 RESULT_MOUTH_SIZE_PIXELS = new Vector2(1680.0f, 1680.0f);
         private static readonly Vector2 RESULT_VERDICT_SIZE_PIXELS = new Vector2(1260.0f, 292.0f);
+        private static readonly Vector2 RESULT_SHORT_VERDICT_SIZE_PIXELS = new Vector2(1460.0f, 338.0f);
         private static readonly Color SCENE_OVERLAY_COLOR = new Color(0.03f, 0.02f, 0.02f, 1.0f);
         private static readonly Color STAGE_OVERLAY_TINT = new Color(0.020f, 0.014f, 0.010f, 1.0f);
         private static readonly Vector2 TEMPLE_MOUTH_FOCUS_CENTER = Vector2.zero;
@@ -313,7 +314,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     -elapsedSeconds * 9.0f);
                 updateMouthEffectImage(
                     mMouthAnalyzingAuraImage,
-                    new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.16f, 0.26f, surge)),
+                    new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.18f, 0.29f, surge)),
                     1.20f + (pulse * 0.16f),
                     elapsedSeconds * 14.0f);
                 return;
@@ -329,7 +330,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 -elapsedSeconds * 9.0f);
             updateMouthEffectImage(
                 mMouthAnalyzingAuraImage,
-                new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.16f, 0.26f, surge)),
+                new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.18f, 0.29f, surge)),
                 1.20f + (pulse * 0.16f),
                 elapsedSeconds * 14.0f);
         }
@@ -2573,8 +2574,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
             float beamReachPulse = Mathf.Pow(quickPulse, 0.86f);
             float beamAlpha = Mathf.Lerp(0.42f, 0.72f, Mathf.Pow(quickPulse, 1.18f));
-            float beamHeight = mouthHeight * Mathf.Lerp(0.46f, 0.74f, beamReachPulse);
-            Vector2 beamSize = new Vector2(mouthWidth * Mathf.Lerp(0.90f, 1.18f, slowPulse), beamHeight);
+            float beamHeight = mouthHeight * Mathf.Lerp(0.25f, 0.76f, beamReachPulse);
+            Vector2 beamSize = new Vector2(mouthWidth * Mathf.Lerp(0.765f, 1.003f, slowPulse), beamHeight);
             float eyeYOffset = mouthHeight * 0.108f;
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
             updateEyeBeamImage(
@@ -2707,10 +2708,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mMouthImage.rectTransform.localScale = Vector3.one;
             }
 
-            setRectTransformLayout(
-                mVerdictImage.rectTransform,
-                new Vector2(0.5f, 0.54f),
-                RESULT_VERDICT_SIZE_PIXELS);
+            Vector2 verdictSizePixels = verdictKind == EVerdictKind.True || verdictKind == EVerdictKind.False
+                ? RESULT_SHORT_VERDICT_SIZE_PIXELS
+                : RESULT_VERDICT_SIZE_PIXELS;
+            setRectTransformLayout(mVerdictImage.rectTransform, new Vector2(0.5f, 0.54f), verdictSizePixels);
             setRectTransformLayout(
                 mHandImage.rectTransform,
                 new Vector2(0.5f, 0.18f),

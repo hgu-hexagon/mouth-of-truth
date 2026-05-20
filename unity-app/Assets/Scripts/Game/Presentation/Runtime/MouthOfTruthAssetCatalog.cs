@@ -98,7 +98,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingArtPath("effects/card_selection_progress_fill.png");
 
         public static string TitleAmbiencePath =>
-            GetStreamingAudioPath("ambience/title_temple_ambience_loop.ogg");
+            GetStreamingAudioPath("ambience/title_temple_ambience_loop.wav");
 
         public static string ButtonConfirmPath =>
             GetStreamingAudioPath("ui/button_confirm.wav");
@@ -113,10 +113,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             GetStreamingAudioPath("cards/card_reveal.wav");
 
         public static string HandInsertPath =>
-            GetStreamingAudioPath("interaction/hand_insert.ogg");
+            GetStreamingAudioPath("interaction/hand_insert.wav");
 
         public static string HandPromptPath =>
-            GetStreamingAudioPath("interaction/hand_prompt.mp3");
+            GetStreamingAudioPath("interaction/hand_prompt.wav");
 
         public static string ResultTruePath =>
             GetStreamingAudioPath("results/result_true.wav");

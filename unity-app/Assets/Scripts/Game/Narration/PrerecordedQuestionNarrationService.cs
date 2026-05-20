@@ -11,8 +11,8 @@ namespace MouthOfTruth.Game.Narration
     {
         private static readonly string[] SUPPORTED_AUDIO_EXTENSIONS =
         {
-            ".mp3",
             ".wav",
+            ".mp3",
             ".ogg",
         };
 

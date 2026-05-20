@@ -6,30 +6,30 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 {
     public static class RuntimeSpriteLoader
     {
-        public static async Task<Sprite> LoadSpriteAsync(string filePath)
+        public static Task<Sprite> LoadSpriteAsync(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                return null;
+                return Task.FromResult<Sprite>(null);
             }
 
             if (File.Exists(filePath) == false)
             {
-                return null;
+                return Task.FromResult<Sprite>(null);
             }
 
-            byte[] imageBytes = await File.ReadAllBytesAsync(filePath);
+            byte[] imageBytes = File.ReadAllBytes(filePath);
             Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
 
             if (texture.LoadImage(imageBytes) == false)
             {
                 Object.Destroy(texture);
-                return null;
+                return Task.FromResult<Sprite>(null);
             }
 
             texture.name = Path.GetFileNameWithoutExtension(filePath);
 
-            return Sprite.Create(
+            Sprite sprite = Sprite.Create(
                 texture,
                 new Rect(0.0f, 0.0f, texture.width, texture.height),
                 new Vector2(0.5f, 0.5f),
@@ -37,6 +37,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 0u,
                 SpriteMeshType.FullRect,
                 getImplicitBorder(filePath, texture.width, texture.height));
+
+            return Task.FromResult(sprite);
         }
 
         public static Sprite CreateSolidSprite(Color color, int size = 8)

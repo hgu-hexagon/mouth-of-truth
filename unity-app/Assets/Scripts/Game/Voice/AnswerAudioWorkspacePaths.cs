@@ -26,9 +26,7 @@ namespace MouthOfTruth.Game.Voice
                 ? "question"
                 : questionID.Trim().Replace(" ", "_");
             string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-            return Path.Combine(
-                GetAudioDirectoryPath(),
-                $"{sanitizedQuestionID}_{timestamp}.wav");
+            return Path.Combine(GetAudioDirectoryPath(), $"{sanitizedQuestionID}_{timestamp}.wav");
         }
     }
 }

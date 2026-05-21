@@ -66,8 +66,7 @@ namespace MouthOfTruth.Game.Input.Leap
             || mHasTrackedPointer
             || Time.realtimeSinceStartup - mLastTrackedPointerRealtime <= mPointerLossGraceSeconds;
 
-        public string LastTrackingMessage { get; private set; } =
-            "Leap hand tracking runtime is idle.";
+        public string LastTrackingMessage { get; private set; } = "Leap hand tracking runtime is idle.";
 
         public static LeapHandTrackingRuntime EnsureInstance()
         {
@@ -131,8 +130,7 @@ namespace MouthOfTruth.Game.Input.Leap
             mLeapServiceProvider.SetTargetServerNamespaceToConnectTo(mServerNamespace);
 #endif
             mLeapServiceProvider.enabled = true;
-            LastTrackingMessage =
-                $"Leap tracking service provider initialized for '{mServerNamespace}'.";
+            LastTrackingMessage = $"Leap tracking service provider initialized for '{mServerNamespace}'.";
         }
 
         private void updateTrackingState()
@@ -220,15 +218,13 @@ namespace MouthOfTruth.Game.Input.Leap
 
             if (mPreviousServiceConnectedState != IsTrackingServiceConnected)
             {
-                Debug.Log(
-                    $"LeapHandTrackingRuntime: tracking service connected = {IsTrackingServiceConnected}.");
+                Debug.Log($"LeapHandTrackingRuntime: tracking service connected = {IsTrackingServiceConnected}.");
                 mPreviousServiceConnectedState = IsTrackingServiceConnected;
             }
 
             if (mPreviousDeviceConnectedState != IsTrackingDeviceConnected)
             {
-                Debug.Log(
-                    $"LeapHandTrackingRuntime: tracking device connected = {IsTrackingDeviceConnected}.");
+                Debug.Log($"LeapHandTrackingRuntime: tracking device connected = {IsTrackingDeviceConnected}.");
                 mPreviousDeviceConnectedState = IsTrackingDeviceConnected;
             }
 

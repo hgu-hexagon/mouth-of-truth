@@ -145,8 +145,7 @@ namespace MouthOfTruth.Game.Voice
             if (mActiveRecordingClip == null)
             {
                 mIsMicrophoneRunning = false;
-                throw new InvalidOperationException(
-                    $"Failed to start microphone capture for device '{mSelectedDeviceName}'.");
+                throw new InvalidOperationException($"Failed to start microphone capture for device '{mSelectedDeviceName}'.");
             }
 
             mIsMicrophoneRunning = true;

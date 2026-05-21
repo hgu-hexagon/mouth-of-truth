@@ -2101,30 +2101,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mVerdictImage = createImage("VerdictImage", mCanvasRootTransform, new Vector2(0.5f, 0.63f), new Vector2(0.5f, 0.63f), new Vector2(0.0f, 0.0f), new Vector2(820.0f, 240.0f), Color.white);
             mVerdictText = createText("VerdictText", mCanvasRootTransform, new Vector2(0.5f, 0.49f), new Vector2(0.5f, 0.49f), new Vector2(0.0f, 0.0f), new Vector2(640.0f, 80.0f), 48, FontStyle.Bold);
             mAnswerInputField = createInputField();
-            mStartButton = createButton(
-                "StartButton",
-                "START GAME",
-                new Vector2(0.5f, 0.22f),
-                new Vector2(280.0f, 80.0f),
-                () => mStartRequested = true);
-            mTryAgainButton = createButton(
-                "TryAgainButton",
-                "TRY AGAIN",
-                new Vector2(0.5f, 0.26f),
-                new Vector2(280.0f, 80.0f),
-                () => mTryAgainRequested = true);
-            mBackToTitleButton = createButton(
-                "BackToTitleButton",
-                "BACK TO TITLE",
-                new Vector2(0.5f, 0.18f),
-                new Vector2(340.0f, 72.0f),
-                () => mBackToTitleRequested = true);
-            mExitButton = createButton(
-                "ExitButton",
-                "EXIT GAME",
-                new Vector2(0.5f, 0.12f),
-                new Vector2(320.0f, 72.0f),
-                () => mExitRequested = true);
+            mStartButton = createButton("StartButton", "START GAME", new Vector2(0.5f, 0.22f), new Vector2(280.0f, 80.0f), () => mStartRequested = true);
+            mTryAgainButton = createButton("TryAgainButton", "TRY AGAIN", new Vector2(0.5f, 0.26f), new Vector2(280.0f, 80.0f), () => mTryAgainRequested = true);
+            mBackToTitleButton = createButton("BackToTitleButton", "BACK TO TITLE", new Vector2(0.5f, 0.18f), new Vector2(340.0f, 72.0f), () => mBackToTitleRequested = true);
+            mExitButton = createButton("ExitButton", "EXIT GAME", new Vector2(0.5f, 0.12f), new Vector2(320.0f, 72.0f), () => mExitRequested = true);
 
             mTitleVignetteImage.transform.SetSiblingIndex(mLogoImage.transform.GetSiblingIndex());
             placeImageBehindText(mQuestionPanelImage.transform, mQuestionText.transform);

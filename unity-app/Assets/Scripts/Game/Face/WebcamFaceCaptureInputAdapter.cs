@@ -143,9 +143,7 @@ namespace MouthOfTruth.Game.Face
             mCaptureTexture.Apply(false, false);
 
             byte[] jpgBytes = ImageConversion.EncodeToJPG(mCaptureTexture, JPEG_QUALITY);
-            string frameFilePath = Path.Combine(
-                mActiveCaptureDirectoryPath,
-                $"frame_{mCapturedFrameCount + 1:D5}.jpg");
+            string frameFilePath = Path.Combine(mActiveCaptureDirectoryPath, $"frame_{mCapturedFrameCount + 1:D5}.jpg");
             File.WriteAllBytes(frameFilePath, jpgBytes);
             mCapturedFrameCount += 1;
         }

@@ -38,8 +38,7 @@ namespace MouthOfTruth.Game.Data
 
                 if (string.IsNullOrWhiteSpace(questionDefinitionJsonRecord.text))
                 {
-                    throw new InvalidDataException(
-                        $"Question definition text cannot be empty: {questionDefinitionJsonRecord.id}");
+                    throw new InvalidDataException($"Question definition text cannot be empty: {questionDefinitionJsonRecord.id}");
                 }
 
                 string category = string.IsNullOrEmpty(questionDefinitionJsonRecord.category)

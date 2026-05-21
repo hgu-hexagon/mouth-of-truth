@@ -484,12 +484,7 @@ namespace MouthOfTruth.Game.App
             mIsTransitionBusy = true;
             mGameView.UpdatePointerVisual(false, null);
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
-            await mGameView.PlayQuestionRevealAsync(
-                selectedQuestionCardSlot,
-                selectedQuestionDefinition,
-                () => mQuestionNarrationService.SpeakQuestionAsync(
-                    selectedQuestionDefinition,
-                    mLifecycleCancellationTokenSource.Token));
+            await mGameView.PlayQuestionRevealAsync(selectedQuestionCardSlot, selectedQuestionDefinition, () => mQuestionNarrationService.SpeakQuestionAsync(selectedQuestionDefinition, mLifecycleCancellationTokenSource.Token));
             await mGameView.PlayTempleApproachToMouthAsync();
             await mGameView.PrepareTempleGameplayBackdropAsync();
             mGameStateMachine.MarkQuestionRevealCompleted();
@@ -916,12 +911,7 @@ namespace MouthOfTruth.Game.App
 
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
             QuestionDefinition selectedQuestionDefinition = snapshot.CurrentRoundSelection.QuestionsBySlot[confirmedQuestionCardSlot];
-            Task revealQuestionTask = mGameView.PlayQuestionRevealAsync(
-                confirmedQuestionCardSlot,
-                selectedQuestionDefinition,
-                () => mQuestionNarrationService.SpeakQuestionAsync(
-                    selectedQuestionDefinition,
-                    mLifecycleCancellationTokenSource.Token));
+            Task revealQuestionTask = mGameView.PlayQuestionRevealAsync(confirmedQuestionCardSlot, selectedQuestionDefinition, () => mQuestionNarrationService.SpeakQuestionAsync(selectedQuestionDefinition, mLifecycleCancellationTokenSource.Token));
             yield return waitForRealtimeSecondsCoroutine(2.65f);
             yield return waitForPresentationFrameCoroutine();
             yield return captureScreenshotCoroutine(outputDirectoryPath, "06_card_question.png");

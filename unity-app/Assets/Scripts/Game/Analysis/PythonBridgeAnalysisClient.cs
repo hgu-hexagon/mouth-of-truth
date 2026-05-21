@@ -340,9 +340,7 @@ namespace MouthOfTruth.Game.Analysis
                 Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync();
                 Task<string> standardErrorTask = process.StandardError.ReadToEndAsync();
 
-                bool exitedWithinTimeout = await Task.Run(
-                    () => process.WaitForExit(DEFAULT_TIMEOUT_MILLISECONDS),
-                    cancellationToken).ConfigureAwait(false);
+                bool exitedWithinTimeout = await Task.Run(() => process.WaitForExit(DEFAULT_TIMEOUT_MILLISECONDS), cancellationToken).ConfigureAwait(false);
 
                 if (exitedWithinTimeout == false)
                 {
@@ -362,10 +360,7 @@ namespace MouthOfTruth.Game.Analysis
 
                 if (process.ExitCode != 0)
                 {
-                    throw new InvalidOperationException(
-                        "Python analysis failed.\n"
-                        + $"stdout:\n{standardOutput}\n"
-                        + $"stderr:\n{standardError}");
+                    throw new InvalidOperationException("Python analysis failed.\n" + $"stdout:\n{standardOutput}\n" + $"stderr:\n{standardError}");
                 }
             }
         }

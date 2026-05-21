@@ -89,9 +89,7 @@ namespace MouthOfTruth.Game.Narration
 
             foreach (string audioExtension in SUPPORTED_AUDIO_EXTENSIONS)
             {
-                string candidateFilePath = Path.Combine(
-                    mQuestionAudioDirectoryPath,
-                    $"{questionDefinition.ID}{audioExtension}");
+                string candidateFilePath = Path.Combine(mQuestionAudioDirectoryPath, $"{questionDefinition.ID}{audioExtension}");
 
                 if (File.Exists(candidateFilePath))
                 {

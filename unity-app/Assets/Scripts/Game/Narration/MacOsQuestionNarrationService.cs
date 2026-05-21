@@ -31,9 +31,7 @@ namespace MouthOfTruth.Game.Narration
             using (Process speechProcess = new Process())
             {
                 speechProcess.StartInfo.FileName = "/usr/bin/say";
-                speechProcess.StartInfo.Arguments =
-                    $"--voice \"{escapeArgument(getVoiceName())}\" --rate {DEFAULT_SPEECH_RATE} "
-                    + $"\"{escapeArgument(questionText)}\"";
+                speechProcess.StartInfo.Arguments = $"--voice \"{escapeArgument(getVoiceName())}\" --rate {DEFAULT_SPEECH_RATE} " + $"\"{escapeArgument(questionText)}\"";
                 speechProcess.StartInfo.UseShellExecute = false;
                 speechProcess.StartInfo.CreateNoWindow = true;
 
@@ -57,9 +55,7 @@ namespace MouthOfTruth.Game.Narration
 
         private int estimateFallbackDelayMilliseconds(string questionText)
         {
-            int wordCount = questionText.Split(
-                new[] { ' ' },
-                StringSplitOptions.RemoveEmptyEntries).Length;
+            int wordCount = questionText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
             return Mathf.Max(1200, wordCount * 350);
         }
 

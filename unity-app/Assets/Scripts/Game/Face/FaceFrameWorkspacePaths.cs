@@ -26,9 +26,7 @@ namespace MouthOfTruth.Game.Face
                 ? "question"
                 : questionID.Trim().Replace(" ", "_");
             string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-            return Path.Combine(
-                GetFaceFramesDirectoryPath(),
-                $"{sanitizedQuestionID}_{timestamp}");
+            return Path.Combine(GetFaceFramesDirectoryPath(), $"{sanitizedQuestionID}_{timestamp}");
         }
     }
 }

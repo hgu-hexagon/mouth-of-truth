@@ -120,8 +120,7 @@ namespace MouthOfTruth.Game.Session
                 return;
             }
 
-            throw new InvalidOperationException(
-                $"Cannot move to the inner anchor from state: {CurrentState}");
+            throw new InvalidOperationException($"Cannot move to the inner anchor from state: {CurrentState}");
         }
 
         public void NotifyHandExitedFrontAnchor()
@@ -196,8 +195,7 @@ namespace MouthOfTruth.Game.Session
         {
             if (CurrentState != expectedGameFlowState)
             {
-                throw new InvalidOperationException(
-                    $"Expected state {expectedGameFlowState}, but was {CurrentState}.");
+                throw new InvalidOperationException($"Expected state {expectedGameFlowState}, but was {CurrentState}.");
             }
         }
 

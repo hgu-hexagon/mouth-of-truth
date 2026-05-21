@@ -7,8 +7,7 @@ namespace MouthOfTruth.Game.Input
     {
         private readonly IReadOnlyList<IHandInteractionInputAdapter> mInputAdapters;
 
-        public CompositeHandInteractionInputAdapter(
-            params IHandInteractionInputAdapter[] inputAdapters)
+        public CompositeHandInteractionInputAdapter(params IHandInteractionInputAdapter[] inputAdapters)
         {
             mInputAdapters = inputAdapters == null ? new IHandInteractionInputAdapter[0] : inputAdapters;
         }
@@ -27,8 +26,7 @@ namespace MouthOfTruth.Game.Input
                     return true;
                 }
 
-                if (inputAdapter is IHandInteractionFallbackGate fallbackGate
-                    && fallbackGate.ShouldSuppressFallbackInput)
+                if (inputAdapter is IHandInteractionFallbackGate fallbackGate && fallbackGate.ShouldSuppressFallbackInput)
                 {
                     screenPosition = default;
                     return false;

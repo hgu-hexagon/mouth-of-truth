@@ -6,10 +6,7 @@ namespace MouthOfTruth.Game.Voice
 {
     public static class WaveFileWriter
     {
-        public static string WriteMono16BitPcm(
-            string outputFilePath,
-            float[] monoSamples,
-            int sampleRate)
+        public static string WriteMono16BitPcm(string outputFilePath, float[] monoSamples, int sampleRate)
         {
             if (string.IsNullOrWhiteSpace(outputFilePath))
             {

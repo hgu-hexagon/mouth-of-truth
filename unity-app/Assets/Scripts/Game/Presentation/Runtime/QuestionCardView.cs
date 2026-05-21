@@ -32,12 +32,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public RectTransform RectTransform => mRectTransform;
 
-        public void Initialize(
-            EQuestionCardSlot questionCardSlot,
-            Transform parentTransform,
-            Sprite cardBackSprite,
-            Font primaryUiFont,
-            Font koreanFallbackFont)
+        public void Initialize(EQuestionCardSlot questionCardSlot, Transform parentTransform, Sprite cardBackSprite, Font primaryUiFont, Font koreanFallbackFont)
         {
             QuestionCardSlot = questionCardSlot;
             mPrimaryUiFont = primaryUiFont == null
@@ -152,10 +147,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             applyQuestionTextLayout(questionText);
         }
 
-        public void SetVisualState(
-            bool isDimmed,
-            bool isSelected,
-            float hoverProgress)
+        public void SetVisualState(bool isDimmed, bool isSelected, float hoverProgress)
         {
             float targetScale = isSelected
                 ? 1.12f
@@ -163,11 +155,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             mRectTransform.localScale = Vector3.one * targetScale;
             mCanvasGroup.alpha = isDimmed ? 0.22f : 1.0f;
-            mGlowImage.color = new Color(
-                0.90f,
-                0.72f,
-                0.25f,
-                Mathf.Clamp01(hoverProgress) * 0.7f + (isSelected ? 0.2f : 0.0f));
+            mGlowImage.color = new Color(0.90f, 0.72f, 0.25f, Mathf.Clamp01(hoverProgress) * 0.7f + (isSelected ? 0.2f : 0.0f));
 
             float progressWidth = Mathf.Clamp01(hoverProgress);
             mProgressImage.rectTransform.anchorMax = new Vector2(progressWidth, 1.0f);
@@ -199,10 +187,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void SetScale(float horizontalScale, float verticalScale)
         {
-            mRectTransform.localScale = new Vector3(
-                Mathf.Max(0.01f, horizontalScale),
-                Mathf.Max(0.01f, verticalScale),
-                1.0f);
+            mRectTransform.localScale = new Vector3(Mathf.Max(0.01f, horizontalScale), Mathf.Max(0.01f, verticalScale), 1.0f);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -257,9 +242,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (availableTextSize.x <= 0.0f || availableTextSize.y <= 0.0f)
             {
                 Vector2 anchorRange = textRectTransform.anchorMax - textRectTransform.anchorMin;
-                availableTextSize = new Vector2(
-                    mRectTransform.rect.width * anchorRange.x,
-                    mRectTransform.rect.height * anchorRange.y);
+                availableTextSize = new Vector2(mRectTransform.rect.width * anchorRange.x, mRectTransform.rect.height * anchorRange.y);
             }
 
             if (availableTextSize.x <= 0.0f || availableTextSize.y <= 0.0f)
@@ -278,19 +261,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return QUESTION_TEXT_MINIMUM_FONT_SIZE;
         }
 
-        private bool canQuestionTextFitAtFontSize(
-            string questionText,
-            Vector2 availableTextSize,
-            int fontSize)
+        private bool canQuestionTextFitAtFontSize(string questionText, Vector2 availableTextSize, int fontSize)
         {
             mQuestionText.fontSize = fontSize;
             TextGenerationSettings textGenerationSettings = mQuestionText.GetGenerationSettings(availableTextSize);
 
             foreach (string questionLine in questionText.Split('\n'))
             {
-                float lineWidth = mQuestionText.cachedTextGeneratorForLayout.GetPreferredWidth(
-                    questionLine,
-                    textGenerationSettings) / mQuestionText.pixelsPerUnit;
+                float lineWidth = mQuestionText.cachedTextGeneratorForLayout.GetPreferredWidth(questionLine, textGenerationSettings) / mQuestionText.pixelsPerUnit;
 
                 if (lineWidth > availableTextSize.x)
                 {
@@ -298,9 +276,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 }
             }
 
-            float textHeight = mQuestionText.cachedTextGeneratorForLayout.GetPreferredHeight(
-                questionText,
-                textGenerationSettings) / mQuestionText.pixelsPerUnit;
+            float textHeight = mQuestionText.cachedTextGeneratorForLayout.GetPreferredHeight(questionText, textGenerationSettings) / mQuestionText.pixelsPerUnit;
             return textHeight <= availableTextSize.y;
         }
 

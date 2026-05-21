@@ -22,9 +22,7 @@ namespace MouthOfTruth.Game.Input
 
         public float HoveredDurationSeconds => mHoveredDurationSeconds;
 
-        public EQuestionCardSlot? UpdateHoveredCard(
-            EQuestionCardSlot? hoveredQuestionCardSlot,
-            float deltaTimeSeconds)
+        public EQuestionCardSlot? UpdateHoveredCard(EQuestionCardSlot? hoveredQuestionCardSlot, float deltaTimeSeconds)
         {
             if (deltaTimeSeconds < 0.0f)
             {

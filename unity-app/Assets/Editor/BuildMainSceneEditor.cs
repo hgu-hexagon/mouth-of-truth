@@ -45,9 +45,7 @@ namespace MouthOfTruth.Editor
             Bounds sourceEnvironmentBounds = calculateCombinedBounds(sourceEnvironmentRoot);
             Camera sourceSceneCamera = findSourceSceneCamera(sourceScene);
             SourceSceneCameraLayout sourceSceneCameraLayout = captureSourceSceneCameraLayout(sourceSceneCamera);
-            Vector3 sourceSceneForward = getProjectedHorizontalForward(
-                sourceSceneCamera,
-                sourceEnvironmentBounds.center);
+            Vector3 sourceSceneForward = getProjectedHorizontalForward(sourceSceneCamera, sourceEnvironmentBounds.center);
             List<GameObject> sourceSceneRootClones = cloneSourceSceneRoots(sourceScene);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
@@ -151,17 +149,14 @@ namespace MouthOfTruth.Editor
             return rootClones;
         }
 
-        private static Vector3 getProjectedHorizontalForward(
-            Camera sourceSceneCamera,
-            Vector3 environmentCenter)
+        private static Vector3 getProjectedHorizontalForward(Camera sourceSceneCamera, Vector3 environmentCenter)
         {
             if (sourceSceneCamera == null)
             {
                 return Vector3.zero;
             }
 
-            Vector3 projectedCameraForward =
-                Vector3.ProjectOnPlane(sourceSceneCamera.transform.forward, Vector3.up);
+            Vector3 projectedCameraForward = Vector3.ProjectOnPlane(sourceSceneCamera.transform.forward, Vector3.up);
 
             if (projectedCameraForward.sqrMagnitude <= 0.0001f)
             {
@@ -169,11 +164,9 @@ namespace MouthOfTruth.Editor
             }
 
             Vector3 normalizedForward = projectedCameraForward.normalized;
-            Vector3 directionToEnvironmentCenter =
-                Vector3.ProjectOnPlane(environmentCenter - sourceSceneCamera.transform.position, Vector3.up);
+            Vector3 directionToEnvironmentCenter = Vector3.ProjectOnPlane(environmentCenter - sourceSceneCamera.transform.position, Vector3.up);
 
-            if (directionToEnvironmentCenter.sqrMagnitude > 0.0001f
-                && Vector3.Dot(normalizedForward, directionToEnvironmentCenter.normalized) < 0.0f)
+            if (directionToEnvironmentCenter.sqrMagnitude > 0.0001f && Vector3.Dot(normalizedForward, directionToEnvironmentCenter.normalized) < 0.0f)
             {
                 normalizedForward = -normalizedForward;
             }
@@ -188,11 +181,7 @@ namespace MouthOfTruth.Editor
                 return SourceSceneCameraLayout.Invalid;
             }
 
-            return new SourceSceneCameraLayout(
-                sourceSceneCamera.transform.position,
-                sourceSceneCamera.transform.rotation,
-                sourceSceneCamera.fieldOfView,
-                sourceSceneCamera.backgroundColor);
+            return new SourceSceneCameraLayout(sourceSceneCamera.transform.position, sourceSceneCamera.transform.rotation, sourceSceneCamera.fieldOfView, sourceSceneCamera.backgroundColor);
         }
 
         private static void unpackScenePrefabInstances(Scene scene)
@@ -221,10 +210,7 @@ namespace MouthOfTruth.Editor
 
             foreach (GameObject outermostPrefabRoot in outermostPrefabRoots)
             {
-                PrefabUtility.UnpackPrefabInstance(
-                    outermostPrefabRoot,
-                    PrefabUnpackMode.Completely,
-                    InteractionMode.AutomatedAction);
+                PrefabUtility.UnpackPrefabInstance(outermostPrefabRoot, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
             }
         }
 
@@ -251,11 +237,7 @@ namespace MouthOfTruth.Editor
             eventSystemObject.AddComponent<StandaloneInputModule>();
         }
 
-        private static void configureMainCamera(
-            Scene scene,
-            Bounds environmentBounds,
-            CorridorAxes corridorAxes,
-            SourceSceneCameraLayout sourceSceneCameraLayout)
+        private static void configureMainCamera(Scene scene, Bounds environmentBounds, CorridorAxes corridorAxes, SourceSceneCameraLayout sourceSceneCameraLayout)
         {
             Camera mainCamera = Camera.main;
 
@@ -303,10 +285,7 @@ namespace MouthOfTruth.Editor
             cameraObject.transform.LookAt(stageLookTarget);
         }
 
-        private static void buildPresentationStage(
-            Scene scene,
-            Bounds environmentBounds,
-            CorridorAxes corridorAxes)
+        private static void buildPresentationStage(Scene scene, Bounds environmentBounds, CorridorAxes corridorAxes)
         {
             GameObject stageRoot = getOrCreateRootObject(scene, "MouthOfTruthStage");
             destroyChildren(stageRoot.transform);
@@ -323,15 +302,11 @@ namespace MouthOfTruth.Editor
             Transform leftCardAnchor = createChild(cardAnchorRoot, "LeftCard");
             Transform centerCardAnchor = createChild(cardAnchorRoot, "CenterCard");
             Transform rightCardAnchor = createChild(cardAnchorRoot, "RightCard");
-            Vector3 cardAnchorBasePosition =
-                stageBasePosition
-                - (corridorAxes.Forward * CARD_DEPTH_OFFSET)
-                + (Vector3.up * 1.75f);
+            Vector3 cardAnchorBasePosition = stageBasePosition - (corridorAxes.Forward * CARD_DEPTH_OFFSET) + (Vector3.up * 1.75f);
             centerCardAnchor.position = cardAnchorBasePosition;
             leftCardAnchor.position = cardAnchorBasePosition - (corridorAxes.Lateral * CARD_ANCHOR_SPACING);
             rightCardAnchor.position = cardAnchorBasePosition + (corridorAxes.Lateral * CARD_ANCHOR_SPACING);
-            CardPresentationAnchorSet cardPresentationAnchorSet =
-                ensureComponent<CardPresentationAnchorSet>(cardAnchorRoot.gameObject);
+            CardPresentationAnchorSet cardPresentationAnchorSet = ensureComponent<CardPresentationAnchorSet>(cardAnchorRoot.gameObject);
             cardPresentationAnchorSet.Configure(leftCardAnchor, centerCardAnchor, rightCardAnchor);
 
             Transform mouthAnchorRoot = createChild(stageRoot.transform, "MouthAnchors");
@@ -364,11 +339,7 @@ namespace MouthOfTruth.Editor
             }
         }
 
-        private static void createStageAccents(
-            Transform parentTransform,
-            Vector3 stageBasePosition,
-            CorridorAxes corridorAxes,
-            float floorY)
+        private static void createStageAccents(Transform parentTransform, Vector3 stageBasePosition, CorridorAxes corridorAxes, float floorY)
         {
             GameObject archPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ARCH_PREFAB_PATH);
             GameObject torchPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(TORCH_PREFAB_PATH);
@@ -376,10 +347,7 @@ namespace MouthOfTruth.Editor
             if (archPrefab != null)
             {
                 GameObject archInstance = instantiatePrefab(archPrefab, parentTransform, "StageArch");
-                archInstance.transform.position = new Vector3(
-                    stageBasePosition.x,
-                    floorY + 0.1f,
-                    stageBasePosition.z + 0.25f);
+                archInstance.transform.position = new Vector3(stageBasePosition.x, floorY + 0.1f, stageBasePosition.z + 0.25f);
                 alignLongAxisToForward(archInstance.transform, corridorAxes.Forward, isLongAxisX: true);
                 archInstance.transform.localScale = new Vector3(1.18f, 1.18f, 1.18f);
             }
@@ -392,21 +360,10 @@ namespace MouthOfTruth.Editor
             createTorchPair(parentTransform, stageBasePosition, corridorAxes, floorY, torchPrefab);
         }
 
-        private static void createTorchPair(
-            Transform parentTransform,
-            Vector3 stageBasePosition,
-            CorridorAxes corridorAxes,
-            float floorY,
-            GameObject torchPrefab)
+        private static void createTorchPair(Transform parentTransform, Vector3 stageBasePosition, CorridorAxes corridorAxes, float floorY, GameObject torchPrefab)
         {
-            Vector3 leftTorchPosition =
-                stageBasePosition
-                - (corridorAxes.Lateral * 4.25f)
-                + (Vector3.up * 2.2f);
-            Vector3 rightTorchPosition =
-                stageBasePosition
-                + (corridorAxes.Lateral * 4.25f)
-                + (Vector3.up * 2.2f);
+            Vector3 leftTorchPosition = stageBasePosition - (corridorAxes.Lateral * 4.25f) + (Vector3.up * 2.2f);
+            Vector3 rightTorchPosition = stageBasePosition + (corridorAxes.Lateral * 4.25f) + (Vector3.up * 2.2f);
 
             GameObject leftTorch = instantiatePrefab(torchPrefab, parentTransform, "StageTorchLeft");
             leftTorch.transform.position = leftTorchPosition;
@@ -417,12 +374,7 @@ namespace MouthOfTruth.Editor
             alignLongAxisToForward(rightTorch.transform, corridorAxes.Forward, isLongAxisX: false);
         }
 
-        private static void createStageRunner(
-            Transform parentTransform,
-            Bounds environmentBounds,
-            CorridorAxes corridorAxes,
-            float floorY,
-            Vector3 stageBasePosition)
+        private static void createStageRunner(Transform parentTransform, Bounds environmentBounds, CorridorAxes corridorAxes, float floorY, Vector3 stageBasePosition)
         {
             Material runnerMaterial = getOrCreateRunnerMaterial();
 
@@ -433,9 +385,7 @@ namespace MouthOfTruth.Editor
 
             float corridorExtent = corridorAxes.GetExtent(environmentBounds);
             float startOffset = -corridorExtent + 2.0f;
-            float endOffset = Vector3.Dot(
-                    stageBasePosition - environmentBounds.center,
-                    corridorAxes.Forward.normalized)
+            float endOffset = Vector3.Dot(stageBasePosition - environmentBounds.center, corridorAxes.Forward.normalized)
                 + 0.75f;
             float runnerLength = Mathf.Max(8.0f, endOffset - startOffset);
             float runnerMidpointOffset = (startOffset + endOffset) * 0.5f;
@@ -446,8 +396,7 @@ namespace MouthOfTruth.Editor
             runnerObject.transform.position = environmentBounds.center
                 + (corridorAxes.Forward * runnerMidpointOffset)
                 + (Vector3.up * (floorY + 0.02f));
-            runnerObject.transform.rotation =
-                Quaternion.FromToRotation(Vector3.forward, corridorAxes.Forward.normalized);
+            runnerObject.transform.rotation = Quaternion.FromToRotation(Vector3.forward, corridorAxes.Forward.normalized);
             runnerObject.transform.localScale = new Vector3(3.25f, 0.035f, runnerLength);
             runnerObject.GetComponent<Renderer>().sharedMaterial = runnerMaterial;
         }
@@ -573,12 +522,10 @@ namespace MouthOfTruth.Editor
 
         private static void sanitizeRendererMaterials(Transform rootTransform)
         {
-            Dictionary<Material, Material> sanitizedMaterialsBySource =
-                new Dictionary<Material, Material>();
+            Dictionary<Material, Material> sanitizedMaterialsBySource = new Dictionary<Material, Material>();
             Renderer[] renderers = rootTransform.GetComponentsInChildren<Renderer>(true);
             Material defaultSourceMaterial = AssetDatabase.LoadAssetAtPath<Material>(DUNGEON_WALL_MATERIAL_PATH);
-            Material fallbackSafeMaterial =
-                defaultSourceMaterial != null ? getOrCreateSafeMaterial(defaultSourceMaterial) : null;
+            Material fallbackSafeMaterial = defaultSourceMaterial != null ? getOrCreateSafeMaterial(defaultSourceMaterial) : null;
 
             foreach (Renderer renderer in renderers)
             {
@@ -615,8 +562,7 @@ namespace MouthOfTruth.Editor
                         continue;
                     }
 
-                    if (sanitizedMaterialsBySource.TryGetValue(sourceMaterial, out Material sanitizedMaterial)
-                        == false)
+                    if (sanitizedMaterialsBySource.TryGetValue(sourceMaterial, out Material sanitizedMaterial) == false)
                     {
                         sanitizedMaterial = getOrCreateSafeMaterial(sourceMaterial);
                         sanitizedMaterialsBySource[sourceMaterial] = sanitizedMaterial;
@@ -717,11 +663,7 @@ namespace MouthOfTruth.Editor
                 safeMaterial.SetTexture("_MainTex", baseTexture);
             }
 
-            Color baseColor = getFirstAvailableColor(
-                sourceMaterial,
-                Color.white,
-                "_BaseColor",
-                "_Color");
+            Color baseColor = getFirstAvailableColor(sourceMaterial, Color.white, "_BaseColor", "_Color");
 
             if (safeMaterial.HasProperty("_BaseColor"))
             {
@@ -754,10 +696,7 @@ namespace MouthOfTruth.Editor
             return null;
         }
 
-        private static Color getFirstAvailableColor(
-            Material material,
-            Color fallbackColor,
-            params string[] propertyNames)
+        private static Color getFirstAvailableColor(Material material, Color fallbackColor, params string[] propertyNames)
         {
             foreach (string propertyName in propertyNames)
             {
@@ -810,10 +749,7 @@ namespace MouthOfTruth.Editor
             return stagePosition;
         }
 
-        private static void alignLongAxisToForward(
-            Transform targetTransform,
-            Vector3 forwardAxis,
-            bool isLongAxisX)
+        private static void alignLongAxisToForward(Transform targetTransform, Vector3 forwardAxis, bool isLongAxisX)
         {
             Vector3 projectedForward = Vector3.ProjectOnPlane(forwardAxis, Vector3.up).normalized;
 
@@ -869,10 +805,7 @@ namespace MouthOfTruth.Editor
             return childObject.transform;
         }
 
-        private static GameObject instantiatePrefab(
-            GameObject prefab,
-            Transform parentTransform,
-            string objectName)
+        private static GameObject instantiatePrefab(GameObject prefab, Transform parentTransform, string objectName)
         {
             GameObject instance = PrefabUtility.InstantiatePrefab(prefab, parentTransform) as GameObject;
 
@@ -916,10 +849,7 @@ namespace MouthOfTruth.Editor
             {
                 Vector3 normalizedForward = Forward.normalized;
 
-                return
-                    (Mathf.Abs(normalizedForward.x) * bounds.extents.x)
-                    + (Mathf.Abs(normalizedForward.y) * bounds.extents.y)
-                    + (Mathf.Abs(normalizedForward.z) * bounds.extents.z);
+                return (Mathf.Abs(normalizedForward.x) * bounds.extents.x) + (Mathf.Abs(normalizedForward.y) * bounds.extents.y) + (Mathf.Abs(normalizedForward.z) * bounds.extents.z);
             }
         }
 
@@ -928,11 +858,7 @@ namespace MouthOfTruth.Editor
             public static SourceSceneCameraLayout Invalid =>
                 new SourceSceneCameraLayout(Vector3.zero, Quaternion.identity, 0.0f, Color.black);
 
-            public SourceSceneCameraLayout(
-                Vector3 position,
-                Quaternion rotation,
-                float fieldOfView,
-                Color backgroundColor)
+            public SourceSceneCameraLayout(Vector3 position, Quaternion rotation, float fieldOfView, Color backgroundColor)
             {
                 Position = position;
                 Rotation = rotation;

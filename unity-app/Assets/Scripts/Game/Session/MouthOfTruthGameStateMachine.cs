@@ -19,10 +19,7 @@ namespace MouthOfTruth.Game.Session
         private float mElapsedAnswerSeconds;
         private float mElapsedSilenceSeconds;
 
-        public MouthOfTruthGameStateMachine(
-            QuestionDeckService questionDeckService,
-            CardDwellSelectionTracker cardDwellSelectionTracker,
-            AnswerCollectionPolicy answerCollectionPolicy)
+        public MouthOfTruthGameStateMachine(QuestionDeckService questionDeckService, CardDwellSelectionTracker cardDwellSelectionTracker, AnswerCollectionPolicy answerCollectionPolicy)
         {
             if (questionDeckService == null)
             {
@@ -71,9 +68,7 @@ namespace MouthOfTruth.Game.Session
             CurrentState = EGameFlowState.AwaitingCardSelection;
         }
 
-        public EQuestionCardSlot? UpdateCardSelection(
-            EQuestionCardSlot? hoveredQuestionCardSlot,
-            float deltaTimeSeconds)
+        public EQuestionCardSlot? UpdateCardSelection(EQuestionCardSlot? hoveredQuestionCardSlot, float deltaTimeSeconds)
         {
             ensureCurrentState(EGameFlowState.AwaitingCardSelection);
 
@@ -86,8 +81,7 @@ namespace MouthOfTruth.Game.Session
             }
 
             mSelectedQuestionCardSlot = confirmedQuestionCardSlot;
-            mSelectedQuestionDefinition = mCurrentRoundSelection.GetQuestionBySlot(
-                confirmedQuestionCardSlot.Value);
+            mSelectedQuestionDefinition = mCurrentRoundSelection.GetQuestionBySlot(confirmedQuestionCardSlot.Value);
             CurrentState = EGameFlowState.RevealingQuestionCard;
             return confirmedQuestionCardSlot;
         }
@@ -144,18 +138,12 @@ namespace MouthOfTruth.Game.Session
         {
             ensureCurrentState(EGameFlowState.Answering);
 
-            AnswerCollectionTickResult answerCollectionTickResult =
-                mAnswerCollectionPolicy.Advance(
-                    mElapsedAnswerSeconds,
-                    mElapsedSilenceSeconds,
-                    deltaTimeSeconds,
-                    isSpeechDetected);
+            AnswerCollectionTickResult answerCollectionTickResult = mAnswerCollectionPolicy.Advance(mElapsedAnswerSeconds, mElapsedSilenceSeconds, deltaTimeSeconds, isSpeechDetected);
 
             mElapsedAnswerSeconds = answerCollectionTickResult.ElapsedAnswerSeconds;
             mElapsedSilenceSeconds = answerCollectionTickResult.ElapsedSilenceSeconds;
 
-            if (answerCollectionTickResult.ShouldFinishForSilence
-                || answerCollectionTickResult.ShouldFinishForTimeout)
+            if (answerCollectionTickResult.ShouldFinishForSilence || answerCollectionTickResult.ShouldFinishForTimeout)
             {
                 CurrentState = EGameFlowState.AnalyzingAnswer;
                 return true;
@@ -201,16 +189,7 @@ namespace MouthOfTruth.Game.Session
 
         public GameSessionSnapshot CreateSnapshot()
         {
-            return new GameSessionSnapshot(
-                CurrentState,
-                mCurrentRoundSelection,
-                mSelectedQuestionCardSlot,
-                mSelectedQuestionDefinition,
-                mCurrentVerdictKind,
-                mCurrentAnswerTranscript,
-                mCardDwellSelectionTracker.HoveredDurationSeconds,
-                mElapsedAnswerSeconds,
-                mElapsedSilenceSeconds);
+            return new GameSessionSnapshot(CurrentState, mCurrentRoundSelection, mSelectedQuestionCardSlot, mSelectedQuestionDefinition, mCurrentVerdictKind, mCurrentAnswerTranscript, mCardDwellSelectionTracker.HoveredDurationSeconds, mElapsedAnswerSeconds, mElapsedSilenceSeconds);
         }
 
         private void ensureCurrentState(EGameFlowState expectedGameFlowState)

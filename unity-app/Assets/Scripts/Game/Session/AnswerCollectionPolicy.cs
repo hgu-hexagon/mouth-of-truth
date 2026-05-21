@@ -4,10 +4,7 @@ namespace MouthOfTruth.Game.Session
 {
     public class AnswerCollectionPolicy
     {
-        public AnswerCollectionPolicy(
-            float initialSilenceGraceSeconds = 2.6f,
-            float silenceTimeoutSeconds = 1.2f,
-            float maximumAnswerDurationSeconds = 8.0f)
+        public AnswerCollectionPolicy(float initialSilenceGraceSeconds = 2.6f, float silenceTimeoutSeconds = 1.2f, float maximumAnswerDurationSeconds = 8.0f)
         {
             if (initialSilenceGraceSeconds < 0.0f)
             {
@@ -35,11 +32,7 @@ namespace MouthOfTruth.Game.Session
 
         public float MaximumAnswerDurationSeconds { get; }
 
-        public AnswerCollectionTickResult Advance(
-            float elapsedAnswerSeconds,
-            float elapsedSilenceSeconds,
-            float deltaTimeSeconds,
-            bool isSpeechDetected)
+        public AnswerCollectionTickResult Advance(float elapsedAnswerSeconds, float elapsedSilenceSeconds, float deltaTimeSeconds, bool isSpeechDetected)
         {
             if (deltaTimeSeconds < 0.0f)
             {
@@ -54,21 +47,13 @@ namespace MouthOfTruth.Game.Session
             bool shouldFinishForSilence = nextElapsedAnswerSeconds >= InitialSilenceGraceSeconds && nextElapsedSilenceSeconds >= SilenceTimeoutSeconds;
             bool shouldFinishForTimeout = nextElapsedAnswerSeconds >= MaximumAnswerDurationSeconds;
 
-            return new AnswerCollectionTickResult(
-                nextElapsedAnswerSeconds,
-                nextElapsedSilenceSeconds,
-                shouldFinishForSilence,
-                shouldFinishForTimeout);
+            return new AnswerCollectionTickResult(nextElapsedAnswerSeconds, nextElapsedSilenceSeconds, shouldFinishForSilence, shouldFinishForTimeout);
         }
     }
 
     public readonly struct AnswerCollectionTickResult
     {
-        public AnswerCollectionTickResult(
-            float elapsedAnswerSeconds,
-            float elapsedSilenceSeconds,
-            bool shouldFinishForSilence,
-            bool shouldFinishForTimeout)
+        public AnswerCollectionTickResult(float elapsedAnswerSeconds, float elapsedSilenceSeconds, bool shouldFinishForSilence, bool shouldFinishForTimeout)
         {
             ElapsedAnswerSeconds = elapsedAnswerSeconds;
             ElapsedSilenceSeconds = elapsedSilenceSeconds;

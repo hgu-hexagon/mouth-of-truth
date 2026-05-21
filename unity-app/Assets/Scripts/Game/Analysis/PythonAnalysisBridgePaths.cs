@@ -70,10 +70,7 @@ namespace MouthOfTruth.Game.Analysis
                     ? "run_bridge_analysis.bat"
                     : "run_bridge_analysis.sh";
 
-            return Path.Combine(
-                MouthOfTruthRuntimePaths.GetPythonEngineRootPath(),
-                "scripts",
-                launcherFileName);
+            return Path.Combine(MouthOfTruthRuntimePaths.GetPythonEngineRootPath(), "scripts", launcherFileName);
         }
 
         public static string GetBridgeWorkerLauncherScriptPath()
@@ -83,10 +80,7 @@ namespace MouthOfTruth.Game.Analysis
                     ? "run_bridge_analysis_worker.bat"
                     : "run_bridge_analysis_worker.sh";
 
-            return Path.Combine(
-                MouthOfTruthRuntimePaths.GetPythonEngineRootPath(),
-                "scripts",
-                launcherFileName);
+            return Path.Combine(MouthOfTruthRuntimePaths.GetPythonEngineRootPath(), "scripts", launcherFileName);
         }
 
         public static string GetPythonModuleRootPath()

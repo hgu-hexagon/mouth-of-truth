@@ -6,11 +6,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
     {
         private static Sprite createPointerCursorSprite()
         {
-            Texture2D texture = new Texture2D(
-                POINTER_CURSOR_TEXTURE_SIZE,
-                POINTER_CURSOR_TEXTURE_SIZE,
-                TextureFormat.RGBA32,
-                mipChain: false);
+            Texture2D texture = new Texture2D(POINTER_CURSOR_TEXTURE_SIZE, POINTER_CURSOR_TEXTURE_SIZE, TextureFormat.RGBA32, mipChain: false);
             texture.hideFlags = HideFlags.DontSave;
             texture.filterMode = FilterMode.Bilinear;
             texture.wrapMode = TextureWrapMode.Clamp;
@@ -43,11 +39,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             texture.SetPixels(pixels);
             texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
-            return Sprite.Create(
-                texture,
-                new Rect(0.0f, 0.0f, POINTER_CURSOR_TEXTURE_SIZE, POINTER_CURSOR_TEXTURE_SIZE),
-                new Vector2(0.5f, 0.5f),
-                POINTER_CURSOR_TEXTURE_SIZE);
+            return Sprite.Create(texture, new Rect(0.0f, 0.0f, POINTER_CURSOR_TEXTURE_SIZE, POINTER_CURSOR_TEXTURE_SIZE), new Vector2(0.5f, 0.5f), POINTER_CURSOR_TEXTURE_SIZE);
         }
 
         private static Sprite createRadialGlowSprite()
@@ -135,11 +127,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             texture.SetPixels(pixels);
             texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
-            return Sprite.Create(
-                texture,
-                new Rect(0.0f, 0.0f, TEXTURE_WIDTH, TEXTURE_HEIGHT),
-                new Vector2(0.5f, 0.5f),
-                TEXTURE_WIDTH);
+            return Sprite.Create(texture, new Rect(0.0f, 0.0f, TEXTURE_WIDTH, TEXTURE_HEIGHT), new Vector2(0.5f, 0.5f), TEXTURE_WIDTH);
         }
     }
 }

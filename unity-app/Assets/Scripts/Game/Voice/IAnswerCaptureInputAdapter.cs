@@ -21,8 +21,6 @@ namespace MouthOfTruth.Game.Voice
 
         AnswerCaptureFrameSnapshot Update(float deltaTimeSeconds);
 
-        Task<AnswerCaptureResult> CompleteCollectionAsync(
-            string questionID,
-            CancellationToken cancellationToken);
+        Task<AnswerCaptureResult> CompleteCollectionAsync(string questionID, CancellationToken cancellationToken);
     }
 }

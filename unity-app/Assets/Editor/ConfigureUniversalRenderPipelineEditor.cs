@@ -53,8 +53,7 @@ namespace MouthOfTruth.Editor
             return rendererData;
         }
 
-        private static UniversalRenderPipelineAsset loadOrCreatePipelineAsset(
-            UniversalRendererData rendererData)
+        private static UniversalRenderPipelineAsset loadOrCreatePipelineAsset(UniversalRendererData rendererData)
         {
             UniversalRenderPipelineAsset pipelineAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PIPELINE_ASSET_PATH);
 
@@ -83,9 +82,7 @@ namespace MouthOfTruth.Editor
                 return;
             }
 
-            MethodInfo getDefaultPostProcessDataMethod = typeof(PostProcessData).GetMethod(
-                "GetDefaultPostProcessData",
-                BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo getDefaultPostProcessDataMethod = typeof(PostProcessData).GetMethod("GetDefaultPostProcessData", BindingFlags.Static | BindingFlags.NonPublic);
 
             if (getDefaultPostProcessDataMethod == null)
             {
@@ -95,9 +92,7 @@ namespace MouthOfTruth.Editor
             rendererData.postProcessData = getDefaultPostProcessDataMethod.Invoke(null, null) as PostProcessData;
         }
 
-        private static void ensurePipelineAssetConfiguration(
-            UniversalRenderPipelineAsset pipelineAsset,
-            UniversalRendererData rendererData)
+        private static void ensurePipelineAssetConfiguration(UniversalRenderPipelineAsset pipelineAsset, UniversalRendererData rendererData)
         {
             ResourceReloader.ReloadAllNullIn(pipelineAsset, UniversalRenderPipelineAsset.packagePath);
 
@@ -129,8 +124,7 @@ namespace MouthOfTruth.Editor
 
         private static void ensureGlobalSettingsAsset()
         {
-            Type globalSettingsType = typeof(UniversalRenderPipelineAsset).Assembly.GetType(
-                "UnityEngine.Rendering.Universal.UniversalRenderPipelineGlobalSettings");
+            Type globalSettingsType = typeof(UniversalRenderPipelineAsset).Assembly.GetType("UnityEngine.Rendering.Universal.UniversalRenderPipelineGlobalSettings");
             MethodInfo ensureMethod = globalSettingsType?.GetMethod("Ensure", BindingFlags.Static | BindingFlags.NonPublic);
 
             if (ensureMethod == null)

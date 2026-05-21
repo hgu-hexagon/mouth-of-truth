@@ -72,41 +72,24 @@ namespace MouthOfTruth.Editor
         {
             string distributionPythonEngineRootPath = Path.Combine(distributionRootPath, "python-engine");
             Directory.CreateDirectory(distributionPythonEngineRootPath);
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "src"),
-                Path.Combine(distributionPythonEngineRootPath, "src"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "scripts"),
-                Path.Combine(distributionPythonEngineRootPath, "scripts"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "models"),
-                Path.Combine(distributionPythonEngineRootPath, "models"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "requirements.txt"),
-                Path.Combine(distributionPythonEngineRootPath, "requirements.txt"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "environment.yml"),
-                Path.Combine(distributionPythonEngineRootPath, "environment.yml"));
-            ensureSessionWorkspaceDirectory(
-                Path.Combine(distributionPythonEngineRootPath, "data", "session-workspace"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "src"), Path.Combine(distributionPythonEngineRootPath, "src"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "scripts"), Path.Combine(distributionPythonEngineRootPath, "scripts"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "models"), Path.Combine(distributionPythonEngineRootPath, "models"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "requirements.txt"), Path.Combine(distributionPythonEngineRootPath, "requirements.txt"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "environment.yml"), Path.Combine(distributionPythonEngineRootPath, "environment.yml"));
+            ensureSessionWorkspaceDirectory(Path.Combine(distributionPythonEngineRootPath, "data", "session-workspace"));
             ensureBridgeDirectory(Path.Combine(distributionRootPath, "bridge"));
 
             string configuredPythonRuntimeRootPath = System.Environment.GetEnvironmentVariable(PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME);
-            string bundledPythonRuntimeRootPath = resolveBundledPythonRuntimeRootPath(
-                runtimeRootPath,
-                configuredPythonRuntimeRootPath);
+            string bundledPythonRuntimeRootPath = resolveBundledPythonRuntimeRootPath(runtimeRootPath, configuredPythonRuntimeRootPath);
 
             if (Directory.Exists(bundledPythonRuntimeRootPath))
             {
-                copyPath(
-                    bundledPythonRuntimeRootPath,
-                    Path.Combine(distributionRootPath, "python-runtime"));
+                copyPath(bundledPythonRuntimeRootPath, Path.Combine(distributionRootPath, "python-runtime"));
             }
         }
 
-        private static string resolveBundledPythonRuntimeRootPath(
-            string runtimeRootPath,
-            string configuredPythonRuntimeRootPath)
+        private static string resolveBundledPythonRuntimeRootPath(string runtimeRootPath, string configuredPythonRuntimeRootPath)
         {
             if (string.IsNullOrWhiteSpace(configuredPythonRuntimeRootPath) == false)
             {
@@ -137,9 +120,7 @@ namespace MouthOfTruth.Editor
 
         private static void packageBundledPythonRuntime(string runtimeRootPath)
         {
-            string packageScriptPath = Path.Combine(
-                runtimeRootPath,
-                PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH);
+            string packageScriptPath = Path.Combine(runtimeRootPath, PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH);
 
             if (File.Exists(packageScriptPath) == false)
             {
@@ -235,10 +216,7 @@ namespace MouthOfTruth.Editor
 
         private static void pruneDistributionArtifacts(string distributionRootPath)
         {
-            foreach (string directoryPath in Directory.GetDirectories(
-                         distributionRootPath,
-                         "*",
-                         SearchOption.AllDirectories))
+            foreach (string directoryPath in Directory.GetDirectories(distributionRootPath, "*", SearchOption.AllDirectories))
             {
                 string directoryName = Path.GetFileName(directoryPath);
 
@@ -248,10 +226,7 @@ namespace MouthOfTruth.Editor
                 }
             }
 
-            foreach (string filePath in Directory.GetFiles(
-                         distributionRootPath,
-                         "*",
-                         SearchOption.AllDirectories))
+            foreach (string filePath in Directory.GetFiles(distributionRootPath, "*", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(filePath);
 

@@ -20,9 +20,7 @@ namespace MouthOfTruth.Game.Narration
         private readonly IQuestionNarrationService mFallbackNarrationService;
         private readonly string mQuestionAudioDirectoryPath;
 
-        public PrerecordedQuestionNarrationService(
-            string questionAudioDirectoryPath,
-            IQuestionNarrationService fallbackNarrationService)
+        public PrerecordedQuestionNarrationService(string questionAudioDirectoryPath, IQuestionNarrationService fallbackNarrationService)
         {
             mQuestionAudioDirectoryPath = string.IsNullOrEmpty(questionAudioDirectoryPath) ? string.Empty : questionAudioDirectoryPath;
             mFallbackNarrationService = fallbackNarrationService == null

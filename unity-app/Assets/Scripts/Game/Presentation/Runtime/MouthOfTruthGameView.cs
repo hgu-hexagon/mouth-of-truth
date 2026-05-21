@@ -99,8 +99,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
         private static readonly Vector2 TEMPLE_HAND_FRONT_OFFSET_FACTOR = new Vector2(0.0f, -0.20f);
         private static readonly Vector2 TEMPLE_HAND_INNER_OFFSET_FACTOR = new Vector2(0.0f, -0.17f);
-        private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews =
-            new Dictionary<EQuestionCardSlot, QuestionCardView>();
+        private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews = new Dictionary<EQuestionCardSlot, QuestionCardView>();
         private readonly Vector3[] mHitTestWorldCorners = new Vector3[4];
         private readonly Vector3[] mTempleMouthWorldCorners = new Vector3[4];
 
@@ -279,9 +278,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            float insertionProgress = Mathf.Clamp01(
-                mHeldHandBaseProgress
-                + (Mathf.Sin(Time.unscaledTime * mHeldHandPulseSpeed) * mHeldHandPulseAmplitude));
+            float insertionProgress = Mathf.Clamp01(mHeldHandBaseProgress + (Mathf.Sin(Time.unscaledTime * mHeldHandPulseSpeed) * mHeldHandPulseAmplitude));
             setHandVisual(insertionProgress);
         }
 
@@ -307,32 +304,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 setTempleCameraPoseCenteredOnMouth(cameraScale, TEMPLE_MOUTH_FOCUS_CENTER, tremor * 0.94f, verticalTremor * 0.68f);
                 setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.86f, 0.98f, pulse), Mathf.Lerp(0.74f, 0.90f, pulse), Mathf.Lerp(0.92f, 1.0f, pulse)));
                 syncTempleStageMouthOverlay(0.0f);
-                updateMouthEffectImage(
-                    mMouthListeningAuraImage,
-                    new Color(1.0f, 0.64f, 0.40f, Mathf.Lerp(0.12f, 0.20f, pulse)),
-                    1.10f + (surge * 0.12f),
-                    -elapsedSeconds * 9.0f);
-                updateMouthEffectImage(
-                    mMouthAnalyzingAuraImage,
-                    new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.18f, 0.29f, surge)),
-                    1.20f + (pulse * 0.16f),
-                    elapsedSeconds * 14.0f);
+                updateMouthEffectImage(mMouthListeningAuraImage, new Color(1.0f, 0.64f, 0.40f, Mathf.Lerp(0.12f, 0.20f, pulse)), 1.10f + (surge * 0.12f), -elapsedSeconds * 9.0f);
+                updateMouthEffectImage(mMouthAnalyzingAuraImage, new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.18f, 0.29f, surge)), 1.20f + (pulse * 0.16f), elapsedSeconds * 14.0f);
                 return;
             }
 
             mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.86f, 0.98f, pulse), Mathf.Lerp(0.74f, 0.90f, pulse), Mathf.Lerp(0.74f, 0.92f, pulse));
             mMouthImage.rectTransform.anchoredPosition = new Vector2(tremor * 1.34f, verticalTremor * 0.72f);
             mMouthImage.rectTransform.localScale = Vector3.one * (Mathf.Lerp(1.02f, 1.13f, easeOut(focusProgress)) + (pulse * 0.035f));
-            updateMouthEffectImage(
-                mMouthListeningAuraImage,
-                new Color(1.0f, 0.64f, 0.40f, Mathf.Lerp(0.12f, 0.20f, pulse)),
-                1.10f + (surge * 0.12f),
-                -elapsedSeconds * 9.0f);
-            updateMouthEffectImage(
-                mMouthAnalyzingAuraImage,
-                new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.18f, 0.29f, surge)),
-                1.20f + (pulse * 0.16f),
-                elapsedSeconds * 14.0f);
+            updateMouthEffectImage(mMouthListeningAuraImage, new Color(1.0f, 0.64f, 0.40f, Mathf.Lerp(0.12f, 0.20f, pulse)), 1.10f + (surge * 0.12f), -elapsedSeconds * 9.0f);
+            updateMouthEffectImage(mMouthAnalyzingAuraImage, new Color(1.0f, 0.34f, 0.26f, Mathf.Lerp(0.18f, 0.29f, surge)), 1.20f + (pulse * 0.16f), elapsedSeconds * 14.0f);
         }
 
         public void ShowStartScreen()
@@ -494,10 +475,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     mTempleApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
                     mTempleApproachCameraRectTransform.anchoredPosition = new Vector2(0.0f, walkingBob);
                     mTempleApproachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.86f);
-                    float overlayAlpha = Mathf.Lerp(
-                        TEMPLE_APPROACH_START_OVERLAY_ALPHA,
-                        TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA,
-                        easeOut(progress));
+                    float overlayAlpha = Mathf.Lerp(TEMPLE_APPROACH_START_OVERLAY_ALPHA, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA, easeOut(progress));
                     setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
                 });
 
@@ -516,9 +494,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             float startCameraScale = mTempleApproachCameraRectTransform.localScale.x;
             Vector2 startCameraPosition = mTempleApproachCameraRectTransform.anchoredPosition;
-            Vector2 centeredMouthCameraPosition = getTempleCameraPositionForCenteredMouth(
-                TEMPLE_APPROACH_END_SCALE,
-                TEMPLE_MOUTH_FOCUS_CENTER);
+            Vector2 centeredMouthCameraPosition = getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
 
             await animateOverTimeAsync(
                 TEMPLE_APPROACH_STAIR_DURATION_SECONDS,
@@ -541,9 +517,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float pulse = Mathf.Sin(progress * Mathf.PI);
-                    setTempleCameraPoseCenteredOnMouth(
-                        TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f),
-                        TEMPLE_MOUTH_FOCUS_CENTER);
+                    setTempleCameraPoseCenteredOnMouth(TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f), TEMPLE_MOUTH_FOCUS_CENTER);
                     setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
                 });
         }
@@ -579,34 +553,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mTempleApproachCameraRectTransform.offsetMax = Vector2.zero;
             mTempleApproachCameraRectTransform.pivot = new Vector2(0.5f, 0.54f);
 
-            Image approachBackgroundImage = createFullScreenImage(
-                "TempleApproachBackground",
-                mTempleApproachCameraRectTransform,
-                mBackgroundImage.color);
+            Image approachBackgroundImage = createFullScreenImage("TempleApproachBackground", mTempleApproachCameraRectTransform, mBackgroundImage.color);
             approachBackgroundImage.sprite = mBackgroundImage.sprite;
             approachBackgroundImage.type = mBackgroundImage.type;
             approachBackgroundImage.preserveAspect = mBackgroundImage.preserveAspect;
             approachBackgroundImage.raycastTarget = false;
 
-            Image approachCarpetImage = createImage(
-                "TempleApproachCarpet",
-                mTempleApproachCameraRectTransform,
-                new Vector2(0.5f, 0.0f),
-                new Vector2(0.5f, 0.0f),
-                STAGE_CARPET_POSITION,
-                STAGE_CARPET_SIZE,
-                STAGE_CARPET_TINT);
+            Image approachCarpetImage = createImage("TempleApproachCarpet", mTempleApproachCameraRectTransform, new Vector2(0.5f, 0.0f), new Vector2(0.5f, 0.0f), STAGE_CARPET_POSITION, STAGE_CARPET_SIZE, STAGE_CARPET_TINT);
             approachCarpetImage.sprite = mCarpetImage.sprite;
             approachCarpetImage.raycastTarget = false;
 
-            mTempleApproachMouthImage = createImage(
-                "TempleApproachMouth",
-                mTempleApproachCameraRectTransform,
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                TEMPLE_APPROACH_MOUTH_POSITION,
-                TEMPLE_APPROACH_MOUTH_SIZE,
-                new Color(1.0f, 1.0f, 1.0f, 0.86f));
+            mTempleApproachMouthImage = createImage("TempleApproachMouth", mTempleApproachCameraRectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), TEMPLE_APPROACH_MOUTH_POSITION, TEMPLE_APPROACH_MOUTH_SIZE, new Color(1.0f, 1.0f, 1.0f, 0.86f));
             mTempleApproachMouthImage.sprite = mMouthImage.sprite;
             mTempleApproachMouthImage.raycastTarget = false;
         }
@@ -640,10 +597,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float overlayProgress = easeOut(progress);
-                    float overlayAlpha = Mathf.Lerp(
-                        TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA,
-                        CARD_SELECTION_SETTLED_OVERLAY_ALPHA,
-                        overlayProgress);
+                    float overlayAlpha = Mathf.Lerp(TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA, CARD_SELECTION_SETTLED_OVERLAY_ALPHA, overlayProgress);
                     setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
 
                     foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
@@ -717,10 +671,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return RectTransformUtility.WorldToScreenPoint(mCanvas.worldCamera, worldCenter);
         }
 
-        public async Task PlayQuestionRevealAsync(
-            EQuestionCardSlot selectedQuestionCardSlot,
-            QuestionDefinition questionDefinition,
-            Func<Task> questionNarrationTaskFactory = null)
+        public async Task PlayQuestionRevealAsync(EQuestionCardSlot selectedQuestionCardSlot, QuestionDefinition questionDefinition, Func<Task> questionNarrationTaskFactory = null)
         {
             stopHandPromptPanelAutoFade(restoreAlpha: true);
             setObjectActive(mPromptText, false);
@@ -751,10 +702,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
-                    selectedCardView.RectTransform.anchoredPosition =
-                        Vector2.Lerp(startPosition, endPosition, easedProgress);
-                    selectedCardView.RectTransform.localScale =
-                        Vector3.one * Mathf.Lerp(1.0f, 1.22f, easedProgress);
+                    selectedCardView.RectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedProgress);
+                    selectedCardView.RectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.22f, easedProgress);
                 });
 
             await animateOverTimeAsync(
@@ -775,9 +724,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 {
                     float easedProgress = easeOut(progress);
                     float settlePulse = Mathf.Sin(progress * Mathf.PI) * 0.012f;
-                    selectedCardView.SetScale(
-                        Mathf.Lerp(0.08f, 1.26f, easedProgress),
-                        Mathf.Lerp(1.24f, 1.26f, easedProgress) + settlePulse);
+                    selectedCardView.SetScale(Mathf.Lerp(0.08f, 1.26f, easedProgress), Mathf.Lerp(1.24f, 1.26f, easedProgress) + settlePulse);
                 });
 
             await animateOverTimeAsync(
@@ -828,13 +775,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float easedProgress = easeOut(progress);
-                    Vector2 basePosition = Vector2.Lerp(
-                        launchStartPosition,
-                        launchTargetPosition,
-                        easedProgress);
+                    Vector2 basePosition = Vector2.Lerp(launchStartPosition, launchTargetPosition, easedProgress);
                     float arcLift = Mathf.Sin(easedProgress * Mathf.PI) * 56.0f;
-                    selectedCardView.RectTransform.anchoredPosition =
-                        basePosition + new Vector2(0.0f, arcLift);
+                    selectedCardView.RectTransform.anchoredPosition = basePosition + new Vector2(0.0f, arcLift);
                     selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.82f, easedProgress));
                     selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
 
@@ -844,8 +787,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     }
                     else
                     {
-                        mMouthImage.rectTransform.localScale =
-                            Vector3.one * Mathf.Lerp(0.94f, 1.0f, easedProgress);
+                        mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.94f, 1.0f, easedProgress);
                     }
                 });
 
@@ -1009,12 +951,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
                     float mouthPull = Mathf.Clamp01((easedProgress - 0.50f) / 0.50f);
 
-                    setRitualHandVisual(
-                        handPosition + new Vector2(arc, 0.0f),
-                        RITUAL_HAND_SIZE_PIXELS,
-                        handAlpha,
-                        handScale,
-                        Mathf.Lerp(-5.0f, 2.0f, easedProgress));
+                    setRitualHandVisual(handPosition + new Vector2(arc, 0.0f), RITUAL_HAND_SIZE_PIXELS, handAlpha, handScale, Mathf.Lerp(-5.0f, 2.0f, easedProgress));
                     setGameplayOverlayAlpha(Mathf.Lerp(0.30f, 0.48f, mouthPulse));
 
                     if (isTempleApproachSceneActive())
@@ -1024,8 +961,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     }
                     else
                     {
-                        mMouthImage.rectTransform.localScale =
-                            Vector3.one * (1.0f + (mouthPulse * 0.12f) + (mouthPull * 0.055f));
+                        mMouthImage.rectTransform.localScale = Vector3.one * (1.0f + (mouthPulse * 0.12f) + (mouthPull * 0.055f));
                     }
                 });
 
@@ -1034,12 +970,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 progress =>
                 {
                     float easedProgress = easeIn(progress);
-                    setRitualHandVisual(
-                        innerPosition + new Vector2(0.0f, Mathf.Lerp(0.0f, 42.0f, easedProgress)),
-                        RITUAL_HAND_SIZE_PIXELS,
-                        Mathf.Lerp(0.72f, 0.0f, easedProgress),
-                        Mathf.Lerp(0.94f, 0.82f, easedProgress),
-                        Mathf.Lerp(2.0f, 0.0f, easedProgress));
+                    setRitualHandVisual(innerPosition + new Vector2(0.0f, Mathf.Lerp(0.0f, 42.0f, easedProgress)), RITUAL_HAND_SIZE_PIXELS, Mathf.Lerp(0.72f, 0.0f, easedProgress), Mathf.Lerp(0.94f, 0.82f, easedProgress), Mathf.Lerp(2.0f, 0.0f, easedProgress));
                     setGameplayOverlayAlpha(Mathf.Lerp(0.48f, 0.36f, easedProgress));
                 });
 
@@ -1154,9 +1085,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 float templeStartScale = mTempleApproachCameraRectTransform.localScale.x;
                 Vector2 templeStartPosition = mTempleApproachCameraRectTransform.anchoredPosition;
-                Vector2 templeTargetPosition = getTempleCameraPositionForCenteredMouth(
-                    TEMPLE_RESULT_FOCUS_SCALE,
-                    TEMPLE_MOUTH_FOCUS_CENTER);
+                Vector2 templeTargetPosition = getTempleCameraPositionForCenteredMouth(TEMPLE_RESULT_FOCUS_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
 
                 await animateOverTimeAsync(
                     0.54f,
@@ -1176,21 +1105,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         if (mMouthListeningAuraImage != null)
                         {
                             Color listeningAuraColor = mMouthListeningAuraImage.color;
-                            mMouthListeningAuraImage.color = new Color(
-                                listeningAuraColor.r,
-                                listeningAuraColor.g,
-                                listeningAuraColor.b,
-                                Mathf.Lerp(listeningAuraColor.a, 0.0f, easedProgress));
+                            mMouthListeningAuraImage.color = new Color(listeningAuraColor.r, listeningAuraColor.g, listeningAuraColor.b, Mathf.Lerp(listeningAuraColor.a, 0.0f, easedProgress));
                         }
 
                         if (mMouthAnalyzingAuraImage != null)
                         {
                             Color auraColor = mMouthAnalyzingAuraImage.color;
-                            mMouthAnalyzingAuraImage.color = new Color(
-                                auraColor.r,
-                                auraColor.g,
-                                auraColor.b,
-                                Mathf.Lerp(auraColor.a, 0.0f, easedProgress));
+                            mMouthAnalyzingAuraImage.color = new Color(auraColor.r, auraColor.g, auraColor.b, Mathf.Lerp(auraColor.a, 0.0f, easedProgress));
                         }
                     });
 
@@ -1222,21 +1143,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     if (mMouthListeningAuraImage != null)
                     {
                         Color listeningAuraColor = mMouthListeningAuraImage.color;
-                        mMouthListeningAuraImage.color = new Color(
-                            listeningAuraColor.r,
-                            listeningAuraColor.g,
-                            listeningAuraColor.b,
-                            Mathf.Lerp(listeningAuraColor.a, 0.0f, easedProgress));
+                        mMouthListeningAuraImage.color = new Color(listeningAuraColor.r, listeningAuraColor.g, listeningAuraColor.b, Mathf.Lerp(listeningAuraColor.a, 0.0f, easedProgress));
                     }
 
                     if (mMouthAnalyzingAuraImage != null)
                     {
                         Color auraColor = mMouthAnalyzingAuraImage.color;
-                        mMouthAnalyzingAuraImage.color = new Color(
-                            auraColor.r,
-                            auraColor.g,
-                            auraColor.b,
-                            Mathf.Lerp(auraColor.a, 0.0f, easedProgress));
+                        mMouthAnalyzingAuraImage.color = new Color(auraColor.r, auraColor.g, auraColor.b, Mathf.Lerp(auraColor.a, 0.0f, easedProgress));
                     }
                 });
 
@@ -1249,9 +1162,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             {
                 float templeStartScale = mTempleApproachCameraRectTransform.localScale.x;
                 Vector2 templeStartPosition = mTempleApproachCameraRectTransform.anchoredPosition;
-                Vector2 templeTargetPosition = getTempleCameraPositionForCenteredMouth(
-                    TEMPLE_ANSWER_FOCUS_SCALE,
-                    TEMPLE_MOUTH_FOCUS_CENTER);
+                Vector2 templeTargetPosition = getTempleCameraPositionForCenteredMouth(TEMPLE_ANSWER_FOCUS_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
 
                 await animateOverTimeAsync(
                     MOUTH_JUDGEMENT_FOCUS_SECONDS * 1.28f,
@@ -1439,11 +1350,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         ? Mathf.Sin(progress * Mathf.PI * 12.0f) * falloff
                         : residualShake * 0.45f;
                     float verticalShake = Mathf.Sin(progress * Mathf.PI * 7.0f) * falloff * 0.72f;
-                    setTempleCameraPoseCenteredOnMouth(
-                        TEMPLE_RESULT_FOCUS_SCALE + (pulse * 0.018f),
-                        TEMPLE_MOUTH_FOCUS_CENTER,
-                        shake * 1.4f,
-                        verticalShake);
+                    setTempleCameraPoseCenteredOnMouth(TEMPLE_RESULT_FOCUS_SCALE + (pulse * 0.018f), TEMPLE_MOUTH_FOCUS_CENTER, shake * 1.4f, verticalShake);
                     setOverlayTint(overlayTint, Mathf.Lerp(0.48f, 0.38f, easedProgress));
                     setTempleApproachMouthColor(Color.Lerp(Color.white, mouthTint, 1.0f - easedProgress * 0.25f));
                     mVerdictImage.color = new Color(1.0f, 1.0f, 1.0f, easedProgress);
@@ -1543,10 +1450,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     }
                 }
 
-                return EvaluateQuestionCardIntentSlot(
-                    pointerScreenPosition.Value,
-                    Screen.width,
-                    Screen.height);
+                return EvaluateQuestionCardIntentSlot(pointerScreenPosition.Value, Screen.width, Screen.height);
             }
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
@@ -1569,34 +1473,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             Vector2 screenPosition = pointerScreenPosition.Value;
 
-            if (isScreenPointOverButton(
-                    mStartButton,
-                    screenPosition,
-                    BUTTON_INTENT_EXPANSION_PIXELS))
+            if (isScreenPointOverButton(mStartButton, screenPosition, BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.StartGame;
             }
 
-            if (isScreenPointOverButton(
-                    mTryAgainButton,
-                    screenPosition,
-                    BUTTON_INTENT_EXPANSION_PIXELS))
+            if (isScreenPointOverButton(mTryAgainButton, screenPosition, BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.TryAgain;
             }
 
-            if (isScreenPointOverButton(
-                    mExitButton,
-                    screenPosition,
-                    EXIT_BUTTON_INTENT_EXPANSION_PIXELS))
+            if (isScreenPointOverButton(mExitButton, screenPosition, EXIT_BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.ExitGame;
             }
 
-            if (isScreenPointOverButton(
-                    mBackToTitleButton,
-                    screenPosition,
-                    BUTTON_INTENT_EXPANSION_PIXELS))
+            if (isScreenPointOverButton(mBackToTitleButton, screenPosition, BUTTON_INTENT_EXPANSION_PIXELS))
             {
                 return EUiActionTarget.BackToTitle;
             }
@@ -1604,9 +1496,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return null;
         }
 
-        public void UpdateActionButtonHoverVisual(
-            EUiActionTarget? hoveredUiActionTarget,
-            float hoverProgress)
+        public void UpdateActionButtonHoverVisual(EUiActionTarget? hoveredUiActionTarget, float hoverProgress)
         {
             if (hoveredUiActionTarget != mLastHoveredUiActionTarget)
             {
@@ -1616,10 +1506,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             updateButtonVisual(mStartButton, hoveredUiActionTarget == EUiActionTarget.StartGame, hoverProgress);
             updateButtonVisual(mTryAgainButton, hoveredUiActionTarget == EUiActionTarget.TryAgain, hoverProgress);
             updateButtonVisual(mExitButton, hoveredUiActionTarget == EUiActionTarget.ExitGame, hoverProgress);
-            updateButtonVisual(
-                mBackToTitleButton,
-                hoveredUiActionTarget == EUiActionTarget.BackToTitle,
-                hoverProgress);
+            updateButtonVisual(mBackToTitleButton, hoveredUiActionTarget == EUiActionTarget.BackToTitle, hoverProgress);
         }
 
         public EHandAnchorState GetHandAnchorState(Vector2? pointerScreenPosition)
@@ -1629,9 +1516,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return EHandAnchorState.OutsideMouth;
             }
 
-            if (tryConvertScreenPointToCanvasPosition(
-                    pointerScreenPosition.Value,
-                    out Vector2 pointerCanvasPosition) == false)
+            if (tryConvertScreenPointToCanvasPosition(pointerScreenPosition.Value, out Vector2 pointerCanvasPosition) == false)
             {
                 return EHandAnchorState.OutsideMouth;
             }
@@ -1641,31 +1526,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 syncTempleStageMouthOverlay(0.0f);
             }
 
-            float mouthDiameterPixels = Mathf.Max(
-                1.0f,
-                Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
-            EHandAnchorState exactAnchorState = EvaluateHandAnchorState(
-                pointerCanvasPosition,
-                getHandFrontPosition(),
-                getHandInnerPosition(),
-                mouthDiameterPixels);
+            float mouthDiameterPixels = Mathf.Max(1.0f, Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
+            EHandAnchorState exactAnchorState = EvaluateHandAnchorState(pointerCanvasPosition, getHandFrontPosition(), getHandInnerPosition(), mouthDiameterPixels);
 
             if (exactAnchorState != EHandAnchorState.OutsideMouth)
             {
                 return exactAnchorState;
             }
 
-            return EvaluateMouthIntentAnchorState(
-                pointerCanvasPosition,
-                getHandFrontPosition(),
-                getHandInnerPosition(),
-                mouthDiameterPixels);
+            return EvaluateMouthIntentAnchorState(pointerCanvasPosition, getHandFrontPosition(), getHandInnerPosition(), mouthDiameterPixels);
         }
 
-        public static EQuestionCardSlot? EvaluateQuestionCardIntentSlot(
-            Vector2 screenPosition,
-            float screenWidth,
-            float screenHeight)
+        public static EQuestionCardSlot? EvaluateQuestionCardIntentSlot(Vector2 screenPosition, float screenWidth, float screenHeight)
         {
             if (screenWidth <= 0.0f || screenHeight <= 0.0f)
             {
@@ -1675,8 +1547,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float normalizedX = Mathf.Clamp01(screenPosition.x / screenWidth);
             float normalizedY = Mathf.Clamp01(screenPosition.y / screenHeight);
 
-            if (normalizedY < CARD_INTENT_MIN_NORMALIZED_Y
-                || normalizedY > CARD_INTENT_MAX_NORMALIZED_Y)
+            if (normalizedY < CARD_INTENT_MIN_NORMALIZED_Y || normalizedY > CARD_INTENT_MAX_NORMALIZED_Y)
             {
                 return null;
             }
@@ -1694,11 +1565,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return EQuestionCardSlot.CenterCard;
         }
 
-        public static EHandAnchorState EvaluateHandAnchorState(
-            Vector2 pointerCanvasPosition,
-            Vector2 handFrontPosition,
-            Vector2 handInnerPosition,
-            float mouthDiameterPixels)
+        public static EHandAnchorState EvaluateHandAnchorState(Vector2 pointerCanvasPosition, Vector2 handFrontPosition, Vector2 handInnerPosition, float mouthDiameterPixels)
         {
             float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
             float frontAnchorRadiusPixels = clampedMouthDiameterPixels * FRONT_ANCHOR_RADIUS_FACTOR;
@@ -1706,11 +1573,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float distanceToInnerAnchor = Vector2.Distance(pointerCanvasPosition, handInnerPosition);
             Vector2 innerAnchorOffset = pointerCanvasPosition - handInnerPosition;
 
-            if (distanceToInnerAnchor <= innerAnchorRadiusPixels
-                || isInsideAnchorWindow(
-                    innerAnchorOffset,
-                    clampedMouthDiameterPixels * INNER_ENTRY_HALF_WIDTH_FACTOR,
-                    clampedMouthDiameterPixels * INNER_ENTRY_HALF_HEIGHT_FACTOR))
+            if (distanceToInnerAnchor <= innerAnchorRadiusPixels || isInsideAnchorWindow(innerAnchorOffset, clampedMouthDiameterPixels * INNER_ENTRY_HALF_WIDTH_FACTOR, clampedMouthDiameterPixels * INNER_ENTRY_HALF_HEIGHT_FACTOR))
             {
                 return EHandAnchorState.AtInnerAnchor;
             }
@@ -1718,11 +1581,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float distanceToFrontAnchor = Vector2.Distance(pointerCanvasPosition, handFrontPosition);
             Vector2 frontAnchorOffset = pointerCanvasPosition - handFrontPosition;
 
-            if (distanceToFrontAnchor <= frontAnchorRadiusPixels
-                || isInsideAnchorWindow(
-                    frontAnchorOffset,
-                    clampedMouthDiameterPixels * FRONT_ENTRY_HALF_WIDTH_FACTOR,
-                    clampedMouthDiameterPixels * FRONT_ENTRY_HALF_HEIGHT_FACTOR))
+            if (distanceToFrontAnchor <= frontAnchorRadiusPixels || isInsideAnchorWindow(frontAnchorOffset, clampedMouthDiameterPixels * FRONT_ENTRY_HALF_WIDTH_FACTOR, clampedMouthDiameterPixels * FRONT_ENTRY_HALF_HEIGHT_FACTOR))
             {
                 return EHandAnchorState.AtFrontAnchor;
             }
@@ -1730,11 +1589,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return EHandAnchorState.OutsideMouth;
         }
 
-        public static EHandAnchorState EvaluateMouthIntentAnchorState(
-            Vector2 pointerCanvasPosition,
-            Vector2 handFrontPosition,
-            Vector2 handInnerPosition,
-            float mouthDiameterPixels)
+        public static EHandAnchorState EvaluateMouthIntentAnchorState(Vector2 pointerCanvasPosition, Vector2 handFrontPosition, Vector2 handInnerPosition, float mouthDiameterPixels)
         {
             float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
             float intentHalfWidth = clampedMouthDiameterPixels * MOUTH_INTENT_HALF_WIDTH_FACTOR;
@@ -1744,17 +1599,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 + (clampedMouthDiameterPixels * MOUTH_INTENT_UPPER_MARGIN_FACTOR);
             float centerX = Mathf.Lerp(handFrontPosition.x, handInnerPosition.x, 0.5f);
 
-            if (Mathf.Abs(pointerCanvasPosition.x - centerX) > intentHalfWidth
-                || pointerCanvasPosition.y < minimumY
-                || pointerCanvasPosition.y > maximumY)
+            if (Mathf.Abs(pointerCanvasPosition.x - centerX) > intentHalfWidth || pointerCanvasPosition.y < minimumY || pointerCanvasPosition.y > maximumY)
             {
                 return EHandAnchorState.OutsideMouth;
             }
 
-            float innerSwitchY = Mathf.Lerp(
-                handFrontPosition.y,
-                handInnerPosition.y,
-                MOUTH_INTENT_INNER_SWITCH_FACTOR);
+            float innerSwitchY = Mathf.Lerp(handFrontPosition.y, handInnerPosition.y, MOUTH_INTENT_INNER_SWITCH_FACTOR);
             return pointerCanvasPosition.y >= innerSwitchY
                 ? EHandAnchorState.AtInnerAnchor
                 : EHandAnchorState.AtFrontAnchor;
@@ -1773,9 +1623,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            if (tryConvertScreenPointToCanvasPosition(
-                    pointerScreenPosition.Value,
-                    out Vector2 anchoredPosition) == false)
+            if (tryConvertScreenPointToCanvasPosition(pointerScreenPosition.Value, out Vector2 anchoredPosition) == false)
             {
                 setObjectActive(mPointerImage, false);
                 return;
@@ -2117,12 +1965,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             mCardPresentationAnchorSet = FindAnyObjectByType<CardPresentationAnchorSet>();
             mMouthAnchorSet = FindAnyObjectByType<MouthAnchorSet>();
-            mUseWorldEnvironmentLayout =
-                mWorldCamera != null
-                && mCardPresentationAnchorSet != null
-                && mCardPresentationAnchorSet.HasRequiredAnchors()
-                && mMouthAnchorSet != null
-                && mMouthAnchorSet.HasRequiredAnchors();
+            mUseWorldEnvironmentLayout = mWorldCamera != null && mCardPresentationAnchorSet != null && mCardPresentationAnchorSet.HasRequiredAnchors() && mMouthAnchorSet != null && mMouthAnchorSet.HasRequiredAnchors();
         }
 
         private void refreshWorldPresentationLayout()
@@ -2197,10 +2040,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return mouthCenter;
             }
 
-            return tryProjectWorldAnchor(
-                mMouthAnchorSet != null ? mMouthAnchorSet.TruthMouth : null,
-                FALLBACK_MOUTH_POSITION,
-                out Vector2 anchoredPosition)
+            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.TruthMouth : null, FALLBACK_MOUTH_POSITION, out Vector2 anchoredPosition)
                 ? anchoredPosition
                 : FALLBACK_MOUTH_POSITION;
         }
@@ -2221,15 +2061,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
             {
-                return mouthCenter + new Vector2(
-                    mouthSize.x * TEMPLE_HAND_FRONT_OFFSET_FACTOR.x,
-                    mouthSize.y * TEMPLE_HAND_FRONT_OFFSET_FACTOR.y);
+                return mouthCenter + new Vector2(mouthSize.x * TEMPLE_HAND_FRONT_OFFSET_FACTOR.x, mouthSize.y * TEMPLE_HAND_FRONT_OFFSET_FACTOR.y);
             }
 
-            return tryProjectWorldAnchor(
-                mMouthAnchorSet != null ? mMouthAnchorSet.MouthFrontAnchor : null,
-                FALLBACK_HAND_FRONT_POSITION,
-                out Vector2 anchoredPosition)
+            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.MouthFrontAnchor : null, FALLBACK_HAND_FRONT_POSITION, out Vector2 anchoredPosition)
                 ? anchoredPosition
                 : FALLBACK_HAND_FRONT_POSITION;
         }
@@ -2238,29 +2073,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
             {
-                return mouthCenter + new Vector2(
-                    mouthSize.x * TEMPLE_HAND_INNER_OFFSET_FACTOR.x,
-                    mouthSize.y * TEMPLE_HAND_INNER_OFFSET_FACTOR.y);
+                return mouthCenter + new Vector2(mouthSize.x * TEMPLE_HAND_INNER_OFFSET_FACTOR.x, mouthSize.y * TEMPLE_HAND_INNER_OFFSET_FACTOR.y);
             }
 
-            return tryProjectWorldAnchor(
-                mMouthAnchorSet != null ? mMouthAnchorSet.MouthInnerAnchor : null,
-                FALLBACK_HAND_INNER_POSITION,
-                out Vector2 anchoredPosition)
+            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.MouthInnerAnchor : null, FALLBACK_HAND_INNER_POSITION, out Vector2 anchoredPosition)
                 ? anchoredPosition
                 : FALLBACK_HAND_INNER_POSITION;
         }
 
-        private bool tryProjectWorldAnchor(
-            Transform worldAnchorTransform,
-            Vector2 fallbackPosition,
-            out Vector2 anchoredPosition)
+        private bool tryProjectWorldAnchor(Transform worldAnchorTransform, Vector2 fallbackPosition, out Vector2 anchoredPosition)
         {
             anchoredPosition = fallbackPosition;
 
-            if (mUseWorldEnvironmentLayout == false
-                || worldAnchorTransform == null
-                || mWorldCamera == null)
+            if (mUseWorldEnvironmentLayout == false || worldAnchorTransform == null || mWorldCamera == null)
             {
                 return false;
             }
@@ -2272,37 +2097,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return false;
             }
 
-            return RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                mCanvasRootRectTransform,
-                screenPosition,
-                null,
-                out anchoredPosition);
+            return RectTransformUtility.ScreenPointToLocalPointInRectangle(mCanvasRootRectTransform, screenPosition, null, out anchoredPosition);
         }
 
-        private bool tryConvertScreenPointToCanvasPosition(
-            Vector2 screenPosition,
-            out Vector2 anchoredPosition)
+        private bool tryConvertScreenPointToCanvasPosition(Vector2 screenPosition, out Vector2 anchoredPosition)
         {
             anchoredPosition = default;
 
             return mCanvasRootRectTransform != null
-                && RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    mCanvasRootRectTransform,
-                    screenPosition,
-                    null,
-                    out anchoredPosition);
+                && RectTransformUtility.ScreenPointToLocalPointInRectangle(mCanvasRootRectTransform, screenPosition, null, out anchoredPosition);
         }
 
         private void applyStartScreenLayout()
         {
-            setRectTransformLayout(
-                mLogoImage.rectTransform,
-                new Vector2(0.5f, 0.55f),
-                new Vector2(1000.0f, 560.0f));
-            setRectTransformLayout(
-                mStartButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.13f),
-                new Vector2(520.0f, 150.0f));
+            setRectTransformLayout(mLogoImage.rectTransform, new Vector2(0.5f, 0.55f), new Vector2(1000.0f, 560.0f));
+            setRectTransformLayout(mStartButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0.13f), new Vector2(520.0f, 150.0f));
             applyTopLeftExitButtonLayout();
         }
 
@@ -2427,11 +2236,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             syncTempleStageMouthOverlay(0.0f);
         }
 
-        private void setTempleCameraPoseCenteredOnMouth(
-            float scale,
-            Vector2 targetMouthCenter,
-            float xOffset = 0.0f,
-            float yOffset = 0.0f)
+        private void setTempleCameraPoseCenteredOnMouth(float scale, Vector2 targetMouthCenter, float xOffset = 0.0f, float yOffset = 0.0f)
         {
             Vector2 centeredPosition = getTempleCameraPositionForCenteredMouth(scale, targetMouthCenter);
             setTempleCameraPose(scale, centeredPosition.y + yOffset, centeredPosition.x + xOffset);
@@ -2507,18 +2312,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             RectTransform mouthRectTransform = mMouthImage.rectTransform;
             center = mouthRectTransform.anchoredPosition;
-            size = new Vector2(
-                mouthRectTransform.rect.width * mouthRectTransform.localScale.x,
-                mouthRectTransform.rect.height * mouthRectTransform.localScale.y);
+            size = new Vector2(mouthRectTransform.rect.width * mouthRectTransform.localScale.x, mouthRectTransform.rect.height * mouthRectTransform.localScale.y);
             return size.x > 1.0f && size.y > 1.0f;
         }
 
         private void applyCardSelectionLayout()
         {
-            setRectTransformLayout(
-                mPromptText.rectTransform,
-                new Vector2(0.5f, 0.07f),
-                new Vector2(1080.0f, 64.0f));
+            setRectTransformLayout(mPromptText.rectTransform, new Vector2(0.5f, 0.07f), new Vector2(1080.0f, 64.0f));
             mPromptText.fontSize = 30;
             applyTopLeftExitButtonLayout();
         }
@@ -2526,18 +2326,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void applyHandPromptPanelLayout()
         {
             applyTopLeftExitButtonLayout();
-            setRectTransformLayout(
-                mQuestionPanelImage.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1500.0f, 122.0f));
-            setRectTransformLayout(
-                mQuestionText.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1320.0f, 70.0f));
-            setRectTransformLayout(
-                mHandImage.rectTransform,
-                new Vector2(0.5f, 0.21f),
-                HELD_POINTER_CURSOR_SIZE_PIXELS);
+            setRectTransformLayout(mQuestionPanelImage.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1500.0f, 122.0f));
+            setRectTransformLayout(mQuestionText.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1320.0f, 70.0f));
+            setRectTransformLayout(mHandImage.rectTransform, new Vector2(0.5f, 0.21f), HELD_POINTER_CURSOR_SIZE_PIXELS);
             mQuestionText.fontSize = 30;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
@@ -2545,19 +2336,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void applyNarrationLayout()
         {
             applyTopLeftExitButtonLayout();
-            setRectTransformLayout(
-                mMouthImage.rectTransform,
-                new Vector2(0.5f, 0.53f),
-                new Vector2(640.0f, 640.0f));
+            setRectTransformLayout(mMouthImage.rectTransform, new Vector2(0.5f, 0.53f), new Vector2(640.0f, 640.0f));
             mMouthImage.rectTransform.localScale = Vector3.one;
-            setRectTransformLayout(
-                mQuestionPanelImage.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1500.0f, 122.0f));
-            setRectTransformLayout(
-                mQuestionText.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1320.0f, 70.0f));
+            setRectTransformLayout(mQuestionPanelImage.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1500.0f, 122.0f));
+            setRectTransformLayout(mQuestionText.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1320.0f, 70.0f));
             mQuestionText.fontSize = 30;
             mQuestionText.alignment = TextAnchor.MiddleCenter;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -2566,23 +2348,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void applyAwaitingHandInsertionLayout()
         {
             applyTopLeftExitButtonLayout();
-            setRectTransformLayout(
-                mMouthImage.rectTransform,
-                new Vector2(0.5f, 0.56f),
-                new Vector2(700.0f, 700.0f));
+            setRectTransformLayout(mMouthImage.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(700.0f, 700.0f));
             mMouthImage.rectTransform.localScale = Vector3.one;
-            setRectTransformLayout(
-                mQuestionPanelImage.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1500.0f, 122.0f));
-            setRectTransformLayout(
-                mQuestionText.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1320.0f, 70.0f));
-            setRectTransformLayout(
-                mHandImage.rectTransform,
-                new Vector2(0.5f, 0.22f),
-                HELD_POINTER_CURSOR_SIZE_PIXELS);
+            setRectTransformLayout(mQuestionPanelImage.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1500.0f, 122.0f));
+            setRectTransformLayout(mQuestionText.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1320.0f, 70.0f));
+            setRectTransformLayout(mHandImage.rectTransform, new Vector2(0.5f, 0.22f), HELD_POINTER_CURSOR_SIZE_PIXELS);
             mQuestionText.fontSize = 30;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
@@ -2590,23 +2360,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void applyAnswerStageLayout()
         {
             applyTopLeftExitButtonLayout();
-            setRectTransformLayout(
-                mMouthImage.rectTransform,
-                new Vector2(0.5f, 0.60f),
-                new Vector2(760.0f, 760.0f));
+            setRectTransformLayout(mMouthImage.rectTransform, new Vector2(0.5f, 0.60f), new Vector2(760.0f, 760.0f));
             mMouthImage.rectTransform.localScale = Vector3.one;
-            setRectTransformLayout(
-                mQuestionPanelImage.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1500.0f, 122.0f));
-            setRectTransformLayout(
-                mQuestionText.rectTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(1320.0f, 70.0f));
-            setRectTransformLayout(
-                mHandImage.rectTransform,
-                new Vector2(0.5f, 0.21f),
-                HELD_POINTER_CURSOR_SIZE_PIXELS);
+            setRectTransformLayout(mQuestionPanelImage.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1500.0f, 122.0f));
+            setRectTransformLayout(mQuestionText.rectTransform, new Vector2(0.5f, 0.105f), new Vector2(1320.0f, 70.0f));
+            setRectTransformLayout(mHandImage.rectTransform, new Vector2(0.5f, 0.21f), HELD_POINTER_CURSOR_SIZE_PIXELS);
             mQuestionText.fontSize = 30;
             mQuestionText.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
@@ -2614,10 +2372,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private void applyAnsweringFocusLayout()
         {
             applyTopLeftExitButtonLayout();
-            setRectTransformLayout(
-                mMouthImage.rectTransform,
-                ANSWERING_FOCUS_MOUTH_ANCHOR,
-                ANSWERING_FOCUS_MOUTH_SIZE_PIXELS);
+            setRectTransformLayout(mMouthImage.rectTransform, ANSWERING_FOCUS_MOUTH_ANCHOR, ANSWERING_FOCUS_MOUTH_SIZE_PIXELS);
             mMouthImage.rectTransform.anchoredPosition = Vector2.zero;
             mMouthImage.rectTransform.localScale = Vector3.one;
             mMouthImage.color = Color.white;
@@ -2654,32 +2409,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Vector2 beamSize = new Vector2(mouthWidth * 1.003f, mouthHeight * 0.76f);
             float eyeYOffset = mouthHeight * 0.108f;
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
-            updateEyeBeamImage(
-                mMouthLeftEyeBeamImage,
-                new Vector2(-(mouthWidth * 0.084f), eyeYOffset),
-                beamSize,
-                beamFillAmount,
-                beamColor,
-                -2.6f,
-                new Vector2(0.5f, 1.0f));
-            updateEyeBeamImage(
-                mMouthRightEyeBeamImage,
-                new Vector2(mouthWidth * 0.058f, eyeYOffset),
-                beamSize,
-                beamFillAmount,
-                beamColor,
-                2.6f,
-                new Vector2(0.5f, 1.0f));
+            updateEyeBeamImage(mMouthLeftEyeBeamImage, new Vector2(-(mouthWidth * 0.084f), eyeYOffset), beamSize, beamFillAmount, beamColor, -2.6f, new Vector2(0.5f, 1.0f));
+            updateEyeBeamImage(mMouthRightEyeBeamImage, new Vector2(mouthWidth * 0.058f, eyeYOffset), beamSize, beamFillAmount, beamColor, 2.6f, new Vector2(0.5f, 1.0f));
         }
 
-        private void updateEyeBeamImage(
-            Image beamImage,
-            Vector2 offsetFromMouthCenter,
-            Vector2 sizeDelta,
-            float fillAmount,
-            Color color,
-            float rotationDegrees,
-            Vector2 pivot)
+        private void updateEyeBeamImage(Image beamImage, Vector2 offsetFromMouthCenter, Vector2 sizeDelta, float fillAmount, Color color, float rotationDegrees, Vector2 pivot)
         {
             if (beamImage == null || beamImage.gameObject.activeSelf == false || mMouthImage == null)
             {
@@ -2781,10 +2515,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
             else
             {
-                setRectTransformLayout(
-                    mMouthImage.rectTransform,
-                    RESULT_MOUTH_ANCHOR,
-                    RESULT_MOUTH_SIZE_PIXELS);
+                setRectTransformLayout(mMouthImage.rectTransform, RESULT_MOUTH_ANCHOR, RESULT_MOUTH_SIZE_PIXELS);
                 mMouthImage.rectTransform.localScale = Vector3.one;
             }
 
@@ -2792,23 +2523,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 ? RESULT_SHORT_VERDICT_SIZE_PIXELS
                 : RESULT_VERDICT_SIZE_PIXELS;
             setRectTransformLayout(mVerdictImage.rectTransform, new Vector2(0.5f, 0.54f), verdictSizePixels);
-            setRectTransformLayout(
-                mHandImage.rectTransform,
-                new Vector2(0.5f, 0.18f),
-                HELD_POINTER_CURSOR_SIZE_PIXELS);
-            setRectTransformLayout(
-                mTryAgainButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0.105f),
-                new Vector2(360.0f, 100.0f));
+            setRectTransformLayout(mHandImage.rectTransform, new Vector2(0.5f, 0.18f), HELD_POINTER_CURSOR_SIZE_PIXELS);
+            setRectTransformLayout(mTryAgainButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0.105f), new Vector2(360.0f, 100.0f));
             applyTopLeftExitButtonLayout();
         }
 
         private void applyTopLeftExitButtonLayout()
         {
-            setRectTransformLayout(
-                mExitButton.GetComponent<RectTransform>(),
-                new Vector2(0.06f, 0.90f),
-                new Vector2(78.0f, 78.0f));
+            setRectTransformLayout(mExitButton.GetComponent<RectTransform>(), new Vector2(0.06f, 0.90f), new Vector2(78.0f, 78.0f));
         }
 
         private void setOverlayAlpha(float alpha)
@@ -2834,11 +2556,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return;
             }
 
-            mSceneOverlayImage.color = new Color(
-                tintColor.r,
-                tintColor.g,
-                tintColor.b,
-                Mathf.Clamp01(alpha));
+            mSceneOverlayImage.color = new Color(tintColor.r, tintColor.g, tintColor.b, Mathf.Clamp01(alpha));
         }
 
         private void beginHandPromptPanelAutoFade()
@@ -2964,10 +2682,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
         }
 
-        private void setRectTransformLayout(
-            RectTransform rectTransform,
-            Vector2 anchor,
-            Vector2 sizeDelta)
+        private void setRectTransformLayout(RectTransform rectTransform, Vector2 anchor, Vector2 sizeDelta)
         {
             if (rectTransform == null)
             {
@@ -3000,195 +2715,43 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mCanvasRootRectTransform.offsetMax = Vector2.zero;
 
             mBackgroundImage = createFullScreenImage("Background", mCanvasRootTransform, Color.white);
-            mSceneOverlayImage = createFullScreenImage(
-                "SceneOverlay",
-                mCanvasRootTransform,
-                new Color(0.01f, 0.01f, 0.015f, 0.0f));
-            mCarpetImage = createImage(
-                "RedCarpet",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.0f),
-                new Vector2(0.5f, 0.0f),
-                STAGE_CARPET_POSITION,
-                STAGE_CARPET_SIZE,
-                STAGE_CARPET_TINT);
-            mTitleVignetteImage = createFullScreenImage(
-                "TitleVignette",
-                mCanvasRootTransform,
-                new Color(1.0f, 1.0f, 1.0f, 0.55f));
-            mLogoImage = createImage(
-                "Logo",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.75f),
-                new Vector2(0.5f, 0.75f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(840.0f, 360.0f),
-                Color.white);
-            mQuestionPanelImage = createImage(
-                "QuestionPanel",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.84f),
-                new Vector2(0.5f, 0.84f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(1280.0f, 170.0f),
-                Color.white);
-            mStatusPanelImage = createImage(
-                "StatusPanel",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.105f),
-                new Vector2(0.5f, 0.105f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(1320.0f, 150.0f),
-                Color.white);
-            mResultPanelImage = createImage(
-                "ResultPanel",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.39f),
-                new Vector2(0.5f, 0.39f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(980.0f, 420.0f),
-                Color.white);
-            mPromptText = createText(
-                "PromptText",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.13f),
-                new Vector2(0.5f, 0.13f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(700.0f, 80.0f),
-                38,
-                FontStyle.Bold);
-            mStatusText = createText(
-                "StatusText",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.08f),
-                new Vector2(0.5f, 0.08f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(1200.0f, 70.0f),
-                26,
-                FontStyle.Bold);
-            mQuestionText = createText(
-                "QuestionText",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.84f),
-                new Vector2(0.5f, 0.84f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(1200.0f, 140.0f),
-                34,
-                FontStyle.Bold);
-            mAnalyzingDotsText = createText(
-                "AnalyzingDotsText",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.57f),
-                new Vector2(0.5f, 0.57f),
-                Vector2.zero,
-                new Vector2(360.0f, 140.0f),
-                90,
-                FontStyle.Bold);
-            mAnswerTimerText = createText(
-                "AnswerTimerText",
-                mCanvasRootTransform,
-                new Vector2(0.85f, 0.92f),
-                new Vector2(0.85f, 0.92f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(320.0f, 50.0f),
-                22,
-                FontStyle.Normal);
-            mMouthImage = createImage(
-                "TruthMouth",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.0f, 60.0f),
-                new Vector2(430.0f, 430.0f),
-                Color.white);
-            mMouthListeningAuraImage = createImage(
-                "MouthListeningAura",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.0f, 60.0f),
-                new Vector2(640.0f, 640.0f),
-                Color.clear);
+            mSceneOverlayImage = createFullScreenImage("SceneOverlay", mCanvasRootTransform, new Color(0.01f, 0.01f, 0.015f, 0.0f));
+            mCarpetImage = createImage("RedCarpet", mCanvasRootTransform, new Vector2(0.5f, 0.0f), new Vector2(0.5f, 0.0f), STAGE_CARPET_POSITION, STAGE_CARPET_SIZE, STAGE_CARPET_TINT);
+            mTitleVignetteImage = createFullScreenImage("TitleVignette", mCanvasRootTransform, new Color(1.0f, 1.0f, 1.0f, 0.55f));
+            mLogoImage = createImage("Logo", mCanvasRootTransform, new Vector2(0.5f, 0.75f), new Vector2(0.5f, 0.75f), new Vector2(0.0f, 0.0f), new Vector2(840.0f, 360.0f), Color.white);
+            mQuestionPanelImage = createImage("QuestionPanel", mCanvasRootTransform, new Vector2(0.5f, 0.84f), new Vector2(0.5f, 0.84f), new Vector2(0.0f, 0.0f), new Vector2(1280.0f, 170.0f), Color.white);
+            mStatusPanelImage = createImage("StatusPanel", mCanvasRootTransform, new Vector2(0.5f, 0.105f), new Vector2(0.5f, 0.105f), new Vector2(0.0f, 0.0f), new Vector2(1320.0f, 150.0f), Color.white);
+            mResultPanelImage = createImage("ResultPanel", mCanvasRootTransform, new Vector2(0.5f, 0.39f), new Vector2(0.5f, 0.39f), new Vector2(0.0f, 0.0f), new Vector2(980.0f, 420.0f), Color.white);
+            mPromptText = createText("PromptText", mCanvasRootTransform, new Vector2(0.5f, 0.13f), new Vector2(0.5f, 0.13f), new Vector2(0.0f, 0.0f), new Vector2(700.0f, 80.0f), 38, FontStyle.Bold);
+            mStatusText = createText("StatusText", mCanvasRootTransform, new Vector2(0.5f, 0.08f), new Vector2(0.5f, 0.08f), new Vector2(0.0f, 0.0f), new Vector2(1200.0f, 70.0f), 26, FontStyle.Bold);
+            mQuestionText = createText("QuestionText", mCanvasRootTransform, new Vector2(0.5f, 0.84f), new Vector2(0.5f, 0.84f), new Vector2(0.0f, 0.0f), new Vector2(1200.0f, 140.0f), 34, FontStyle.Bold);
+            mAnalyzingDotsText = createText("AnalyzingDotsText", mCanvasRootTransform, new Vector2(0.5f, 0.57f), new Vector2(0.5f, 0.57f), Vector2.zero, new Vector2(360.0f, 140.0f), 90, FontStyle.Bold);
+            mAnswerTimerText = createText("AnswerTimerText", mCanvasRootTransform, new Vector2(0.85f, 0.92f), new Vector2(0.85f, 0.92f), new Vector2(0.0f, 0.0f), new Vector2(320.0f, 50.0f), 22, FontStyle.Normal);
+            mMouthImage = createImage("TruthMouth", mCanvasRootTransform, new Vector2(0.5f, 0.50f), new Vector2(0.5f, 0.50f), new Vector2(0.0f, 60.0f), new Vector2(430.0f, 430.0f), Color.white);
+            mMouthListeningAuraImage = createImage("MouthListeningAura", mCanvasRootTransform, new Vector2(0.5f, 0.50f), new Vector2(0.5f, 0.50f), new Vector2(0.0f, 60.0f), new Vector2(640.0f, 640.0f), Color.clear);
             mMouthListeningAuraImage.sprite = createRadialGlowSprite();
             mMouthListeningAuraImage.raycastTarget = false;
-            mMouthAnalyzingAuraImage = createImage(
-                "MouthAnalyzingAura",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.0f, 60.0f),
-                new Vector2(720.0f, 720.0f),
-                Color.clear);
+            mMouthAnalyzingAuraImage = createImage("MouthAnalyzingAura", mCanvasRootTransform, new Vector2(0.5f, 0.50f), new Vector2(0.5f, 0.50f), new Vector2(0.0f, 60.0f), new Vector2(720.0f, 720.0f), Color.clear);
             mMouthAnalyzingAuraImage.sprite = createRingGlowSprite();
             mMouthAnalyzingAuraImage.raycastTarget = false;
-            mMouthLeftEyeBeamImage = createImage(
-                "MouthLeftEyeBeam",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.0f, 60.0f),
-                new Vector2(360.0f, 72.0f),
-                Color.clear);
+            mMouthLeftEyeBeamImage = createImage("MouthLeftEyeBeam", mCanvasRootTransform, new Vector2(0.5f, 0.50f), new Vector2(0.5f, 0.50f), new Vector2(0.0f, 60.0f), new Vector2(360.0f, 72.0f), Color.clear);
             mMouthLeftEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: false);
             mMouthLeftEyeBeamImage.type = Image.Type.Filled;
             mMouthLeftEyeBeamImage.fillMethod = Image.FillMethod.Vertical;
             mMouthLeftEyeBeamImage.fillOrigin = (int)Image.OriginVertical.Top;
             mMouthLeftEyeBeamImage.raycastTarget = false;
-            mMouthRightEyeBeamImage = createImage(
-                "MouthRightEyeBeam",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.5f, 0.50f),
-                new Vector2(0.0f, 60.0f),
-                new Vector2(360.0f, 72.0f),
-                Color.clear);
+            mMouthRightEyeBeamImage = createImage("MouthRightEyeBeam", mCanvasRootTransform, new Vector2(0.5f, 0.50f), new Vector2(0.5f, 0.50f), new Vector2(0.0f, 60.0f), new Vector2(360.0f, 72.0f), Color.clear);
             mMouthRightEyeBeamImage.sprite = createEyeBeamSprite(isSourceOnRight: true);
             mMouthRightEyeBeamImage.type = Image.Type.Filled;
             mMouthRightEyeBeamImage.fillMethod = Image.FillMethod.Vertical;
             mMouthRightEyeBeamImage.fillOrigin = (int)Image.OriginVertical.Top;
             mMouthRightEyeBeamImage.raycastTarget = false;
             placeMouthEffectImagesBehindMouth();
-            mHandImage = createImage(
-                "HeldPointer",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.22f),
-                new Vector2(0.5f, 0.22f),
-                new Vector2(0.0f, 0.0f),
-                HELD_POINTER_CURSOR_SIZE_PIXELS,
-                Color.white);
-            mRitualHandImage = createImage(
-                "RitualHand",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.22f),
-                new Vector2(0.5f, 0.22f),
-                Vector2.zero,
-                RITUAL_HAND_SIZE_PIXELS,
-                Color.white);
-            mPointerImage = createImage(
-                "InputPointer",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                Vector2.zero,
-                POINTER_CURSOR_SIZE_PIXELS,
-                Color.white);
-            mVerdictImage = createImage(
-                "VerdictImage",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.63f),
-                new Vector2(0.5f, 0.63f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(820.0f, 240.0f),
-                Color.white);
-            mVerdictText = createText(
-                "VerdictText",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.49f),
-                new Vector2(0.5f, 0.49f),
-                new Vector2(0.0f, 0.0f),
-                new Vector2(640.0f, 80.0f),
-                48,
-                FontStyle.Bold);
+            mHandImage = createImage("HeldPointer", mCanvasRootTransform, new Vector2(0.5f, 0.22f), new Vector2(0.5f, 0.22f), new Vector2(0.0f, 0.0f), HELD_POINTER_CURSOR_SIZE_PIXELS, Color.white);
+            mRitualHandImage = createImage("RitualHand", mCanvasRootTransform, new Vector2(0.5f, 0.22f), new Vector2(0.5f, 0.22f), Vector2.zero, RITUAL_HAND_SIZE_PIXELS, Color.white);
+            mPointerImage = createImage("InputPointer", mCanvasRootTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, POINTER_CURSOR_SIZE_PIXELS, Color.white);
+            mVerdictImage = createImage("VerdictImage", mCanvasRootTransform, new Vector2(0.5f, 0.63f), new Vector2(0.5f, 0.63f), new Vector2(0.0f, 0.0f), new Vector2(820.0f, 240.0f), Color.white);
+            mVerdictText = createText("VerdictText", mCanvasRootTransform, new Vector2(0.5f, 0.49f), new Vector2(0.5f, 0.49f), new Vector2(0.0f, 0.0f), new Vector2(640.0f, 80.0f), 48, FontStyle.Bold);
             mAnswerInputField = createInputField();
             mStartButton = createButton(
                 "StartButton",
@@ -3226,53 +2789,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mPointerImage.transform.SetAsLastSibling();
             mPointerImage.raycastTarget = false;
             mAnalyzingDotsText.transform.SetAsLastSibling();
-            mTutorialOverlayImage = createFullScreenImage(
-                "FirstRunTutorialOverlay",
-                mCanvasRootTransform,
-                new Color(0.0f, 0.0f, 0.0f, 0.0f));
-            mTutorialDevicePanelImage = createImage(
-                "FirstRunTutorialPanel",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.46f),
-                new Vector2(0.5f, 0.46f),
-                Vector2.zero,
-                new Vector2(900.0f, 520.0f),
-                new Color(0.12f, 0.12f, 0.135f, 0.96f));
-            mTutorialHandImage = createImage(
-                "FirstRunTutorialHand",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.48f),
-                new Vector2(0.5f, 0.48f),
-                Vector2.zero,
-                new Vector2(260.0f, 290.0f),
-                Color.white);
-            mTutorialTitleText = createText(
-                "FirstRunTutorialTitle",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.755f),
-                new Vector2(0.5f, 0.755f),
-                Vector2.zero,
-                new Vector2(980.0f, 64.0f),
-                34,
-                FontStyle.Bold);
-            mTutorialBodyText = createText(
-                "FirstRunTutorialBody",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.25f),
-                new Vector2(0.5f, 0.25f),
-                Vector2.zero,
-                new Vector2(1040.0f, 72.0f),
-                26,
-                FontStyle.Normal);
-            mTutorialStepText = createText(
-                "FirstRunTutorialStep",
-                mCanvasRootTransform,
-                new Vector2(0.5f, 0.17f),
-                new Vector2(0.5f, 0.17f),
-                Vector2.zero,
-                new Vector2(980.0f, 54.0f),
-                24,
-                FontStyle.Bold);
+            mTutorialOverlayImage = createFullScreenImage("FirstRunTutorialOverlay", mCanvasRootTransform, new Color(0.0f, 0.0f, 0.0f, 0.0f));
+            mTutorialDevicePanelImage = createImage("FirstRunTutorialPanel", mCanvasRootTransform, new Vector2(0.5f, 0.46f), new Vector2(0.5f, 0.46f), Vector2.zero, new Vector2(900.0f, 520.0f), new Color(0.12f, 0.12f, 0.135f, 0.96f));
+            mTutorialHandImage = createImage("FirstRunTutorialHand", mCanvasRootTransform, new Vector2(0.5f, 0.48f), new Vector2(0.5f, 0.48f), Vector2.zero, new Vector2(260.0f, 290.0f), Color.white);
+            mTutorialTitleText = createText("FirstRunTutorialTitle", mCanvasRootTransform, new Vector2(0.5f, 0.755f), new Vector2(0.5f, 0.755f), Vector2.zero, new Vector2(980.0f, 64.0f), 34, FontStyle.Bold);
+            mTutorialBodyText = createText("FirstRunTutorialBody", mCanvasRootTransform, new Vector2(0.5f, 0.25f), new Vector2(0.5f, 0.25f), Vector2.zero, new Vector2(1040.0f, 72.0f), 26, FontStyle.Normal);
+            mTutorialStepText = createText("FirstRunTutorialStep", mCanvasRootTransform, new Vector2(0.5f, 0.17f), new Vector2(0.5f, 0.17f), Vector2.zero, new Vector2(980.0f, 54.0f), 24, FontStyle.Bold);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
@@ -3308,12 +2830,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             GameObject cardObject = new GameObject(questionCardSlot.ToString());
             QuestionCardView questionCardView = cardObject.AddComponent<QuestionCardView>();
-            questionCardView.Initialize(
-                questionCardSlot,
-                mCanvasRootTransform,
-                mCardBackSprite,
-                mUiFont,
-                mKoreanFallbackFont);
+            questionCardView.Initialize(questionCardSlot, mCanvasRootTransform, mCardBackSprite, mUiFont, mKoreanFallbackFont);
             questionCardView.SetAnchoredPosition(anchoredPosition);
             mCardViews.Add(questionCardSlot, questionCardView);
         }
@@ -3332,14 +2849,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return image;
         }
 
-        private Image createImage(
-            string objectName,
-            Transform parentTransform,
-            Vector2 anchorMin,
-            Vector2 anchorMax,
-            Vector2 anchoredPosition,
-            Vector2 sizeDelta,
-            Color color)
+        private Image createImage(string objectName, Transform parentTransform, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPosition, Vector2 sizeDelta, Color color)
         {
             GameObject imageObject = new GameObject(objectName);
             imageObject.transform.SetParent(parentTransform, false);
@@ -3364,15 +2874,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             imageTransform.SetSiblingIndex(targetIndex);
         }
 
-        private Text createText(
-            string objectName,
-            Transform parentTransform,
-            Vector2 anchorMin,
-            Vector2 anchorMax,
-            Vector2 anchoredPosition,
-            Vector2 sizeDelta,
-            int fontSize,
-            FontStyle fontStyle)
+        private Text createText(string objectName, Transform parentTransform, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPosition, Vector2 sizeDelta, int fontSize, FontStyle fontStyle)
         {
             GameObject textObject = new GameObject(objectName);
             textObject.transform.SetParent(parentTransform, false);
@@ -3445,28 +2947,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             InputField inputField = inputFieldObject.AddComponent<InputField>();
             inputField.transition = Selectable.Transition.None;
 
-            Text placeholderText = createText(
-                "Placeholder",
-                inputFieldObject.transform,
-                Vector2.zero,
-                Vector2.one,
-                Vector2.zero,
-                new Vector2(-60.0f, -20.0f),
-                24,
-                FontStyle.Italic);
+            Text placeholderText = createText("Placeholder", inputFieldObject.transform, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-60.0f, -20.0f), 24, FontStyle.Italic);
             placeholderText.alignment = TextAnchor.MiddleLeft;
             placeholderText.color = new Color(0.80f, 0.74f, 0.66f, 0.7f);
             setText(placeholderText, "입력된 답변이 이 영역에 표시됩니다.");
 
-            Text valueText = createText(
-                "Text",
-                inputFieldObject.transform,
-                Vector2.zero,
-                Vector2.one,
-                Vector2.zero,
-                new Vector2(-60.0f, -20.0f),
-                24,
-                FontStyle.Normal);
+            Text valueText = createText("Text", inputFieldObject.transform, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-60.0f, -20.0f), 24, FontStyle.Normal);
             valueText.alignment = TextAnchor.MiddleLeft;
             valueText.color = new Color(0.94f, 0.90f, 0.82f, 1.0f);
             valueText.supportRichText = false;
@@ -3479,12 +2965,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return inputField;
         }
 
-        private Button createButton(
-            string objectName,
-            string labelText,
-            Vector2 anchoredPosition,
-            Vector2 sizeDelta,
-            Action clickedAction)
+        private Button createButton(string objectName, string labelText, Vector2 anchoredPosition, Vector2 sizeDelta, Action clickedAction)
         {
             GameObject buttonObject = new GameObject(objectName);
             buttonObject.transform.SetParent(mCanvasRootTransform, false);
@@ -3506,15 +2987,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     clickedAction?.Invoke();
                 });
 
-            Text label = createText(
-                "Label",
-                buttonObject.transform,
-                Vector2.zero,
-                Vector2.one,
-                Vector2.zero,
-                new Vector2(-20.0f, -20.0f),
-                34,
-                FontStyle.Bold);
+            Text label = createText("Label", buttonObject.transform, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-20.0f, -20.0f), 34, FontStyle.Bold);
             setText(label, labelText);
             return button;
         }
@@ -3592,38 +3065,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
         }
 
-        private bool isScreenPointOverButton(
-            Button button,
-            Vector2 screenPosition,
-            float intentExpansionPixels)
+        private bool isScreenPointOverButton(Button button, Vector2 screenPosition, float intentExpansionPixels)
         {
             return button != null
                 && button.gameObject.activeInHierarchy
                 && button.interactable
-                && (
-                    isScreenPointOverRectTransform(button.GetComponent<RectTransform>(), screenPosition)
-                    || isScreenPointOverExpandedRectTransform(
-                        button.GetComponent<RectTransform>(),
-                        screenPosition,
-                        intentExpansionPixels)
-                );
+                && (isScreenPointOverRectTransform(button.GetComponent<RectTransform>(), screenPosition) || isScreenPointOverExpandedRectTransform(button.GetComponent<RectTransform>(), screenPosition, intentExpansionPixels));
         }
 
-        private bool isScreenPointOverRectTransform(
-            RectTransform rectTransform,
-            Vector2 screenPosition)
+        private bool isScreenPointOverRectTransform(RectTransform rectTransform, Vector2 screenPosition)
         {
             return rectTransform != null
-                && RectTransformUtility.RectangleContainsScreenPoint(
-                    rectTransform,
-                    screenPosition,
-                    null);
+                && RectTransformUtility.RectangleContainsScreenPoint(rectTransform, screenPosition, null);
         }
 
-        private bool isScreenPointOverExpandedRectTransform(
-            RectTransform rectTransform,
-            Vector2 screenPosition,
-            float expansionPixels)
+        private bool isScreenPointOverExpandedRectTransform(RectTransform rectTransform, Vector2 screenPosition, float expansionPixels)
         {
             if (rectTransform == null || expansionPixels <= 0.0f)
             {
@@ -3639,9 +3095,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             for (int cornerIndex = 1; cornerIndex < mHitTestWorldCorners.Length; cornerIndex += 1)
             {
-                Vector2 screenCorner = RectTransformUtility.WorldToScreenPoint(
-                    null,
-                    mHitTestWorldCorners[cornerIndex]);
+                Vector2 screenCorner = RectTransformUtility.WorldToScreenPoint(null, mHitTestWorldCorners[cornerIndex]);
                 minimumX = Mathf.Min(minimumX, screenCorner.x);
                 maximumX = Mathf.Max(maximumX, screenCorner.x);
                 minimumY = Mathf.Min(minimumY, screenCorner.y);
@@ -3667,20 +3121,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             if (button.image != null)
             {
-                button.image.color = Color.Lerp(
-                    Color.white,
-                    new Color(1.0f, 0.92f, 0.78f, 1.0f),
-                    effectiveHoverProgress);
+                button.image.color = Color.Lerp(Color.white, new Color(1.0f, 0.92f, 0.78f, 1.0f), effectiveHoverProgress);
             }
 
             Text label = button.GetComponentInChildren<Text>();
 
             if (label != null)
             {
-                label.color = Color.Lerp(
-                    new Color(0.88f, 0.84f, 0.76f, 1.0f),
-                    new Color(1.0f, 0.97f, 0.84f, 1.0f),
-                    effectiveHoverProgress);
+                label.color = Color.Lerp(new Color(0.88f, 0.84f, 0.76f, 1.0f), new Color(1.0f, 0.97f, 0.84f, 1.0f), effectiveHoverProgress);
             }
         }
 
@@ -3728,10 +3176,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 ? 0
                 : questionText.Trim().Length;
             float weightedDuration = questionLength * CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS;
-            return Mathf.Clamp(
-                CARD_FRONT_READ_HOLD_MINIMUM_SECONDS + weightedDuration,
-                CARD_FRONT_READ_HOLD_MINIMUM_SECONDS,
-                CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS);
+            return Mathf.Clamp(CARD_FRONT_READ_HOLD_MINIMUM_SECONDS + weightedDuration, CARD_FRONT_READ_HOLD_MINIMUM_SECONDS, CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS);
         }
 
         private static Vector2 getTutorialScanPosition(float progress)
@@ -3749,10 +3194,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             if (clampedProgress < 0.65f)
             {
-                return Vector2.Lerp(
-                    leftPosition,
-                    rightPosition,
-                    easeInOutStatic((clampedProgress - 0.28f) / 0.37f));
+                return Vector2.Lerp(leftPosition, rightPosition, easeInOutStatic((clampedProgress - 0.28f) / 0.37f));
             }
 
             return Vector2.Lerp(rightPosition, centerPosition, easeInOutStatic((clampedProgress - 0.65f) / 0.35f));
@@ -3775,10 +3217,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
                 }
 
-                return Mathf.Clamp(
-                    (metadata.op - metadata.ip) / metadata.fr,
-                    3.0f,
-                    5.0f);
+                return Mathf.Clamp((metadata.op - metadata.ip) / metadata.fr, 3.0f, 5.0f);
             }
             catch (Exception exception)
             {
@@ -3811,12 +3250,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return clampedProgress * clampedProgress * (3.0f - (2.0f * clampedProgress));
         }
 
-        private void setRitualHandVisual(
-            Vector2 anchoredPosition,
-            Vector2 sizeDelta,
-            float alpha,
-            float scale,
-            float rotationDegrees)
+        private void setRitualHandVisual(Vector2 anchoredPosition, Vector2 sizeDelta, float alpha, float scale, float rotationDegrees)
         {
             if (mRitualHandImage == null)
             {
@@ -3842,20 +3276,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float lateralArcOffset = Mathf.Sin(easedProgress * Mathf.PI) * 4.0f;
             handRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             handRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            handRectTransform.anchoredPosition = Vector2.Lerp(
-                frontPosition,
-                innerPosition,
-                easedProgress)
+            handRectTransform.anchoredPosition = Vector2.Lerp(frontPosition, innerPosition, easedProgress)
                 + new Vector2(lateralArcOffset, 0.0f);
             handRectTransform.localRotation = Quaternion.identity;
             handRectTransform.localScale = Vector3.one * Mathf.Lerp(1.05f, 0.86f, easedProgress);
             mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.94f, 0.82f, easedProgress));
         }
 
-        private void enableHeldHandPresentation(
-            float baseProgress,
-            float pulseAmplitude,
-            float pulseSpeed)
+        private void enableHeldHandPresentation(float baseProgress, float pulseAmplitude, float pulseSpeed)
         {
             mUseHeldHandPresentation = true;
             mHeldHandBaseProgress = Mathf.Clamp01(baseProgress);
@@ -3953,10 +3381,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
         }
 
-        private static bool isInsideAnchorWindow(
-            Vector2 offsetFromAnchor,
-            float halfWidth,
-            float halfHeight)
+        private static bool isInsideAnchorWindow(Vector2 offsetFromAnchor, float halfWidth, float halfHeight)
         {
             return Mathf.Abs(offsetFromAnchor.x) <= halfWidth
                 && Mathf.Abs(offsetFromAnchor.y) <= halfHeight;

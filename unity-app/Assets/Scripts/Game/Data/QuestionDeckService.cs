@@ -12,9 +12,7 @@ namespace MouthOfTruth.Game.Data
         private readonly List<QuestionDefinition> mAllEnabledQuestionDefinitions;
         private readonly Queue<QuestionDefinition> mRemainingQuestionDefinitions;
 
-        public QuestionDeckService(
-            IReadOnlyList<QuestionDefinition> questionDefinitions,
-            int? randomSeed = null)
+        public QuestionDeckService(IReadOnlyList<QuestionDefinition> questionDefinitions, int? randomSeed = null)
         {
             if (questionDefinitions == null)
             {

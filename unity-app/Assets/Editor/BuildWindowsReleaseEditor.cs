@@ -74,41 +74,24 @@ namespace MouthOfTruth.Editor
         {
             string distributionPythonEngineRootPath = Path.Combine(distributionRootPath, "python-engine");
             Directory.CreateDirectory(distributionPythonEngineRootPath);
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "src"),
-                Path.Combine(distributionPythonEngineRootPath, "src"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "scripts"),
-                Path.Combine(distributionPythonEngineRootPath, "scripts"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "models"),
-                Path.Combine(distributionPythonEngineRootPath, "models"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "requirements.txt"),
-                Path.Combine(distributionPythonEngineRootPath, "requirements.txt"));
-            copyPath(
-                Path.Combine(runtimeRootPath, "python-engine", "environment.yml"),
-                Path.Combine(distributionPythonEngineRootPath, "environment.yml"));
-            ensureSessionWorkspaceDirectory(
-                Path.Combine(distributionPythonEngineRootPath, "data", "session-workspace"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "src"), Path.Combine(distributionPythonEngineRootPath, "src"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "scripts"), Path.Combine(distributionPythonEngineRootPath, "scripts"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "models"), Path.Combine(distributionPythonEngineRootPath, "models"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "requirements.txt"), Path.Combine(distributionPythonEngineRootPath, "requirements.txt"));
+            copyPath(Path.Combine(runtimeRootPath, "python-engine", "environment.yml"), Path.Combine(distributionPythonEngineRootPath, "environment.yml"));
+            ensureSessionWorkspaceDirectory(Path.Combine(distributionPythonEngineRootPath, "data", "session-workspace"));
             ensureBridgeDirectory(Path.Combine(distributionRootPath, "bridge"));
 
             string configuredPythonRuntimeRootPath = Environment.GetEnvironmentVariable(PYTHON_RUNTIME_ENVIRONMENT_VARIABLE_NAME);
-            string bundledPythonRuntimeRootPath = resolveBundledPythonRuntimeRootPath(
-                runtimeRootPath,
-                configuredPythonRuntimeRootPath);
+            string bundledPythonRuntimeRootPath = resolveBundledPythonRuntimeRootPath(runtimeRootPath, configuredPythonRuntimeRootPath);
 
             if (Directory.Exists(bundledPythonRuntimeRootPath))
             {
-                copyPath(
-                    bundledPythonRuntimeRootPath,
-                    Path.Combine(distributionRootPath, "python-runtime"));
+                copyPath(bundledPythonRuntimeRootPath, Path.Combine(distributionRootPath, "python-runtime"));
             }
         }
 
-        private static string resolveBundledPythonRuntimeRootPath(
-            string runtimeRootPath,
-            string configuredPythonRuntimeRootPath)
+        private static string resolveBundledPythonRuntimeRootPath(string runtimeRootPath, string configuredPythonRuntimeRootPath)
         {
             if (string.IsNullOrWhiteSpace(configuredPythonRuntimeRootPath) == false)
             {
@@ -131,8 +114,7 @@ namespace MouthOfTruth.Editor
 
             if (Directory.Exists(bundledPythonRuntimeRootPath) == false)
             {
-                throw new BuildFailedException(
-                    "Bundled Windows python runtime could not be prepared for the release build.");
+                throw new BuildFailedException("Bundled Windows python runtime could not be prepared for the release build.");
             }
 
             return bundledPythonRuntimeRootPath;
@@ -140,9 +122,7 @@ namespace MouthOfTruth.Editor
 
         private static void packageBundledPythonRuntime(string runtimeRootPath)
         {
-            string packageScriptPath = Path.Combine(
-                runtimeRootPath,
-                PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH);
+            string packageScriptPath = Path.Combine(runtimeRootPath, PACKAGE_PYTHON_RUNTIME_SCRIPT_RELATIVE_PATH);
 
             if (File.Exists(packageScriptPath) == false)
             {
@@ -151,9 +131,7 @@ namespace MouthOfTruth.Editor
 
             if (Application.platform != RuntimePlatform.WindowsEditor)
             {
-                throw new BuildFailedException(
-                    "Automatic Windows python runtime packaging must be run from a Windows Unity editor, "
-                    + "or you must set MOUTH_OF_TRUTH_WINDOWS_PYTHON_RUNTIME_ROOT to a prepared runtime folder.");
+                throw new BuildFailedException("Automatic Windows python runtime packaging must be run from a Windows Unity editor, " + "or you must set MOUTH_OF_TRUTH_WINDOWS_PYTHON_RUNTIME_ROOT to a prepared runtime folder.");
             }
 
             using (Process packageProcess = new Process())
@@ -245,10 +223,7 @@ namespace MouthOfTruth.Editor
 
         private static void pruneDistributionArtifacts(string distributionRootPath)
         {
-            foreach (string directoryPath in Directory.GetDirectories(
-                         distributionRootPath,
-                         "*",
-                         SearchOption.AllDirectories))
+            foreach (string directoryPath in Directory.GetDirectories(distributionRootPath, "*", SearchOption.AllDirectories))
             {
                 string directoryName = Path.GetFileName(directoryPath);
 
@@ -258,10 +233,7 @@ namespace MouthOfTruth.Editor
                 }
             }
 
-            foreach (string filePath in Directory.GetFiles(
-                         distributionRootPath,
-                         "*",
-                         SearchOption.AllDirectories))
+            foreach (string filePath in Directory.GetFiles(distributionRootPath, "*", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(filePath);
 
@@ -307,27 +279,12 @@ namespace MouthOfTruth.Editor
         private static void writeLauncherScript(string distributionRootPath)
         {
             string launcherScriptPath = Path.Combine(distributionRootPath, "Run Mouth of Truth.bat");
-            string launcherScriptContents =
-                "@echo off\r\n"
-                + "setlocal EnableExtensions\r\n"
-                + "set \"SCRIPT_DIRECTORY_PATH=%~dp0\"\r\n"
-                + "for %%I in (\"%SCRIPT_DIRECTORY_PATH%.\") do set \"MOUTH_OF_TRUTH_RUNTIME_ROOT=%%~fI\"\r\n"
-                + "start \"Mouth of Truth\" \"%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\MouthOfTruth.exe\" -screen-fullscreen 1\r\n";
+            string launcherScriptContents = "@echo off\r\n" + "setlocal EnableExtensions\r\n" + "set \"SCRIPT_DIRECTORY_PATH=%~dp0\"\r\n" + "for %%I in (\"%SCRIPT_DIRECTORY_PATH%.\") do set \"MOUTH_OF_TRUTH_RUNTIME_ROOT=%%~fI\"\r\n" + "start \"Mouth of Truth\" \"%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\MouthOfTruth.exe\" -screen-fullscreen 1\r\n";
 
             File.WriteAllText(launcherScriptPath, launcherScriptContents);
 
             string testLauncherScriptPath = Path.Combine(distributionRootPath, "Run Mouth of Truth Presentation Test.bat");
-            string testLauncherScriptContents =
-                "@echo off\r\n"
-                + "setlocal EnableExtensions\r\n"
-                + "set \"SCRIPT_DIRECTORY_PATH=%~dp0\"\r\n"
-                + "for %%I in (\"%SCRIPT_DIRECTORY_PATH%.\") do set \"MOUTH_OF_TRUTH_RUNTIME_ROOT=%%~fI\"\r\n"
-                + "set \"CAPTURE_OUTPUT_DIRECTORY_PATH=%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\PresentationTestCaptures\"\r\n"
-                + "if exist \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\" rmdir /s /q \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n"
-                + "mkdir \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n"
-                + "set \"MOUTH_OF_TRUTH_PRESENTATION_CAPTURE=1\"\r\n"
-                + "set \"MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR=%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n"
-                + "start /wait \"Mouth of Truth Presentation Test\" \"%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\MouthOfTruth.exe\" -presentation-capture -screen-fullscreen 1 -logFile \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\\presentation-test.log\"\r\n";
+            string testLauncherScriptContents = "@echo off\r\n" + "setlocal EnableExtensions\r\n" + "set \"SCRIPT_DIRECTORY_PATH=%~dp0\"\r\n" + "for %%I in (\"%SCRIPT_DIRECTORY_PATH%.\") do set \"MOUTH_OF_TRUTH_RUNTIME_ROOT=%%~fI\"\r\n" + "set \"CAPTURE_OUTPUT_DIRECTORY_PATH=%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\PresentationTestCaptures\"\r\n" + "if exist \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\" rmdir /s /q \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n" + "mkdir \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n" + "set \"MOUTH_OF_TRUTH_PRESENTATION_CAPTURE=1\"\r\n" + "set \"MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR=%CAPTURE_OUTPUT_DIRECTORY_PATH%\"\r\n" + "start /wait \"Mouth of Truth Presentation Test\" \"%MOUTH_OF_TRUTH_RUNTIME_ROOT%\\MouthOfTruth.exe\" -presentation-capture -screen-fullscreen 1 -logFile \"%CAPTURE_OUTPUT_DIRECTORY_PATH%\\presentation-test.log\"\r\n";
 
             File.WriteAllText(testLauncherScriptPath, testLauncherScriptContents);
         }

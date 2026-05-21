@@ -5,12 +5,7 @@ namespace MouthOfTruth.Game.Data
     [Serializable]
     public class QuestionDefinition
     {
-        public QuestionDefinition(
-            string id,
-            string text,
-            string category,
-            int difficulty,
-            bool isEnabled)
+        public QuestionDefinition(string id, string text, string category, int difficulty, bool isEnabled)
         {
             ID = id;
             Text = text;

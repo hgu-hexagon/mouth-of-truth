@@ -21,9 +21,7 @@ namespace MouthOfTruth.Game.Input
 
         public float HoveredDurationSeconds => mHoveredDurationSeconds;
 
-        public EUiActionTarget? UpdateHoveredTarget(
-            EUiActionTarget? hoveredUiActionTarget,
-            float deltaTimeSeconds)
+        public EUiActionTarget? UpdateHoveredTarget(EUiActionTarget? hoveredUiActionTarget, float deltaTimeSeconds)
         {
             if (deltaTimeSeconds < 0.0f)
             {

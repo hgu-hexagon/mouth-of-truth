@@ -29,14 +29,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             texture.name = Path.GetFileNameWithoutExtension(filePath);
 
-            Sprite sprite = Sprite.Create(
-                texture,
-                new Rect(0.0f, 0.0f, texture.width, texture.height),
-                new Vector2(0.5f, 0.5f),
-                100.0f,
-                0u,
-                SpriteMeshType.FullRect,
-                getImplicitBorder(filePath, texture.width, texture.height));
+            Sprite sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f, 0u, SpriteMeshType.FullRect, getImplicitBorder(filePath, texture.width, texture.height));
 
             return Task.FromResult(sprite);
         }
@@ -54,11 +47,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             texture.SetPixels(pixels);
             texture.Apply();
 
-            return Sprite.Create(
-                texture,
-                new Rect(0.0f, 0.0f, size, size),
-                new Vector2(0.5f, 0.5f),
-                100.0f);
+            return Sprite.Create(texture, new Rect(0.0f, 0.0f, size, size), new Vector2(0.5f, 0.5f), 100.0f);
         }
 
         private static Vector4 getImplicitBorder(string filePath, int width, int height)
@@ -78,8 +67,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 return createBorder(width, height, 0.12f, 0.32f, 18.0f, 18.0f);
             }
 
-            if (normalizedFilePath.Contains("question_card_back")
-                || normalizedFilePath.Contains("question_card_front"))
+            if (normalizedFilePath.Contains("question_card_back") || normalizedFilePath.Contains("question_card_front"))
             {
                 return createBorder(width, height, 0.11f, 0.08f, 24.0f, 24.0f);
             }
@@ -97,21 +85,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return Vector4.zero;
         }
 
-        private static Vector4 createBorder(
-            int width,
-            int height,
-            float horizontalRatio,
-            float verticalRatio,
-            float minimumHorizontalBorderPixels,
-            float minimumVerticalBorderPixels)
+        private static Vector4 createBorder(int width, int height, float horizontalRatio, float verticalRatio, float minimumHorizontalBorderPixels, float minimumVerticalBorderPixels)
         {
             float horizontalBorderPixels = Mathf.Max(minimumHorizontalBorderPixels, width * horizontalRatio);
             float verticalBorderPixels = Mathf.Max(minimumVerticalBorderPixels, height * verticalRatio);
-            return new Vector4(
-                horizontalBorderPixels,
-                verticalBorderPixels,
-                horizontalBorderPixels,
-                verticalBorderPixels);
+            return new Vector4(horizontalBorderPixels, verticalBorderPixels, horizontalBorderPixels, verticalBorderPixels);
         }
     }
 }

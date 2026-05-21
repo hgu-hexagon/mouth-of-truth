@@ -126,9 +126,7 @@ namespace MouthOfTruth.Game.Input.Leap
             }
 
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-            mLeapServiceProvider.SetTargetServiceIPPortToConnectTo(
-                DEFAULT_SERVICE_IP,
-                DEFAULT_SERVICE_PORT);
+            mLeapServiceProvider.SetTargetServiceIPPortToConnectTo(DEFAULT_SERVICE_IP, DEFAULT_SERVICE_PORT);
 #else
             mLeapServiceProvider.SetTargetServerNamespaceToConnectTo(mServerNamespace);
 #endif
@@ -150,13 +148,7 @@ namespace MouthOfTruth.Game.Input.Leap
                 : null;
 
             IsTrackingServiceConnected = leapController != null && leapController.IsServiceConnected;
-            IsTrackingDeviceConnected =
-                currentDevice != null
-                || (
-                    leapController != null
-                    && leapController.Devices != null
-                    && leapController.Devices.ActiveDevices.Any()
-                );
+            IsTrackingDeviceConnected = currentDevice != null || (leapController != null && leapController.Devices != null && leapController.Devices.ActiveDevices.Any());
 
             Hand primaryHand = selectPrimaryHand(currentFrame);
 
@@ -183,10 +175,7 @@ namespace MouthOfTruth.Game.Input.Leap
             else
             {
                 float smoothingFactor = 1.0f - Mathf.Exp(-mPointerSmoothing * Time.unscaledDeltaTime);
-                mSmoothedPointerScreenPosition = Vector2.Lerp(
-                    mSmoothedPointerScreenPosition,
-                    targetPointerScreenPosition,
-                    smoothingFactor);
+                mSmoothedPointerScreenPosition = Vector2.Lerp(mSmoothedPointerScreenPosition, targetPointerScreenPosition, smoothingFactor);
             }
 
             mHasTrackedPointer = true;
@@ -219,9 +208,7 @@ namespace MouthOfTruth.Game.Input.Leap
             normalizedX = Mathf.Clamp01(normalizedX);
             normalizedY = Mathf.Clamp01(normalizedY);
 
-            return new Vector2(
-                normalizedX * Screen.width,
-                normalizedY * Screen.height);
+            return new Vector2(normalizedX * Screen.width, normalizedY * Screen.height);
         }
 
         private void logTrackingStateChangesIfNeeded()

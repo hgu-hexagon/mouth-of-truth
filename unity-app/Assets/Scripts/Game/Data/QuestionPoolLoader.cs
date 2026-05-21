@@ -46,13 +46,7 @@ namespace MouthOfTruth.Game.Data
                     ? string.Empty
                     : questionDefinitionJsonRecord.category;
 
-                questionDefinitions.Add(
-                    new QuestionDefinition(
-                        questionDefinitionJsonRecord.id,
-                        questionDefinitionJsonRecord.text,
-                        category,
-                        questionDefinitionJsonRecord.difficulty,
-                        questionDefinitionJsonRecord.enabled));
+                questionDefinitions.Add(new QuestionDefinition(questionDefinitionJsonRecord.id, questionDefinitionJsonRecord.text, category, questionDefinitionJsonRecord.difficulty, questionDefinitionJsonRecord.enabled));
             }
 
             return questionDefinitions;

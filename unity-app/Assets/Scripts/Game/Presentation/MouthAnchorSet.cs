@@ -14,10 +14,7 @@ namespace MouthOfTruth.Game.Presentation
 
         public Transform MouthInnerAnchor => mMouthInnerAnchor;
 
-        public void Configure(
-            Transform truthMouth,
-            Transform mouthFrontAnchor,
-            Transform mouthInnerAnchor)
+        public void Configure(Transform truthMouth, Transform mouthFrontAnchor, Transform mouthInnerAnchor)
         {
             mTruthMouth = truthMouth;
             mMouthFrontAnchor = mouthFrontAnchor;

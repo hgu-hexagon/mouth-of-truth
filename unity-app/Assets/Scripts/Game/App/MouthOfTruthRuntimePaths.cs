@@ -65,8 +65,7 @@ namespace MouthOfTruth.Game.App
             {
                 yield return currentDirectoryInfo.FullName;
 
-                if (currentDirectoryInfo.Name.EndsWith(".app", StringComparison.OrdinalIgnoreCase)
-                    && currentDirectoryInfo.Parent != null)
+                if (currentDirectoryInfo.Name.EndsWith(".app", StringComparison.OrdinalIgnoreCase) && currentDirectoryInfo.Parent != null)
                 {
                     yield return currentDirectoryInfo.Parent.FullName;
                 }

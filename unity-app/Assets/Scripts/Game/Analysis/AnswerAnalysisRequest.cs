@@ -5,13 +5,7 @@ namespace MouthOfTruth.Game.Analysis
 {
     public class AnswerAnalysisRequest
     {
-        public AnswerAnalysisRequest(
-            QuestionDefinition questionDefinition,
-            string answerTranscript,
-            string answerAudioFilePath,
-            string faceFramesDirectoryPath,
-            int faceFrameCount,
-            int voiceSegmentCount)
+        public AnswerAnalysisRequest(QuestionDefinition questionDefinition, string answerTranscript, string answerAudioFilePath, string faceFramesDirectoryPath, int faceFrameCount, int voiceSegmentCount)
         {
             if (questionDefinition == null)
             {

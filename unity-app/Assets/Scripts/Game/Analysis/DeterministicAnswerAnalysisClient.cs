@@ -18,9 +18,7 @@ namespace MouthOfTruth.Game.Analysis
             return Task.CompletedTask;
         }
 
-        public Task<AnswerAnalysisResult> AnalyzeAsync(
-            AnswerAnalysisRequest answerAnalysisRequest,
-            CancellationToken cancellationToken)
+        public Task<AnswerAnalysisResult> AnalyzeAsync(AnswerAnalysisRequest answerAnalysisRequest, CancellationToken cancellationToken)
         {
             if (answerAnalysisRequest == null)
             {
@@ -45,24 +43,14 @@ namespace MouthOfTruth.Game.Analysis
 
             if (hasFaceSignal == false || hasVoiceSignal == false)
             {
-                return Task.FromResult(
-                    new AnswerAnalysisResult(
-                        EVerdictKind.Uncertain,
-                        answerAnalysisRequest.AnswerTranscript,
-                        reasonCodes));
+                return Task.FromResult(new AnswerAnalysisResult(EVerdictKind.Uncertain, answerAnalysisRequest.AnswerTranscript, reasonCodes));
             }
 
-            int paritySeed = calculateStableParitySeed(
-                answerAnalysisRequest.QuestionDefinition.ID,
-                answerAnalysisRequest.AnswerTranscript);
+            int paritySeed = calculateStableParitySeed(answerAnalysisRequest.QuestionDefinition.ID, answerAnalysisRequest.AnswerTranscript);
 
             EVerdictKind verdictKind = paritySeed % 2 == 0 ? EVerdictKind.True : EVerdictKind.False;
 
-            return Task.FromResult(
-                new AnswerAnalysisResult(
-                    verdictKind,
-                    answerAnalysisRequest.AnswerTranscript,
-                    reasonCodes));
+            return Task.FromResult(new AnswerAnalysisResult(verdictKind, answerAnalysisRequest.AnswerTranscript, reasonCodes));
         }
 
         private int calculateStableParitySeed(string questionID, string answerTranscript)

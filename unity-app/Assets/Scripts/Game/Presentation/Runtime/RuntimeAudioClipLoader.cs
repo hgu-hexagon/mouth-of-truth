@@ -87,12 +87,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return audioClip;
         }
 
-        private static float[] decodeWaveSamples(
-            byte[] fileBytes,
-            int dataOffset,
-            int dataSize,
-            int bitsPerSample,
-            int audioFormat)
+        private static float[] decodeWaveSamples(byte[] fileBytes, int dataOffset, int dataSize, int bitsPerSample, int audioFormat)
         {
             bool isSupportedWaveFormat = audioFormat == PCM_AUDIO_FORMAT
                 || audioFormat == EXTENSIBLE_AUDIO_FORMAT;

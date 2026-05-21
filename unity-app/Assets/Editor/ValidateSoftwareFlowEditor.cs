@@ -40,10 +40,7 @@ namespace MouthOfTruth.Editor
                 throw new BuildFailedException(errorMessage);
             }
 
-            Debug.Log(
-                "Mouth of Truth software flow validation succeeded. "
-                + "Question selection, answer hand latch, timeout, "
-                + "and deterministic verdict flow are healthy.");
+            Debug.Log("Mouth of Truth software flow validation succeeded. " + "Question selection, answer hand latch, timeout, " + "and deterministic verdict flow are healthy.");
         }
 
         private static void validateQuestionDeckCycle()
@@ -56,9 +53,7 @@ namespace MouthOfTruth.Editor
             validateQuestionDeckDoesNotFollowInputOrder();
         }
 
-        private static void validateQuestionDeckCycle(
-            IReadOnlyList<QuestionDefinition> questionDefinitions,
-            int randomSeed)
+        private static void validateQuestionDeckCycle(IReadOnlyList<QuestionDefinition> questionDefinitions, int randomSeed)
         {
             int enabledQuestionCount = questionDefinitions.Count(
                 questionDefinition => questionDefinition.IsEnabled);
@@ -70,9 +65,7 @@ namespace MouthOfTruth.Editor
             {
                 QuestionRoundSelection questionRoundSelection = questionDeckService.DrawNextRound();
 
-                foreach (
-                    QuestionDefinition questionDefinition
-                    in questionRoundSelection.QuestionsBySlot.Values)
+                foreach (QuestionDefinition questionDefinition in questionRoundSelection.QuestionsBySlot.Values)
                 {
                     bool isNewQuestion = seenQuestionIDs.Add(questionDefinition.ID);
 
@@ -130,19 +123,12 @@ namespace MouthOfTruth.Editor
 
             gameStateMachine.StartGame();
             assertState(gameStateMachine, EGameFlowState.PresentingCards, "card presentation");
-            assertCondition(
-                gameStateMachine.CreateSnapshot().CurrentRoundSelection != null,
-                "The first round selection was not created.");
+            assertCondition(gameStateMachine.CreateSnapshot().CurrentRoundSelection != null, "The first round selection was not created.");
 
             gameStateMachine.MarkCardPresentationCompleted();
-            assertState(
-                gameStateMachine,
-                EGameFlowState.AwaitingCardSelection,
-                "awaiting card selection");
+            assertState(gameStateMachine, EGameFlowState.AwaitingCardSelection, "awaiting card selection");
 
-            EQuestionCardSlot? earlySelection = gameStateMachine.UpdateCardSelection(
-                EQuestionCardSlot.CenterCard,
-                0.35f);
+            EQuestionCardSlot? earlySelection = gameStateMachine.UpdateCardSelection(EQuestionCardSlot.CenterCard, 0.35f);
 
             if (earlySelection != null)
             {
@@ -150,14 +136,9 @@ namespace MouthOfTruth.Editor
             }
 
             GameSessionSnapshot hoverSnapshot = gameStateMachine.CreateSnapshot();
-            assertCondition(
-                hoverSnapshot.HoveredCardDwellSeconds > 0.0f
-                && hoverSnapshot.HoveredCardDwellSeconds < 0.7f,
-                "Card hover dwell did not accumulate correctly.");
+            assertCondition(hoverSnapshot.HoveredCardDwellSeconds > 0.0f && hoverSnapshot.HoveredCardDwellSeconds < 0.7f, "Card hover dwell did not accumulate correctly.");
 
-            EQuestionCardSlot? confirmedSelection = gameStateMachine.UpdateCardSelection(
-                EQuestionCardSlot.CenterCard,
-                0.35f);
+            EQuestionCardSlot? confirmedSelection = gameStateMachine.UpdateCardSelection(EQuestionCardSlot.CenterCard, 0.35f);
 
             if (confirmedSelection != EQuestionCardSlot.CenterCard)
             {
@@ -165,18 +146,13 @@ namespace MouthOfTruth.Editor
             }
 
             assertState(gameStateMachine, EGameFlowState.RevealingQuestionCard, "question reveal");
-            assertCondition(
-                gameStateMachine.CreateSnapshot().SelectedQuestionDefinition != null,
-                "Selected question definition was not stored.");
+            assertCondition(gameStateMachine.CreateSnapshot().SelectedQuestionDefinition != null, "Selected question definition was not stored.");
 
             gameStateMachine.MarkQuestionRevealCompleted();
             assertState(gameStateMachine, EGameFlowState.NarratingQuestion, "question narration");
 
             gameStateMachine.MarkQuestionNarrationCompleted();
-            assertState(
-                gameStateMachine,
-                EGameFlowState.AwaitingHandInsertion,
-                "awaiting hand insertion");
+            assertState(gameStateMachine, EGameFlowState.AwaitingHandInsertion, "awaiting hand insertion");
 
             gameStateMachine.NotifyHandReachedFrontAnchor();
             assertState(gameStateMachine, EGameFlowState.InsertingHand, "hand insertion animation");
@@ -185,13 +161,9 @@ namespace MouthOfTruth.Editor
             assertState(gameStateMachine, EGameFlowState.Answering, "answering");
 
             gameStateMachine.UpdateAnswerTranscript("spoken answer");
-            assertCondition(
-                gameStateMachine.CreateSnapshot().CurrentAnswerTranscript == "spoken answer",
-                "Answer transcript was not stored.");
+            assertCondition(gameStateMachine.CreateSnapshot().CurrentAnswerTranscript == "spoken answer", "Answer transcript was not stored.");
 
-            bool shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(
-                1.0f,
-                isSpeechDetected: true);
+            bool shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(1.0f, isSpeechDetected: true);
 
             if (shouldFinishAnswer)
             {
@@ -199,18 +171,12 @@ namespace MouthOfTruth.Editor
             }
 
             GameSessionSnapshot answeringSnapshot = gameStateMachine.CreateSnapshot();
-            assertCondition(
-                Mathf.Abs(answeringSnapshot.ElapsedAnswerSeconds - 1.0f) < 0.001f,
-                "Elapsed answer time did not advance.");
-            assertCondition(
-                Mathf.Abs(answeringSnapshot.ElapsedSilenceSeconds) < 0.001f,
-                "Silence timer did not reset during active speech.");
+            assertCondition(Mathf.Abs(answeringSnapshot.ElapsedAnswerSeconds - 1.0f) < 0.001f, "Elapsed answer time did not advance.");
+            assertCondition(Mathf.Abs(answeringSnapshot.ElapsedSilenceSeconds) < 0.001f, "Silence timer did not reset during active speech.");
 
             gameStateMachine.NotifyHandExitedFrontAnchor();
             assertState(gameStateMachine, EGameFlowState.Answering, "answer hand latch after exit");
-            assertCondition(
-                gameStateMachine.CreateSnapshot().IsAnswerPaused == false,
-                "Answer unexpectedly paused after hand exit.");
+            assertCondition(gameStateMachine.CreateSnapshot().IsAnswerPaused == false, "Answer unexpectedly paused after hand exit.");
 
             shouldFinishAnswer = gameStateMachine.AdvanceAnswerCollection(1.0f, isSpeechDetected: false);
 
@@ -235,15 +201,9 @@ namespace MouthOfTruth.Editor
 
             assertState(gameStateMachine, EGameFlowState.AnalyzingAnswer, "analysis");
 
-            gameStateMachine.CompleteAnalysis(
-                new AnswerAnalysisResult(
-                    EVerdictKind.True,
-                    "spoken answer",
-                    Array.Empty<string>()));
+            gameStateMachine.CompleteAnalysis(new AnswerAnalysisResult(EVerdictKind.True, "spoken answer", Array.Empty<string>()));
             assertState(gameStateMachine, EGameFlowState.ShowingResult, "result presentation");
-            assertCondition(
-                gameStateMachine.CreateSnapshot().CurrentVerdictKind == EVerdictKind.True,
-                "Verdict kind was not stored in the result snapshot.");
+            assertCondition(gameStateMachine.CreateSnapshot().CurrentVerdictKind == EVerdictKind.True, "Verdict kind was not stored in the result snapshot.");
 
             gameStateMachine.ReturnToStart();
             assertState(gameStateMachine, EGameFlowState.StartScreen, "return to start");
@@ -261,9 +221,7 @@ namespace MouthOfTruth.Editor
             gameStateMachine.NotifyHandReachedFrontAnchor();
             gameStateMachine.NotifyHandReachedInnerAnchor();
 
-            bool timedOut = gameStateMachine.AdvanceAnswerCollection(
-                8.1f,
-                isSpeechDetected: true);
+            bool timedOut = gameStateMachine.AdvanceAnswerCollection(8.1f, isSpeechDetected: true);
 
             if (timedOut == false)
             {
@@ -272,35 +230,25 @@ namespace MouthOfTruth.Editor
 
             assertState(gameStateMachine, EGameFlowState.AnalyzingAnswer, "timeout analysis");
 
-            gameStateMachine.CompleteAnalysis(
-                new AnswerAnalysisResult(
-                    EVerdictKind.False,
-                    "timed answer",
-                    Array.Empty<string>()));
+            gameStateMachine.CompleteAnalysis(new AnswerAnalysisResult(EVerdictKind.False, "timed answer", Array.Empty<string>()));
             assertState(gameStateMachine, EGameFlowState.ShowingResult, "timeout result");
 
             gameStateMachine.TryAgain();
             assertState(gameStateMachine, EGameFlowState.PresentingCards, "try again");
-            assertCondition(
-                gameStateMachine.CreateSnapshot().CurrentRoundSelection != null,
-                "Try Again did not prepare the next round.");
+            assertCondition(gameStateMachine.CreateSnapshot().CurrentRoundSelection != null, "Try Again did not prepare the next round.");
         }
 
         private static void validateSelectionDwellTiming()
         {
             CardDwellSelectionTracker cardDwellSelectionTracker = new CardDwellSelectionTracker(2.1f);
-            EQuestionCardSlot? earlyCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(
-                EQuestionCardSlot.CenterCard,
-                1.4f);
+            EQuestionCardSlot? earlyCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(EQuestionCardSlot.CenterCard, 1.4f);
 
             if (earlyCardSelection != null)
             {
                 throw new InvalidOperationException("Card dwell confirmed before the extended hold time.");
             }
 
-            EQuestionCardSlot? confirmedCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(
-                EQuestionCardSlot.CenterCard,
-                0.7f);
+            EQuestionCardSlot? confirmedCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(EQuestionCardSlot.CenterCard, 0.7f);
 
             if (confirmedCardSelection != EQuestionCardSlot.CenterCard)
             {
@@ -308,18 +256,14 @@ namespace MouthOfTruth.Editor
             }
 
             UiActionDwellSelectionTracker uiActionDwellSelectionTracker = new UiActionDwellSelectionTracker(1.05f);
-            EUiActionTarget? earlyUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(
-                EUiActionTarget.StartGame,
-                0.7f);
+            EUiActionTarget? earlyUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(EUiActionTarget.StartGame, 0.7f);
 
             if (earlyUiAction != null)
             {
                 throw new InvalidOperationException("UI action dwell confirmed before the extended hold time.");
             }
 
-            EUiActionTarget? confirmedUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(
-                EUiActionTarget.StartGame,
-                0.35f);
+            EUiActionTarget? confirmedUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(EUiActionTarget.StartGame, 0.35f);
 
             if (confirmedUiAction != EUiActionTarget.StartGame)
             {
@@ -329,20 +273,14 @@ namespace MouthOfTruth.Editor
 
         private static void validateInputFallbackGate()
         {
-            CompositeHandInteractionInputAdapter blockedCompositeAdapter =
-                new CompositeHandInteractionInputAdapter(
-                    new BlockingFallbackInputAdapter(),
-                    new StaticPointerInputAdapter());
+            CompositeHandInteractionInputAdapter blockedCompositeAdapter = new CompositeHandInteractionInputAdapter(new BlockingFallbackInputAdapter(), new StaticPointerInputAdapter());
 
             if (blockedCompositeAdapter.TryGetPointerScreenPosition(out _))
             {
                 throw new InvalidOperationException("Fallback pointer input was not blocked by the primary adapter.");
             }
 
-            CompositeHandInteractionInputAdapter openCompositeAdapter =
-                new CompositeHandInteractionInputAdapter(
-                    new OpenFallbackInputAdapter(),
-                    new StaticPointerInputAdapter());
+            CompositeHandInteractionInputAdapter openCompositeAdapter = new CompositeHandInteractionInputAdapter(new OpenFallbackInputAdapter(), new StaticPointerInputAdapter());
 
             if (openCompositeAdapter.TryGetPointerScreenPosition(out Vector2 screenPosition) == false)
             {
@@ -360,30 +298,19 @@ namespace MouthOfTruth.Editor
             DeterministicAnswerAnalysisClient deterministicAnswerAnalysisClient = new DeterministicAnswerAnalysisClient();
             QuestionDefinition questionDefinition = new QuestionDefinition("QTEST", "질문", "test", 1, true);
 
-            AnswerAnalysisResult insufficientDataResult = runDeterministicAnalysis(
-                deterministicAnswerAnalysisClient,
-                questionDefinition,
-                "typed answer",
-                faceFrameCount: 0,
-                voiceSegmentCount: 0);
+            AnswerAnalysisResult insufficientDataResult = runDeterministicAnalysis(deterministicAnswerAnalysisClient, questionDefinition, "typed answer", faceFrameCount: 0, voiceSegmentCount: 0);
 
             if (insufficientDataResult.VerdictKind != EVerdictKind.Uncertain)
             {
                 throw new InvalidOperationException("Insufficient data should yield UNCERTAIN.");
             }
 
-            if (insufficientDataResult.ReasonCodes.Contains("insufficient_face_data") == false
-                || insufficientDataResult.ReasonCodes.Contains("insufficient_voice_data") == false)
+            if (insufficientDataResult.ReasonCodes.Contains("insufficient_face_data") == false || insufficientDataResult.ReasonCodes.Contains("insufficient_voice_data") == false)
             {
                 throw new InvalidOperationException("Insufficient data reason codes were incomplete.");
             }
 
-            AnswerAnalysisResult faceOnlyResult = runDeterministicAnalysis(
-                deterministicAnswerAnalysisClient,
-                questionDefinition,
-                "face only answer",
-                faceFrameCount: 6,
-                voiceSegmentCount: 0);
+            AnswerAnalysisResult faceOnlyResult = runDeterministicAnalysis(deterministicAnswerAnalysisClient, questionDefinition, "face only answer", faceFrameCount: 6, voiceSegmentCount: 0);
 
             if (faceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
@@ -392,16 +319,10 @@ namespace MouthOfTruth.Editor
 
             if (faceOnlyResult.ReasonCodes.Contains("insufficient_voice_data") == false)
             {
-                throw new InvalidOperationException(
-                    "Face-only deterministic analysis did not preserve the insufficient_voice_data reason code.");
+                throw new InvalidOperationException("Face-only deterministic analysis did not preserve the insufficient_voice_data reason code.");
             }
 
-            AnswerAnalysisResult voiceOnlyResult = runDeterministicAnalysis(
-                deterministicAnswerAnalysisClient,
-                questionDefinition,
-                "voice only answer",
-                faceFrameCount: 0,
-                voiceSegmentCount: 2);
+            AnswerAnalysisResult voiceOnlyResult = runDeterministicAnalysis(deterministicAnswerAnalysisClient, questionDefinition, "voice only answer", faceFrameCount: 0, voiceSegmentCount: 2);
 
             if (voiceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
@@ -410,46 +331,26 @@ namespace MouthOfTruth.Editor
 
             if (voiceOnlyResult.ReasonCodes.Contains("insufficient_face_data") == false)
             {
-                throw new InvalidOperationException(
-                    "Voice-only deterministic analysis did not preserve the insufficient_face_data reason code.");
+                throw new InvalidOperationException("Voice-only deterministic analysis did not preserve the insufficient_face_data reason code.");
             }
 
-            AnswerAnalysisResult transcriptFreeVoiceOnlyResult = runDeterministicAnalysis(
-                deterministicAnswerAnalysisClient,
-                questionDefinition,
-                string.Empty,
-                faceFrameCount: 0,
-                voiceSegmentCount: 2);
+            AnswerAnalysisResult transcriptFreeVoiceOnlyResult = runDeterministicAnalysis(deterministicAnswerAnalysisClient, questionDefinition, string.Empty, faceFrameCount: 0, voiceSegmentCount: 2);
 
             if (transcriptFreeVoiceOnlyResult.VerdictKind != EVerdictKind.Uncertain)
             {
                 throw new InvalidOperationException("Transcript-free voice input should remain UNCERTAIN without a face signal.");
             }
 
-            if (transcriptFreeVoiceOnlyResult.ReasonCodes.Contains(
-                    "insufficient_face_data")
-                == false)
+            if (transcriptFreeVoiceOnlyResult.ReasonCodes.Contains("insufficient_face_data") == false)
             {
-                throw new InvalidOperationException(
-                    "Transcript-free voice input did not preserve the insufficient_face_data reason code.");
+                throw new InvalidOperationException("Transcript-free voice input did not preserve the insufficient_face_data reason code.");
             }
 
-            AnswerAnalysisResult firstStableResult = runDeterministicAnalysis(
-                deterministicAnswerAnalysisClient,
-                questionDefinition,
-                "a",
-                faceFrameCount: 6,
-                voiceSegmentCount: 1);
+            AnswerAnalysisResult firstStableResult = runDeterministicAnalysis(deterministicAnswerAnalysisClient, questionDefinition, "a", faceFrameCount: 6, voiceSegmentCount: 1);
 
-            AnswerAnalysisResult secondStableResult = runDeterministicAnalysis(
-                deterministicAnswerAnalysisClient,
-                questionDefinition,
-                "b",
-                faceFrameCount: 6,
-                voiceSegmentCount: 1);
+            AnswerAnalysisResult secondStableResult = runDeterministicAnalysis(deterministicAnswerAnalysisClient, questionDefinition, "b", faceFrameCount: 6, voiceSegmentCount: 1);
 
-            if (firstStableResult.VerdictKind == EVerdictKind.Uncertain
-                || secondStableResult.VerdictKind == EVerdictKind.Uncertain)
+            if (firstStableResult.VerdictKind == EVerdictKind.Uncertain || secondStableResult.VerdictKind == EVerdictKind.Uncertain)
             {
                 throw new InvalidOperationException("Deterministic verdicts should resolve when counts are sufficient.");
             }
@@ -466,26 +367,10 @@ namespace MouthOfTruth.Editor
             Vector2 handInnerPosition = new Vector2(0.0f, 180.0f);
             const float MOUTH_DIAMETER_PIXELS = 420.0f;
 
-            EHandAnchorState exactFrontState = MouthOfTruthGameView.EvaluateHandAnchorState(
-                handFrontPosition,
-                handFrontPosition,
-                handInnerPosition,
-                MOUTH_DIAMETER_PIXELS);
-            EHandAnchorState exactInnerState = MouthOfTruthGameView.EvaluateHandAnchorState(
-                handInnerPosition,
-                handFrontPosition,
-                handInnerPosition,
-                MOUTH_DIAMETER_PIXELS);
-            EHandAnchorState outsideState = MouthOfTruthGameView.EvaluateHandAnchorState(
-                new Vector2(92.0f, 86.0f),
-                handFrontPosition,
-                handInnerPosition,
-                MOUTH_DIAMETER_PIXELS);
-            EHandAnchorState betweenAnchorsState = MouthOfTruthGameView.EvaluateHandAnchorState(
-                new Vector2(0.0f, 84.0f),
-                handFrontPosition,
-                handInnerPosition,
-                MOUTH_DIAMETER_PIXELS);
+            EHandAnchorState exactFrontState = MouthOfTruthGameView.EvaluateHandAnchorState(handFrontPosition, handFrontPosition, handInnerPosition, MOUTH_DIAMETER_PIXELS);
+            EHandAnchorState exactInnerState = MouthOfTruthGameView.EvaluateHandAnchorState(handInnerPosition, handFrontPosition, handInnerPosition, MOUTH_DIAMETER_PIXELS);
+            EHandAnchorState outsideState = MouthOfTruthGameView.EvaluateHandAnchorState(new Vector2(92.0f, 86.0f), handFrontPosition, handInnerPosition, MOUTH_DIAMETER_PIXELS);
+            EHandAnchorState betweenAnchorsState = MouthOfTruthGameView.EvaluateHandAnchorState(new Vector2(0.0f, 84.0f), handFrontPosition, handInnerPosition, MOUTH_DIAMETER_PIXELS);
             if (exactFrontState != EHandAnchorState.AtFrontAnchor)
             {
                 throw new InvalidOperationException("Front anchor targeting no longer resolves to AtFrontAnchor.");
@@ -509,62 +394,23 @@ namespace MouthOfTruth.Editor
 
         private static void validateLeapIntentTargeting()
         {
-            assertCondition(
-                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
-                    new Vector2(220.0f, 540.0f),
-                    1200.0f,
-                    900.0f) == EQuestionCardSlot.LeftCard,
-                "Left-side Leap intent did not resolve to the left card.");
-            assertCondition(
-                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
-                    new Vector2(600.0f, 540.0f),
-                    1200.0f,
-                    900.0f) == EQuestionCardSlot.CenterCard,
-                "Center Leap intent did not resolve to the center card.");
-            assertCondition(
-                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
-                    new Vector2(980.0f, 540.0f),
-                    1200.0f,
-                    900.0f) == EQuestionCardSlot.RightCard,
-                "Right-side Leap intent did not resolve to the right card.");
-            assertCondition(
-                MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(
-                    new Vector2(600.0f, 120.0f),
-                    1200.0f,
-                    900.0f) == null,
-                "Low off-stage Leap intent unexpectedly resolved to a card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(220.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.LeftCard, "Left-side Leap intent did not resolve to the left card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(600.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.CenterCard, "Center Leap intent did not resolve to the center card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(980.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.RightCard, "Right-side Leap intent did not resolve to the right card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(600.0f, 120.0f), 1200.0f, 900.0f) == null, "Low off-stage Leap intent unexpectedly resolved to a card.");
 
             Vector2 handFrontPosition = new Vector2(0.0f, 0.0f);
             Vector2 handInnerPosition = new Vector2(0.0f, 180.0f);
             const float MOUTH_DIAMETER_PIXELS = 420.0f;
 
-            assertCondition(
-                MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(24.0f, 74.0f),
-                    handFrontPosition,
-                    handInnerPosition,
-                    MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtFrontAnchor,
-                "Leap mouth intent near the front anchor did not resolve.");
-            assertCondition(
-                MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(22.0f, 142.0f),
-                    handFrontPosition,
-                    handInnerPosition,
-                    MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtInnerAnchor,
-                "Leap mouth intent near the inner anchor did not resolve.");
-            assertCondition(
-                MouthOfTruthGameView.EvaluateMouthIntentAnchorState(
-                    new Vector2(36.0f, 100.0f),
-                    handFrontPosition,
-                    handInnerPosition,
-                    MOUTH_DIAMETER_PIXELS) == EHandAnchorState.OutsideMouth,
-                "Off-mouth Leap intent was accepted too broadly.");
+            assertCondition(MouthOfTruthGameView.EvaluateMouthIntentAnchorState(new Vector2(24.0f, 74.0f), handFrontPosition, handInnerPosition, MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtFrontAnchor, "Leap mouth intent near the front anchor did not resolve.");
+            assertCondition(MouthOfTruthGameView.EvaluateMouthIntentAnchorState(new Vector2(22.0f, 142.0f), handFrontPosition, handInnerPosition, MOUTH_DIAMETER_PIXELS) == EHandAnchorState.AtInnerAnchor, "Leap mouth intent near the inner anchor did not resolve.");
+            assertCondition(MouthOfTruthGameView.EvaluateMouthIntentAnchorState(new Vector2(36.0f, 100.0f), handFrontPosition, handInnerPosition, MOUTH_DIAMETER_PIXELS) == EHandAnchorState.OutsideMouth, "Off-mouth Leap intent was accepted too broadly.");
         }
 
         private static void validatePythonBridgeRoundTrip()
         {
-            if (File.Exists(PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath()) == false
-                || Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath()) == false)
+            if (File.Exists(PythonAnalysisBridgePaths.GetBridgeLauncherScriptPath()) == false || Directory.Exists(PythonAnalysisBridgePaths.GetPythonModuleRootPath()) == false)
             {
                 throw new InvalidOperationException("Python bridge runtime prerequisites are missing.");
             }
@@ -572,12 +418,7 @@ namespace MouthOfTruth.Editor
             using (PythonBridgeAnalysisClient pythonBridgeAnalysisClient = new PythonBridgeAnalysisClient())
             {
                 QuestionDefinition questionDefinition = new QuestionDefinition("QBRIDGE", "Bridge validation question", "test", 1, true);
-                AnswerAnalysisResult bridgeAnalysisResult = runPythonBridgeAnalysis(
-                    pythonBridgeAnalysisClient,
-                    questionDefinition,
-                    "Bridge validation transcript",
-                    faceFrameCount: 0,
-                    voiceSegmentCount: 1);
+                AnswerAnalysisResult bridgeAnalysisResult = runPythonBridgeAnalysis(pythonBridgeAnalysisClient, questionDefinition, "Bridge validation transcript", faceFrameCount: 0, voiceSegmentCount: 1);
 
                 if (bridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
                 {
@@ -599,28 +440,19 @@ namespace MouthOfTruth.Editor
                     throw new InvalidOperationException("Python bridge should treat count-only voice input as insufficient evidence.");
                 }
 
-                AnswerAnalysisResult voiceMissingBridgeAnalysisResult = runPythonBridgeAnalysis(
-                    pythonBridgeAnalysisClient,
-                    questionDefinition,
-                    "Bridge validation transcript",
-                    faceFrameCount: 6,
-                    voiceSegmentCount: 0);
+                AnswerAnalysisResult voiceMissingBridgeAnalysisResult = runPythonBridgeAnalysis(pythonBridgeAnalysisClient, questionDefinition, "Bridge validation transcript", faceFrameCount: 6, voiceSegmentCount: 0);
 
                 if (voiceMissingBridgeAnalysisResult.VerdictKind != EVerdictKind.Uncertain)
                 {
-                    throw new InvalidOperationException(
-                        "Python bridge should keep the verdict UNCERTAIN "
-                        + "until voice input is present.");
+                    throw new InvalidOperationException("Python bridge should keep the verdict UNCERTAIN " + "until voice input is present.");
                 }
 
-                if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data")
-                    == false)
+                if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_voice_data") == false)
                 {
                     throw new InvalidOperationException("Python bridge did not surface the insufficient_voice_data reason code.");
                 }
 
-                if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data")
-                    == false)
+                if (voiceMissingBridgeAnalysisResult.ReasonCodes.Contains("insufficient_face_data") == false)
                 {
                     throw new InvalidOperationException("Python bridge should treat count-only face input as insufficient evidence.");
                 }
@@ -629,17 +461,12 @@ namespace MouthOfTruth.Editor
 
         private static MouthOfTruthGameStateMachine buildStateMachine(int randomSeed)
         {
-            return new MouthOfTruthGameStateMachine(
-                new QuestionDeckService(loadQuestionDefinitions(), randomSeed),
-                new CardDwellSelectionTracker(),
-                new AnswerCollectionPolicy());
+            return new MouthOfTruthGameStateMachine(new QuestionDeckService(loadQuestionDefinitions(), randomSeed), new CardDwellSelectionTracker(), new AnswerCollectionPolicy());
         }
 
         private static IReadOnlyList<QuestionDefinition> loadQuestionDefinitions()
         {
-            string questionPoolFilePath = Path.Combine(
-                Application.streamingAssetsPath,
-                QUESTION_POOL_RELATIVE_PATH);
+            string questionPoolFilePath = Path.Combine(Application.streamingAssetsPath, QUESTION_POOL_RELATIVE_PATH);
             return QuestionPoolLoader.LoadQuestionDefinitions(questionPoolFilePath);
         }
 
@@ -662,10 +489,7 @@ namespace MouthOfTruth.Editor
             return questionDefinitions;
         }
 
-        private static void validateStep(
-            string stepName,
-            Action validationAction,
-            List<string> errors)
+        private static void validateStep(string stepName, Action validationAction, List<string> errors)
         {
             try
             {
@@ -679,46 +503,17 @@ namespace MouthOfTruth.Editor
             }
         }
 
-        private static AnswerAnalysisResult runDeterministicAnalysis(
-            DeterministicAnswerAnalysisClient deterministicAnswerAnalysisClient,
-            QuestionDefinition questionDefinition,
-            string answerTranscript,
-            int faceFrameCount,
-            int voiceSegmentCount)
+        private static AnswerAnalysisResult runDeterministicAnalysis(DeterministicAnswerAnalysisClient deterministicAnswerAnalysisClient, QuestionDefinition questionDefinition, string answerTranscript, int faceFrameCount, int voiceSegmentCount)
         {
-            return deterministicAnswerAnalysisClient.AnalyzeAsync(
-                new AnswerAnalysisRequest(
-                    questionDefinition,
-                    answerTranscript,
-                    string.Empty,
-                    string.Empty,
-                    faceFrameCount,
-                    voiceSegmentCount),
-                CancellationToken.None).GetAwaiter().GetResult();
+            return deterministicAnswerAnalysisClient.AnalyzeAsync(new AnswerAnalysisRequest(questionDefinition, answerTranscript, string.Empty, string.Empty, faceFrameCount, voiceSegmentCount), CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private static AnswerAnalysisResult runPythonBridgeAnalysis(
-            PythonBridgeAnalysisClient pythonBridgeAnalysisClient,
-            QuestionDefinition questionDefinition,
-            string answerTranscript,
-            int faceFrameCount,
-            int voiceSegmentCount)
+        private static AnswerAnalysisResult runPythonBridgeAnalysis(PythonBridgeAnalysisClient pythonBridgeAnalysisClient, QuestionDefinition questionDefinition, string answerTranscript, int faceFrameCount, int voiceSegmentCount)
         {
-            return pythonBridgeAnalysisClient.AnalyzeAsync(
-                new AnswerAnalysisRequest(
-                    questionDefinition,
-                    answerTranscript,
-                    string.Empty,
-                    string.Empty,
-                    faceFrameCount,
-                    voiceSegmentCount),
-                CancellationToken.None).GetAwaiter().GetResult();
+            return pythonBridgeAnalysisClient.AnalyzeAsync(new AnswerAnalysisRequest(questionDefinition, answerTranscript, string.Empty, string.Empty, faceFrameCount, voiceSegmentCount), CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private static void assertState(
-            MouthOfTruthGameStateMachine gameStateMachine,
-            EGameFlowState expectedState,
-            string stepName)
+        private static void assertState(MouthOfTruthGameStateMachine gameStateMachine, EGameFlowState expectedState, string stepName)
         {
             assertCondition(
                 gameStateMachine.CurrentState == expectedState,

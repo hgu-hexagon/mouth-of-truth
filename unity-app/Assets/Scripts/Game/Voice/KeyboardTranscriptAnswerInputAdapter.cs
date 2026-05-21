@@ -67,23 +67,15 @@ namespace MouthOfTruth.Game.Voice
                 mTypingActivityGraceSeconds = Math.Max(0.0f, mTypingActivityGraceSeconds - deltaTimeSeconds);
             }
 
-            return new AnswerCaptureFrameSnapshot(
-                currentTranscript,
-                mTypingActivityGraceSeconds > 0.0f);
+            return new AnswerCaptureFrameSnapshot(currentTranscript, mTypingActivityGraceSeconds > 0.0f);
         }
 
-        public Task<AnswerCaptureResult> CompleteCollectionAsync(
-            string questionID,
-            CancellationToken cancellationToken)
+        public Task<AnswerCaptureResult> CompleteCollectionAsync(string questionID, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string transcriptText = mGameView.GetAnswerTranscript().Trim();
             int voiceSegmentCount = string.IsNullOrWhiteSpace(transcriptText) ? 0 : 1;
-            return Task.FromResult(
-                new AnswerCaptureResult(
-                    transcriptText,
-                    string.Empty,
-                    voiceSegmentCount));
+            return Task.FromResult(new AnswerCaptureResult(transcriptText, string.Empty, voiceSegmentCount));
         }
     }
 }

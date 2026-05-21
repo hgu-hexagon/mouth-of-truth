@@ -31,9 +31,7 @@ namespace MouthOfTruth.Editor
             }
             else
             {
-                Debug.Log(
-                    "Skipping presentation background regeneration because the current Unity process "
-                    + "is running with a null graphics device.");
+                Debug.Log("Skipping presentation background regeneration because the current Unity process " + "is running with a null graphics device.");
             }
 
             List<string> errors = new List<string>();
@@ -55,9 +53,7 @@ namespace MouthOfTruth.Editor
                 throw new BuildFailedException(errorMessage);
             }
 
-            Debug.Log(
-                "Mouth of Truth product readiness validation succeeded. "
-                + "Scene, assets, bridge paths, and presentation anchors are all available.");
+            Debug.Log("Mouth of Truth product readiness validation succeeded. " + "Scene, assets, bridge paths, and presentation anchors are all available.");
         }
 
         private static bool shouldRegeneratePresentationBackgrounds()
@@ -124,10 +120,7 @@ namespace MouthOfTruth.Editor
 
         private static void validateQuestionPool(List<string> errors)
         {
-            string questionPoolFilePath = Path.Combine(
-                Application.streamingAssetsPath,
-                "questions",
-                "question_pool.json");
+            string questionPoolFilePath = Path.Combine(Application.streamingAssetsPath, "questions", "question_pool.json");
 
             if (File.Exists(questionPoolFilePath) == false)
             {
@@ -146,14 +139,9 @@ namespace MouthOfTruth.Editor
             validateQuestionNarrationAudio(questionDefinitions, errors);
         }
 
-        private static void validateQuestionNarrationAudio(
-            IReadOnlyList<QuestionDefinition> questionDefinitions,
-            List<string> errors)
+        private static void validateQuestionNarrationAudio(IReadOnlyList<QuestionDefinition> questionDefinitions, List<string> errors)
         {
-            string questionAudioDirectoryPath = Path.Combine(
-                Application.streamingAssetsPath,
-                "audio",
-                "questions");
+            string questionAudioDirectoryPath = Path.Combine(Application.streamingAssetsPath, "audio", "questions");
 
             foreach (QuestionDefinition questionDefinition in questionDefinitions)
             {

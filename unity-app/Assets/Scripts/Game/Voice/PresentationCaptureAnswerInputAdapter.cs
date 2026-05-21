@@ -34,9 +34,7 @@ namespace MouthOfTruth.Game.Voice
             return new AnswerCaptureFrameSnapshot(string.Empty, false);
         }
 
-        public Task<AnswerCaptureResult> CompleteCollectionAsync(
-            string questionID,
-            CancellationToken cancellationToken)
+        public Task<AnswerCaptureResult> CompleteCollectionAsync(string questionID, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(new AnswerCaptureResult(string.Empty, string.Empty, 0));

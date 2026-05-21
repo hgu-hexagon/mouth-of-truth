@@ -12,10 +12,7 @@ namespace MouthOfTruth.Game.Face
 
         public static string GetWorkspaceDirectoryPath()
         {
-            return Path.Combine(
-                MouthOfTruthRuntimePaths.GetPythonEngineRootPath(),
-                "data",
-                WORKSPACE_DIRECTORY_NAME);
+            return Path.Combine(MouthOfTruthRuntimePaths.GetPythonEngineRootPath(), "data", WORKSPACE_DIRECTORY_NAME);
         }
 
         public static string GetFaceFramesDirectoryPath()

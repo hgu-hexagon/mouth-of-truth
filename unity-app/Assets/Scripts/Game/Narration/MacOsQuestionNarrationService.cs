@@ -22,8 +22,7 @@ namespace MouthOfTruth.Game.Narration
                 return;
             }
 
-            if (Application.platform != RuntimePlatform.OSXEditor
-                && Application.platform != RuntimePlatform.OSXPlayer)
+            if (Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer)
             {
                 await Task.Delay(estimateFallbackDelayMilliseconds(questionText), cancellationToken);
                 return;

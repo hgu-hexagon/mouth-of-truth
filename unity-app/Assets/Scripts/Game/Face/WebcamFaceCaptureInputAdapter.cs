@@ -119,9 +119,7 @@ namespace MouthOfTruth.Game.Face
             string completedDirectoryPath = mCapturedFrameCount > 0
                 ? mActiveCaptureDirectoryPath
                 : string.Empty;
-            FaceCaptureResult faceCaptureResult = new FaceCaptureResult(
-                completedDirectoryPath,
-                mCapturedFrameCount);
+            FaceCaptureResult faceCaptureResult = new FaceCaptureResult(completedDirectoryPath, mCapturedFrameCount);
             clearCaptureState();
             return Task.FromResult(faceCaptureResult);
         }
@@ -136,9 +134,7 @@ namespace MouthOfTruth.Game.Face
             int captureWidth = mWebCamTexture.width;
             int captureHeight = mWebCamTexture.height;
 
-            if (mCaptureTexture == null
-                || mCaptureTexture.width != captureWidth
-                || mCaptureTexture.height != captureHeight)
+            if (mCaptureTexture == null || mCaptureTexture.width != captureWidth || mCaptureTexture.height != captureHeight)
             {
                 mCaptureTexture = new Texture2D(captureWidth, captureHeight, TextureFormat.RGB24, false);
             }

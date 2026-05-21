@@ -7,8 +7,6 @@ namespace MouthOfTruth.Game.Analysis
     {
         Task WarmUpAsync(CancellationToken cancellationToken);
 
-        Task<AnswerAnalysisResult> AnalyzeAsync(
-            AnswerAnalysisRequest answerAnalysisRequest,
-            CancellationToken cancellationToken);
+        Task<AnswerAnalysisResult> AnalyzeAsync(AnswerAnalysisRequest answerAnalysisRequest, CancellationToken cancellationToken);
     }
 }

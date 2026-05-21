@@ -11,10 +11,7 @@ namespace MouthOfTruth.Editor
     {
         public int callbackOrder => 0;
 
-        public void OnProcessShader(
-            Shader shader,
-            ShaderSnippetData snippetData,
-            IList<ShaderCompilerData> shaderCompilerData)
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> shaderCompilerData)
         {
             if (BuildPipeline.isBuildingPlayer == false)
             {

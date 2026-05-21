@@ -53,17 +53,9 @@ def calculate_base_score(prob_dict: dict[str, float]) -> float:
     """Calculates one base suspicion score from face-emotion probabilities."""
     stable_probability = prob_dict.get("happiness", 0.0) + prob_dict.get("neutral", 0.0)
     medium_probability = prob_dict.get("sadness", 0.0) + prob_dict.get("surprise", 0.0)
-    tense_probability = (
-        prob_dict.get("fear", 0.0)
-        + prob_dict.get("disgust", 0.0)
-        + prob_dict.get("anger", 0.0)
-    )
+    tense_probability = prob_dict.get("fear", 0.0) + prob_dict.get("disgust", 0.0) + prob_dict.get("anger", 0.0)
 
-    score = 100.0 * (
-        (BASE_TENSE_WEIGHT * tense_probability)
-        + (BASE_MEDIUM_WEIGHT * medium_probability)
-        + (BASE_STABLE_WEIGHT * stable_probability)
-    )
+    score = 100.0 * ((BASE_TENSE_WEIGHT * tense_probability) + (BASE_MEDIUM_WEIGHT * medium_probability) + (BASE_STABLE_WEIGHT * stable_probability))
     return _clamp(score, 0.0, 100.0)
 
 

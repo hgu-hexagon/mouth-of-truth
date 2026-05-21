@@ -57,11 +57,7 @@ def load_target_pcm_wav(audio_file_path: Path) -> list[float] | None:
     """Loads one target-format PCM wav file without the heavier librosa path."""
     try:
         with wave.open(str(audio_file_path), "rb") as wave_file:
-            if (
-                wave_file.getnchannels() != 1
-                or wave_file.getsampwidth() != 2
-                or wave_file.getframerate() != TARGET_SAMPLE_RATE
-            ):
+            if wave_file.getnchannels() != 1 or wave_file.getsampwidth() != 2 or wave_file.getframerate() != TARGET_SAMPLE_RATE:
                 return None
 
             raw_frames = wave_file.readframes(wave_file.getnframes())
@@ -80,27 +76,15 @@ def load_target_pcm_wav(audio_file_path: Path) -> list[float] | None:
 def probs_to_dict(probs_data: list[float]) -> dict[str, float]:
     """Converts one voice probability list into one label-to-score dictionary."""
     if len(probs_data) != len(VOICE_LABELS):
-        raise ValueError(
-            f"Unexpected number of voice class probabilities: {len(probs_data)} "
-            f"(expected {len(VOICE_LABELS)})"
-        )
+        raise ValueError(f"Unexpected number of voice class probabilities: {len(probs_data)} (expected {len(VOICE_LABELS)})")
 
     return {label: float(score) for label, score in zip(VOICE_LABELS, probs_data)}
 
 
-def predict_voice_file(
-    feature_extractor: AutoFeatureExtractor,
-    model: AutoModelForAudioClassification,
-    audio_path: str,
-) -> dict[str, Any]:
+def predict_voice_file(feature_extractor: AutoFeatureExtractor, model: AutoModelForAudioClassification, audio_path: str) -> dict[str, Any]:
     """Runs one full-file voice-emotion prediction."""
     waveform = load_audio(audio_path)
-    inputs = feature_extractor(
-        waveform,
-        sampling_rate=TARGET_SAMPLE_RATE,
-        return_tensors="pt",
-        padding=True,
-    )
+    inputs = feature_extractor(waveform, sampling_rate=TARGET_SAMPLE_RATE, return_tensors="pt", padding=True)
 
     with torch.no_grad():
         logits = model(**inputs).logits

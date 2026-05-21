@@ -104,10 +104,7 @@ def list_frame_files(face_frames_directory_path: str | Path) -> list[Path]:
     return sorted(frame_files)
 
 
-def select_representative_frame_files(
-    frame_files: list[Path],
-    maximum_frame_count: int = MAX_ANALYSIS_FRAME_COUNT,
-) -> list[Path]:
+def select_representative_frame_files(frame_files: list[Path], maximum_frame_count: int = MAX_ANALYSIS_FRAME_COUNT) -> list[Path]:
     """Selects evenly spaced frames so long answers remain quick to analyze."""
     if maximum_frame_count <= 0:
         raise ValueError("maximum_frame_count must be greater than zero.")
@@ -126,18 +123,10 @@ def select_representative_frame_files(
     return [frame_files[frame_index] for frame_index in sorted(selected_indices)]
 
 
-def extract_largest_face_crop(
-    frame: Any,
-    face_cascade: cv2.CascadeClassifier,
-) -> Any | None:
+def extract_largest_face_crop(frame: Any, face_cascade: cv2.CascadeClassifier) -> Any | None:
     """Extracts the largest face crop from one saved frame."""
     grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(
-        grayscale_frame,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(80, 80),
-    )
+    faces = face_cascade.detectMultiScale(grayscale_frame, scaleFactor=1.1, minNeighbors=5, minSize=(80, 80))
 
     if len(faces) == 0:
         return None

@@ -56,13 +56,7 @@ def run_worker() -> int:
             return 0
 
         if command.command != "analyze":
-            _write_protocol_response(
-                protocol_stdout,
-                {
-                    "Status": "error",
-                    "ErrorMessage": f"Unsupported worker command: {command.command}",
-                },
-            )
+            _write_protocol_response(protocol_stdout, {"Status": "error", "ErrorMessage": f"Unsupported worker command: {command.command}"})
             continue
 
         try:
@@ -71,13 +65,7 @@ def run_worker() -> int:
 
             _write_protocol_response(protocol_stdout, {"Status": "done"})
         except Exception:
-            _write_protocol_response(
-                protocol_stdout,
-                {
-                    "Status": "error",
-                    "ErrorMessage": traceback.format_exc(),
-                },
-            )
+            _write_protocol_response(protocol_stdout, {"Status": "error", "ErrorMessage": traceback.format_exc()})
 
     return 0
 
@@ -98,20 +86,14 @@ def _prewarm_face_model() -> None:
     """Loads the face model cache for the persistent worker."""
     from mouth_of_truth.face.infer_face import load_face_model
 
-    _prewarm_model(
-        load_face_model,
-        "Face model prewarm failed. The worker will still handle requests with fallback logic.",
-    )
+    _prewarm_model(load_face_model, "Face model prewarm failed. The worker will still handle requests with fallback logic.")
 
 
 def _prewarm_voice_model() -> None:
     """Loads the voice model cache for the persistent worker."""
     from mouth_of_truth.voice.infer_voice import load_voice_model
 
-    _prewarm_model(
-        load_voice_model,
-        "Voice model prewarm failed. The worker will still handle requests with fallback logic.",
-    )
+    _prewarm_model(load_voice_model, "Voice model prewarm failed. The worker will still handle requests with fallback logic.")
 
 
 def _should_prewarm_trained_voice_model() -> bool:

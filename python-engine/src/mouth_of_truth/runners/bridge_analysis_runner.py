@@ -39,37 +39,21 @@ def _build_analysis_result(analysis_request: AnalysisRequest) -> AnalysisResult:
     """Builds one verdict result from one bridge request payload."""
     answer_transcript = analysis_request.answer_transcript.strip()
 
-    if (
-        not answer_transcript
-        and analysis_request.answer_audio_file_path.strip()
-        and _should_transcribe_answer()
-    ):
+    if not answer_transcript and analysis_request.answer_audio_file_path.strip() and _should_transcribe_answer():
         from mouth_of_truth.speech.whisper_transcriber import WhisperTranscriber
 
         whisper_transcriber = WhisperTranscriber()
         language_hint = _detect_language_hint(analysis_request.question_text)
-        answer_transcript = whisper_transcriber.transcribe_audio_file(
-            analysis_request.answer_audio_file_path,
-            language_hint=language_hint,
-        ).strip()
+        answer_transcript = whisper_transcriber.transcribe_audio_file(analysis_request.answer_audio_file_path, language_hint=language_hint).strip()
 
     face_analysis, voice_analysis = _analyze_modalities(analysis_request)
     face_recognition_count = _resolve_face_recognition_count(analysis_request, face_analysis)
     voice_segment_count = _resolve_voice_segment_count(analysis_request, voice_analysis)
 
-    return build_fused_analysis_result(
-        request_id=analysis_request.request_id,
-        answer_transcript=answer_transcript,
-        face_result=face_analysis["summary"],
-        voice_result=voice_analysis["summary"],
-        face_recognition_count=face_recognition_count,
-        voice_segment_count=voice_segment_count,
-    )
+    return build_fused_analysis_result(request_id=analysis_request.request_id, answer_transcript=answer_transcript, face_result=face_analysis["summary"], voice_result=voice_analysis["summary"], face_recognition_count=face_recognition_count, voice_segment_count=voice_segment_count)
 
 
-def _analyze_modalities(
-    analysis_request: AnalysisRequest,
-) -> tuple[AnalysisPayload, AnalysisPayload]:
+def _analyze_modalities(analysis_request: AnalysisRequest) -> tuple[AnalysisPayload, AnalysisPayload]:
     """Runs face and voice analysis in parallel to keep verdict latency low."""
     with ThreadPoolExecutor(max_workers=2) as executor:
         face_future = executor.submit(_analyze_face_data, analysis_request)
@@ -99,11 +83,7 @@ def _analyze_face_data(analysis_request: AnalysisRequest) -> AnalysisPayload:
     try:
         return analyze_face_frame_directory(face_frames_directory_path)
     except Exception as exception:
-        print(
-            "Face analysis failed. Falling back to empty face data.\n"
-            f"{exception}\n{traceback.format_exc()}",
-            file=sys.stderr,
-        )
+        print(f"Face analysis failed. Falling back to empty face data.\n{exception}\n{traceback.format_exc()}", file=sys.stderr)
         return build_empty_face_analysis()
 
 
@@ -122,18 +102,11 @@ def _analyze_voice_data(analysis_request: AnalysisRequest) -> AnalysisPayload:
     try:
         return run_voice_emotion_pipeline(answer_audio_file_path)
     except Exception as exception:
-        print(
-            "Voice analysis failed. Falling back to empty voice data.\n"
-            f"{exception}\n{traceback.format_exc()}",
-            file=sys.stderr,
-        )
+        print(f"Voice analysis failed. Falling back to empty voice data.\n{exception}\n{traceback.format_exc()}", file=sys.stderr)
         return build_empty_voice_analysis()
 
 
-def _resolve_face_recognition_count(
-    analysis_request: AnalysisRequest,
-    face_analysis: AnalysisPayload,
-) -> int:
+def _resolve_face_recognition_count(analysis_request: AnalysisRequest, face_analysis: AnalysisPayload) -> int:
     """Resolves the face-recognition count used for judgment readiness."""
     if analysis_request.face_frames_directory_path.strip():
         return int(face_analysis.get("recognition_count", 0))
@@ -141,10 +114,7 @@ def _resolve_face_recognition_count(
     return analysis_request.face_frame_count
 
 
-def _resolve_voice_segment_count(
-    analysis_request: AnalysisRequest,
-    voice_analysis: AnalysisPayload,
-) -> int:
+def _resolve_voice_segment_count(analysis_request: AnalysisRequest, voice_analysis: AnalysisPayload) -> int:
     """Resolves the voice-segment count used for judgment readiness."""
     if analysis_request.answer_audio_file_path.strip():
         return int(voice_analysis.get("segment_count", 0))
@@ -179,11 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
     if len(argv) != 2:
-        print(
-            "Usage: python -m mouth_of_truth.runners.bridge_analysis_runner "
-            "<request-file-path> <result-file-path>",
-            file=sys.stderr,
-        )
+        print("Usage: python -m mouth_of_truth.runners.bridge_analysis_runner <request-file-path> <result-file-path>", file=sys.stderr)
         return 2
 
     request_file_path, result_file_path = argv

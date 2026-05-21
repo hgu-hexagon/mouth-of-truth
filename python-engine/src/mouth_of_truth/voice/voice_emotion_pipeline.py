@@ -113,10 +113,7 @@ def run_trained_voice_emotion_pipeline(audio_path: str, waveform: list[float]) -
     }
 
 
-def build_fast_voice_segment_result(
-    waveform: list[float],
-    sample_rate: int,
-) -> dict[str, Any]:
+def build_fast_voice_segment_result(waveform: list[float], sample_rate: int) -> dict[str, Any]:
     """Builds one quick voice-instability summary from waveform dynamics."""
     rms_values = calculate_rms_windows(waveform, sample_rate)
     speech_rms_values = [
@@ -178,9 +175,7 @@ def calculate_rms_windows(waveform: list[float], sample_rate: int) -> list[float
     start_sample_index = 0
 
     while start_sample_index + window_sample_count <= len(waveform):
-        rms_values.append(
-            calculate_window_rms(waveform, start_sample_index, window_sample_count)
-        )
+        rms_values.append(calculate_window_rms(waveform, start_sample_index, window_sample_count))
         start_sample_index += stride_sample_count
 
     return rms_values

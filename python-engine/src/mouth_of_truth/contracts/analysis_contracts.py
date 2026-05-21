@@ -90,9 +90,5 @@ def resolve_runtime_relative_path(request_file_path: Path, raw_path: str) -> str
         return str(candidate_path.resolve())
 
     configured_runtime_root = os.environ.get("MOUTH_OF_TRUTH_RUNTIME_ROOT", "").strip()
-    runtime_root_path = (
-        Path(configured_runtime_root).expanduser().resolve()
-        if configured_runtime_root
-        else request_file_path.parent
-    )
+    runtime_root_path = Path(configured_runtime_root).expanduser().resolve() if configured_runtime_root else request_file_path.parent
     return str((runtime_root_path / candidate_path).resolve())

@@ -917,8 +917,7 @@ namespace MouthOfTruth.Game.App
         {
             mIsPresentationCaptureRunning = true;
 
-            string outputDirectoryPath =
-                Environment.GetEnvironmentVariable(PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME);
+            string outputDirectoryPath = Environment.GetEnvironmentVariable(PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME);
 
             if (string.IsNullOrWhiteSpace(outputDirectoryPath))
             {
@@ -987,8 +986,7 @@ namespace MouthOfTruth.Game.App
             yield return captureScreenshotCoroutine(outputDirectoryPath, "05_card_focus.png");
 
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
-            QuestionDefinition selectedQuestionDefinition =
-                snapshot.CurrentRoundSelection.QuestionsBySlot[confirmedQuestionCardSlot];
+            QuestionDefinition selectedQuestionDefinition = snapshot.CurrentRoundSelection.QuestionsBySlot[confirmedQuestionCardSlot];
             Task revealQuestionTask = mGameView.PlayQuestionRevealAsync(
                 confirmedQuestionCardSlot,
                 selectedQuestionDefinition,

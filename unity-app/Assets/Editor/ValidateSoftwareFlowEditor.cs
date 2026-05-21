@@ -357,10 +357,8 @@ namespace MouthOfTruth.Editor
 
         private static void validateDeterministicAnalysis()
         {
-            DeterministicAnswerAnalysisClient deterministicAnswerAnalysisClient =
-                new DeterministicAnswerAnalysisClient();
-            QuestionDefinition questionDefinition =
-                new QuestionDefinition("QTEST", "질문", "test", 1, true);
+            DeterministicAnswerAnalysisClient deterministicAnswerAnalysisClient = new DeterministicAnswerAnalysisClient();
+            QuestionDefinition questionDefinition = new QuestionDefinition("QTEST", "질문", "test", 1, true);
 
             AnswerAnalysisResult insufficientDataResult = runDeterministicAnalysis(
                 deterministicAnswerAnalysisClient,
@@ -573,8 +571,7 @@ namespace MouthOfTruth.Editor
 
             using (PythonBridgeAnalysisClient pythonBridgeAnalysisClient = new PythonBridgeAnalysisClient())
             {
-                QuestionDefinition questionDefinition =
-                    new QuestionDefinition("QBRIDGE", "Bridge validation question", "test", 1, true);
+                QuestionDefinition questionDefinition = new QuestionDefinition("QBRIDGE", "Bridge validation question", "test", 1, true);
                 AnswerAnalysisResult bridgeAnalysisResult = runPythonBridgeAnalysis(
                     pythonBridgeAnalysisClient,
                     questionDefinition,

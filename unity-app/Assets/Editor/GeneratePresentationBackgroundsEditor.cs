@@ -24,8 +24,7 @@ namespace MouthOfTruth.Editor
                 mainCamera = Object.FindAnyObjectByType<Camera>();
             }
 
-            CardPresentationAnchorSet cardPresentationAnchorSet =
-                Object.FindAnyObjectByType<CardPresentationAnchorSet>();
+            CardPresentationAnchorSet cardPresentationAnchorSet = Object.FindAnyObjectByType<CardPresentationAnchorSet>();
             MouthAnchorSet mouthAnchorSet = Object.FindAnyObjectByType<MouthAnchorSet>();
 
             if (mainCamera == null)
@@ -58,8 +57,7 @@ namespace MouthOfTruth.Editor
                 mouthChamberLookTarget
                 - (stageForward * 5.35f)
                 + (Vector3.up * 0.55f);
-            Quaternion mouthChamberRotation =
-                Quaternion.LookRotation((mouthChamberLookTarget - mouthChamberCameraPosition).normalized);
+            Quaternion mouthChamberRotation = Quaternion.LookRotation((mouthChamberLookTarget - mouthChamberCameraPosition).normalized);
 
             renderCameraToPng(
                 mainCamera,

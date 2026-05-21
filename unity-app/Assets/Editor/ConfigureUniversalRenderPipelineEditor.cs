@@ -38,8 +38,7 @@ namespace MouthOfTruth.Editor
 
         private static UniversalRendererData loadOrCreateRendererData()
         {
-            UniversalRendererData rendererData =
-                AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RENDERER_ASSET_PATH);
+            UniversalRendererData rendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RENDERER_ASSET_PATH);
 
             if (rendererData != null)
             {
@@ -57,8 +56,7 @@ namespace MouthOfTruth.Editor
         private static UniversalRenderPipelineAsset loadOrCreatePipelineAsset(
             UniversalRendererData rendererData)
         {
-            UniversalRenderPipelineAsset pipelineAsset =
-                AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PIPELINE_ASSET_PATH);
+            UniversalRenderPipelineAsset pipelineAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PIPELINE_ASSET_PATH);
 
             if (pipelineAsset != null)
             {

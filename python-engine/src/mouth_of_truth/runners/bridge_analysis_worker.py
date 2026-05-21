@@ -1,3 +1,5 @@
+"""Persistent bridge analysis worker used by Unity release builds."""
+
 from __future__ import annotations
 
 import contextlib

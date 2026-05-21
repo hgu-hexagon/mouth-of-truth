@@ -1,3 +1,5 @@
+"""Final judgment policy for multimodal face and voice evidence."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -57,10 +59,7 @@ def _has_voice_summary_signal(voice_result: AnalysisSummary) -> bool:
     return str(voice_result.get("dominant_label", "N/A")).strip().upper() != "N/A"
 
 
-def _build_missing_signal_reason_codes(
-    has_face_evidence: bool,
-    has_voice_evidence: bool,
-) -> list[str]:
+def _build_missing_signal_reason_codes(has_face_evidence: bool, has_voice_evidence: bool) -> list[str]:
     """Builds one stable reason-code list for missing evidence signals."""
     reason_codes: list[str] = []
 

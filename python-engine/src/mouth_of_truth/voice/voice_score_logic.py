@@ -1,3 +1,5 @@
+"""Voice-emotion scoring rules for final judgment fusion."""
+
 from __future__ import annotations
 
 from collections import Counter
@@ -77,9 +79,10 @@ def summarize_voice_session(segment_results: list[dict[str, Any]]) -> dict[str, 
             "result_text": "No valid voice data",
         }
 
-    average_score = sum(item["suspicion_score"] for item in segment_results) / len(segment_results)
-    average_base_score = sum(item["base_score"] for item in segment_results) / len(segment_results)
-    average_change_score = sum(item["change_score"] for item in segment_results) / len(segment_results)
+    segment_count = len(segment_results)
+    average_score = sum(item["suspicion_score"] for item in segment_results) / segment_count
+    average_base_score = sum(item["base_score"] for item in segment_results) / segment_count
+    average_change_score = sum(item["change_score"] for item in segment_results) / segment_count
     label_counter = Counter(item["label"] for item in segment_results)
     dominant_label = label_counter.most_common(1)[0][0]
     status_text = get_voice_status_text(average_score)

@@ -1,3 +1,5 @@
+"""One-shot bridge analysis runner used by Unity and packaging tests."""
+
 from __future__ import annotations
 
 import os

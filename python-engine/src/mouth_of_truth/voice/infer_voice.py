@@ -1,3 +1,5 @@
+"""Voice-emotion model loading and audio inference helpers."""
+
 from __future__ import annotations
 
 from array import array
@@ -28,8 +30,9 @@ def load_voice_model() -> tuple[AutoFeatureExtractor, AutoModelForAudioClassific
         return _CACHED_FEATURE_EXTRACTOR, _CACHED_VOICE_MODEL
 
     voice_model_directory = resolve_voice_model_directory()
-    _CACHED_FEATURE_EXTRACTOR = AutoFeatureExtractor.from_pretrained(str(voice_model_directory))
-    _CACHED_VOICE_MODEL = AutoModelForAudioClassification.from_pretrained(str(voice_model_directory))
+    voice_model_directory_path = str(voice_model_directory)
+    _CACHED_FEATURE_EXTRACTOR = AutoFeatureExtractor.from_pretrained(voice_model_directory_path)
+    _CACHED_VOICE_MODEL = AutoModelForAudioClassification.from_pretrained(voice_model_directory_path)
     _CACHED_VOICE_MODEL.eval()
     return _CACHED_FEATURE_EXTRACTOR, _CACHED_VOICE_MODEL
 
@@ -82,10 +85,7 @@ def probs_to_dict(probs_data: list[float]) -> dict[str, float]:
             f"(expected {len(VOICE_LABELS)})"
         )
 
-    return {
-        label: float(score)
-        for label, score in zip(VOICE_LABELS, probs_data)
-    }
+    return {label: float(score) for label, score in zip(VOICE_LABELS, probs_data)}
 
 
 def predict_voice_file(

@@ -1,3 +1,5 @@
+"""Deterministic analysis runner for presentation and regression validation."""
+
 from __future__ import annotations
 
 from hashlib import sha256
@@ -54,10 +56,7 @@ def run_once(request_file_path: str | Path, result_file_path: str | Path) -> Non
     write_analysis_result(result_file_path, analysis_result)
 
 
-def _build_missing_signal_reason_codes(
-    has_face_signal: bool,
-    has_voice_signal: bool,
-) -> list[str]:
+def _build_missing_signal_reason_codes(has_face_signal: bool, has_voice_signal: bool) -> list[str]:
     """Builds one stable reason-code list for missing deterministic signals."""
     reason_codes: list[str] = []
 

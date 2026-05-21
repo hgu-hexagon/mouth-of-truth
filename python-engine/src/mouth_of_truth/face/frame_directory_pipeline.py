@@ -1,3 +1,5 @@
+"""Face-frame directory analysis pipeline for Unity answer captures."""
+
 from __future__ import annotations
 
 from collections import deque
@@ -31,9 +33,8 @@ def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict
 
     sampled_frame_files = select_representative_frame_files(frame_files)
 
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    )
+    cascade_file_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    face_cascade = cv2.CascadeClassifier(cascade_file_path)
 
     if face_cascade.empty():
         raise RuntimeError("Failed to load the OpenCV frontal-face cascade.")

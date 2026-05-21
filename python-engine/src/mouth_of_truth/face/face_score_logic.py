@@ -1,3 +1,5 @@
+"""Face-emotion scoring rules for final judgment fusion."""
+
 from __future__ import annotations
 
 from collections import Counter, deque
@@ -116,9 +118,11 @@ def summarize_session(recognition_results: list[dict[str, Any]]) -> dict[str, An
             "result_text": "No valid face data",
         }
 
-    average_score = sum(item["suspicion_score"] for item in recognition_results) / len(recognition_results)
-    average_base_score = sum(item["base_score"] for item in recognition_results) / len(recognition_results)
-    average_change_score = sum(item["change_score"] for item in recognition_results) / len(recognition_results)
+    recognition_count = len(recognition_results)
+    average_score = sum(item["suspicion_score"] for item in recognition_results) / recognition_count
+    average_base_score = sum(item["base_score"] for item in recognition_results) / recognition_count
+    change_score_sum = sum(item["change_score"] for item in recognition_results)
+    average_change_score = change_score_sum / recognition_count
     label_counter = Counter(item["label"] for item in recognition_results)
     dominant_label = label_counter.most_common(1)[0][0]
 

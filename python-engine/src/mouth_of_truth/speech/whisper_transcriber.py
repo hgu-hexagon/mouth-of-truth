@@ -1,6 +1,9 @@
+"""Optional Whisper-based answer transcription support."""
+
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import librosa
 import torch
@@ -57,6 +60,7 @@ class WhisperTranscriber:
         return str(transcription.get("text", "")).strip()
 
     def _build_generate_kwargs(self, language_hint: str | None) -> dict[str, str]:
+        """Builds generation keyword arguments for one optional language hint."""
         generate_kwargs = {"task": "transcribe"}
 
         if language_hint:
@@ -64,7 +68,8 @@ class WhisperTranscriber:
 
         return generate_kwargs
 
-    def _get_transcription_pipeline(self):
+    def _get_transcription_pipeline(self) -> Any:
+        """Returns the cached Hugging Face speech-recognition pipeline."""
         if self._transcription_pipeline is not None:
             return self._transcription_pipeline
 
@@ -92,7 +97,8 @@ class WhisperTranscriber:
 
         return self._transcription_pipeline
 
-    def _get_pipeline_device(self):
+    def _get_pipeline_device(self) -> int | torch.device:
+        """Returns the best available local inference device."""
         if torch.cuda.is_available():
             return 0
 
@@ -101,10 +107,12 @@ class WhisperTranscriber:
 
         return -1
 
-    def _get_torch_dtype(self):
+    def _get_torch_dtype(self) -> torch.dtype:
+        """Returns the preferred tensor dtype for the selected runtime."""
         return torch.float16 if torch.cuda.is_available() else torch.float32
 
     def _is_model_cached(self) -> bool:
+        """Returns whether the requested Whisper model already exists locally."""
         model_cache_directory = (
             Path(self._cache_directory)
             / f"models--{self._model_name.replace('/', '--')}"

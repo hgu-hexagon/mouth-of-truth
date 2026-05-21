@@ -1,3 +1,5 @@
+"""Shared audio-signal helpers for speech evidence detection."""
+
 from __future__ import annotations
 
 import math
@@ -26,20 +28,14 @@ def has_speech_signal(
     start_sample_index = 0
 
     while start_sample_index + window_sample_count <= len(waveform):
-        if (
-            calculate_window_rms(waveform, start_sample_index, window_sample_count)
-            >= rms_threshold
-        ):
+        if calculate_window_rms(waveform, start_sample_index, window_sample_count) >= rms_threshold:
             return True
 
         start_sample_index += stride_sample_count
 
     tail_window_start_index = max(0, len(waveform) - window_sample_count)
     tail_sample_count = len(waveform) - tail_window_start_index
-    return (
-        calculate_window_rms(waveform, tail_window_start_index, tail_sample_count)
-        >= rms_threshold
-    )
+    return calculate_window_rms(waveform, tail_window_start_index, tail_sample_count) >= rms_threshold
 
 
 def calculate_window_rms(

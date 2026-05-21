@@ -1,3 +1,5 @@
+"""Score-to-verdict mapping rules."""
+
 from __future__ import annotations
 
 from mouth_of_truth.contracts.verdict_kind import VerdictKind

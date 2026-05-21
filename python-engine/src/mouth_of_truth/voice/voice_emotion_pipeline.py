@@ -1,15 +1,15 @@
+"""Voice-emotion analysis pipeline for recorded answer audio."""
+
 from __future__ import annotations
 
-from collections import deque
 import math
 import os
+from collections import deque
 from typing import Any
 
 import torch
 
-from mouth_of_truth.audio_signal import (
-    calculate_window_rms,
-)
+from mouth_of_truth.audio_signal import calculate_window_rms
 from mouth_of_truth.voice.infer_voice import (
     TARGET_SAMPLE_RATE,
     VOICE_LABELS,
@@ -215,10 +215,7 @@ def build_fast_voice_probability_dict(suspicion_score: float) -> dict[str, float
         "fru": tension * 0.58,
     }
     probability_sum = sum(raw_probabilities.values())
-    return {
-        label: raw_probabilities[label] / probability_sum
-        for label in VOICE_LABELS
-    }
+    return {label: raw_probabilities[label] / probability_sum for label in VOICE_LABELS}
 
 
 def build_empty_voice_analysis() -> dict[str, Any]:

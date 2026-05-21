@@ -1,3 +1,5 @@
+"""Model path resolution for local and packaged Python runtimes."""
+
 from __future__ import annotations
 
 import os
@@ -37,10 +39,7 @@ def resolve_model_path(relative_model_path: Path) -> Path:
             return candidate_path
 
     searched_paths_text = "\n".join(str(path) for path in searched_paths)
-    raise FileNotFoundError(
-        "Model asset not found. Searched:\n"
-        f"{searched_paths_text}"
-    )
+    raise FileNotFoundError("Model asset not found. Searched:\n" f"{searched_paths_text}")
 
 
 def build_candidate_model_roots() -> list[Path]:

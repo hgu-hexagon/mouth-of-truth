@@ -1,3 +1,5 @@
+"""JSON bridge contracts shared by Unity and the Python analysis runner."""
+
 from __future__ import annotations
 
 import json
@@ -44,20 +46,18 @@ def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
     """Reads one analysis request from JSON."""
     file_path = Path(file_path).expanduser().resolve()
     payload = json.loads(file_path.read_text(encoding="utf-8"))
+    answer_audio_relative_path = payload.get("AnswerAudioFilePath", "")
+    face_frames_relative_path = payload.get("FaceFramesDirectoryPath", "")
+    answer_audio_file_path = resolve_runtime_relative_path(file_path, answer_audio_relative_path)
+    face_frames_directory_path = resolve_runtime_relative_path(file_path, face_frames_relative_path)
 
     return AnalysisRequest(
         request_id=payload["RequestID"],
         question_id=payload["QuestionID"],
         question_text=payload["QuestionText"],
         answer_transcript=payload.get("AnswerTranscript", ""),
-        answer_audio_file_path=resolve_runtime_relative_path(
-            file_path,
-            payload.get("AnswerAudioFilePath", ""),
-        ),
-        face_frames_directory_path=resolve_runtime_relative_path(
-            file_path,
-            payload.get("FaceFramesDirectoryPath", ""),
-        ),
+        answer_audio_file_path=answer_audio_file_path,
+        face_frames_directory_path=face_frames_directory_path,
         face_frame_count=int(payload.get("FaceFrameCount", 0)),
         voice_segment_count=int(payload.get("VoiceSegmentCount", 0)),
         requested_at_utc=payload["RequestedAtUtc"],
@@ -74,16 +74,10 @@ def write_analysis_result(file_path: str | Path, analysis_result: AnalysisResult
         "ReasonCodes": analysis_result.reason_codes,
         "CompletedAtUtc": analysis_result.completed_at_utc,
     }
-    file_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    file_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def resolve_runtime_relative_path(
-    request_file_path: Path,
-    raw_path: str,
-) -> str:
+def resolve_runtime_relative_path(request_file_path: Path, raw_path: str) -> str:
     """Resolves one runtime-root-relative path from the request payload."""
     normalized_raw_path = raw_path.strip()
 

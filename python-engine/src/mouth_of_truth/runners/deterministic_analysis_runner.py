@@ -5,11 +5,7 @@ from __future__ import annotations
 from hashlib import sha256
 from pathlib import Path
 
-from mouth_of_truth.contracts.analysis_contracts import (
-    AnalysisResult,
-    read_analysis_request,
-    write_analysis_result,
-)
+from mouth_of_truth.contracts.analysis_contracts import AnalysisResult, read_analysis_request, write_analysis_result
 from mouth_of_truth.contracts.verdict_kind import VerdictKind
 
 
@@ -28,22 +24,12 @@ def build_deterministic_analysis_result(request_file_path: str | Path) -> Analys
     reason_codes = _build_missing_signal_reason_codes(has_face_signal, has_voice_signal)
 
     if has_face_signal is False or has_voice_signal is False:
-        return AnalysisResult(
-            request_id=analysis_request.request_id,
-            verdict=VerdictKind.UNCERTAIN,
-            answer_transcript=analysis_request.answer_transcript,
-            reason_codes=reason_codes,
-        )
+        return AnalysisResult(request_id=analysis_request.request_id, verdict=VerdictKind.UNCERTAIN, answer_transcript=analysis_request.answer_transcript, reason_codes=reason_codes)
 
     stable_hash = sha256(f"{analysis_request.question_id}|{analysis_request.answer_transcript}".encode("utf-8")).hexdigest()
     verdict = VerdictKind.TRUE if int(stable_hash[-1], 16) % 2 == 0 else VerdictKind.FALSE
 
-    return AnalysisResult(
-        request_id=analysis_request.request_id,
-        verdict=verdict,
-        answer_transcript=analysis_request.answer_transcript,
-        reason_codes=reason_codes,
-    )
+    return AnalysisResult(request_id=analysis_request.request_id, verdict=verdict, answer_transcript=analysis_request.answer_transcript, reason_codes=reason_codes)
 
 
 def run_once(request_file_path: str | Path, result_file_path: str | Path) -> None:

@@ -8,13 +8,7 @@ from typing import Any
 
 import cv2
 
-from mouth_of_truth.face.face_score_logic import (
-    calculate_base_score,
-    calculate_change_score,
-    calculate_suspicion_score,
-    get_average_distribution,
-    summarize_session,
-)
+from mouth_of_truth.face.face_score_logic import calculate_base_score, calculate_change_score, calculate_suspicion_score, get_average_distribution, summarize_session
 from mouth_of_truth.face.infer_face import load_face_model, predict_face_crop
 
 
@@ -62,15 +56,7 @@ def analyze_face_frame_directory(face_frames_directory_path: str | Path) -> dict
         base_score = calculate_base_score(prediction["prob_dict"])
         suspicion_score = calculate_suspicion_score(base_score, change_score)
 
-        recognition_results.append(
-            {
-                "label": prediction["label"],
-                "conf": prediction["confidence"],
-                "change_score": change_score,
-                "base_score": base_score,
-                "suspicion_score": suspicion_score,
-            }
-        )
+        recognition_results.append({"label": prediction["label"], "conf": prediction["confidence"], "change_score": change_score, "base_score": base_score, "suspicion_score": suspicion_score})
 
         if len(recognition_results) >= TARGET_ANALYSIS_RECOGNITION_COUNT:
             break
@@ -116,10 +102,7 @@ def select_representative_frame_files(frame_files: list[Path], maximum_frame_cou
         return [frame_files[len(frame_files) // 2]]
 
     last_frame_index = len(frame_files) - 1
-    selected_indices = {
-        round((last_frame_index * sample_index) / (maximum_frame_count - 1))
-        for sample_index in range(maximum_frame_count)
-    }
+    selected_indices = {round((last_frame_index * sample_index) / (maximum_frame_count - 1)) for sample_index in range(maximum_frame_count)}
     return [frame_files[frame_index] for frame_index in sorted(selected_indices)]
 
 

@@ -10,20 +10,8 @@ from typing import Any
 import torch
 
 from mouth_of_truth.audio_signal import calculate_window_rms
-from mouth_of_truth.voice.infer_voice import (
-    TARGET_SAMPLE_RATE,
-    VOICE_LABELS,
-    load_audio,
-    load_voice_model,
-    probs_to_dict,
-)
-from mouth_of_truth.voice.voice_score_logic import (
-    calculate_voice_base_score,
-    calculate_voice_change_score,
-    calculate_voice_suspicion_score,
-    get_voice_status_text,
-    summarize_voice_session,
-)
+from mouth_of_truth.voice.infer_voice import TARGET_SAMPLE_RATE, VOICE_LABELS, load_audio, load_voice_model, probs_to_dict
+from mouth_of_truth.voice.voice_score_logic import calculate_voice_base_score, calculate_voice_change_score, calculate_voice_suspicion_score, get_voice_status_text, summarize_voice_session
 
 
 SEGMENT_SECONDS = 2.0
@@ -71,11 +59,7 @@ def should_use_trained_voice_model() -> bool:
 def run_trained_voice_emotion_pipeline(audio_path: str, waveform: list[float]) -> dict[str, Any]:
     """Runs the slower trained voice-emotion model for offline validation."""
     feature_extractor, model = load_voice_model()
-    segments = [
-        segment_waveform
-        for segment_waveform in split_audio_into_segments(waveform, TARGET_SAMPLE_RATE)
-        if has_speech_signal(segment_waveform, TARGET_SAMPLE_RATE)
-    ]
+    segments = [segment_waveform for segment_waveform in split_audio_into_segments(waveform, TARGET_SAMPLE_RATE) if has_speech_signal(segment_waveform, TARGET_SAMPLE_RATE)]
     segments = select_representative_segments(segments)
     history: deque[list[float]] = deque(maxlen=VOICE_HISTORY_SIZE)
     segment_results: list[dict[str, Any]] = []
@@ -91,18 +75,7 @@ def run_trained_voice_emotion_pipeline(audio_path: str, waveform: list[float]) -
         base_score = calculate_voice_base_score(prediction["prob_dict"])
         suspicion_score = calculate_voice_suspicion_score(base_score, change_score)
 
-        segment_results.append(
-            {
-                "segment_index": analyzed_segment_index,
-                "label": prediction["label"],
-                "confidence": prediction["confidence"],
-                "change_score": change_score,
-                "base_score": base_score,
-                "suspicion_score": suspicion_score,
-                "status_text": get_voice_status_text(suspicion_score),
-                "prob_dict": prediction["prob_dict"],
-            }
-        )
+        segment_results.append({"segment_index": analyzed_segment_index, "label": prediction["label"], "confidence": prediction["confidence"], "change_score": change_score, "base_score": base_score, "suspicion_score": suspicion_score, "status_text": get_voice_status_text(suspicion_score), "prob_dict": prediction["prob_dict"]})
         analyzed_segment_index += 1
 
     return {
@@ -116,11 +89,7 @@ def run_trained_voice_emotion_pipeline(audio_path: str, waveform: list[float]) -
 def build_fast_voice_segment_result(waveform: list[float], sample_rate: int) -> dict[str, Any]:
     """Builds one quick voice-instability summary from waveform dynamics."""
     rms_values = calculate_rms_windows(waveform, sample_rate)
-    speech_rms_values = [
-        rms_value
-        for rms_value in rms_values
-        if rms_value >= FAST_SPEECH_EVIDENCE_RMS_THRESHOLD
-    ]
+    speech_rms_values = [rms_value for rms_value in rms_values if rms_value >= FAST_SPEECH_EVIDENCE_RMS_THRESHOLD]
 
     if not speech_rms_values:
         probability_dict = build_fast_voice_probability_dict(0.0)
@@ -184,11 +153,7 @@ def calculate_rms_windows(waveform: list[float], sample_rate: int) -> list[float
 def has_sustained_voice_evidence(waveform: list[float], sample_rate: int) -> bool:
     """Returns whether one waveform contains enough sustained voice evidence."""
     rms_values = calculate_rms_windows(waveform, sample_rate)
-    speech_rms_values = [
-        rms_value
-        for rms_value in rms_values
-        if rms_value >= FAST_SPEECH_EVIDENCE_RMS_THRESHOLD
-    ]
+    speech_rms_values = [rms_value for rms_value in rms_values if rms_value >= FAST_SPEECH_EVIDENCE_RMS_THRESHOLD]
 
     if len(speech_rms_values) < MINIMUM_FAST_SPEECH_EVIDENCE_WINDOW_COUNT:
         return False
@@ -223,12 +188,7 @@ def build_empty_voice_analysis() -> dict[str, Any]:
     }
 
 
-def split_audio_into_segments(
-    waveform: list[float],
-    sample_rate: int,
-    segment_seconds: float = SEGMENT_SECONDS,
-    stride_seconds: float = SEGMENT_STRIDE_SECONDS,
-) -> list[list[float]]:
+def split_audio_into_segments(waveform: list[float], sample_rate: int, segment_seconds: float = SEGMENT_SECONDS, stride_seconds: float = SEGMENT_STRIDE_SECONDS) -> list[list[float]]:
     """Splits one waveform into overlapping analysis segments."""
     segment_length = int(segment_seconds * sample_rate)
     stride_length = int(stride_seconds * sample_rate)
@@ -253,10 +213,7 @@ def split_audio_into_segments(
     return segments
 
 
-def select_representative_segments(
-    segments: list[list[float]],
-    maximum_segment_count: int = MAX_ANALYSIS_SEGMENT_COUNT,
-) -> list[list[float]]:
+def select_representative_segments(segments: list[list[float]], maximum_segment_count: int = MAX_ANALYSIS_SEGMENT_COUNT) -> list[list[float]]:
     """Selects evenly spaced speech segments so verdict latency stays bounded."""
     if maximum_segment_count <= 0:
         raise ValueError("maximum_segment_count must be greater than zero.")
@@ -268,25 +225,13 @@ def select_representative_segments(
         return [segments[len(segments) // 2]]
 
     last_segment_index = len(segments) - 1
-    selected_indices = {
-        round((last_segment_index * sample_index) / (maximum_segment_count - 1))
-        for sample_index in range(maximum_segment_count)
-    }
+    selected_indices = {round((last_segment_index * sample_index) / (maximum_segment_count - 1)) for sample_index in range(maximum_segment_count)}
     return [segments[segment_index] for segment_index in sorted(selected_indices)]
 
 
-def predict_voice_segment(
-    feature_extractor: Any,
-    model: Any,
-    segment_waveform: list[float],
-) -> dict[str, Any]:
+def predict_voice_segment(feature_extractor: Any, model: Any, segment_waveform: list[float]) -> dict[str, Any]:
     """Runs one voice-emotion prediction on one waveform segment."""
-    inputs = feature_extractor(
-        segment_waveform,
-        sampling_rate=TARGET_SAMPLE_RATE,
-        return_tensors="pt",
-        padding=True,
-    )
+    inputs = feature_extractor(segment_waveform, sampling_rate=TARGET_SAMPLE_RATE, return_tensors="pt", padding=True)
 
     with torch.no_grad():
         logits = model(**inputs).logits

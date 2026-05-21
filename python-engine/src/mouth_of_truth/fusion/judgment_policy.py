@@ -17,14 +17,7 @@ AnalysisSummary = dict[str, Any]
 FusedVerdictPayload = dict[str, Any]
 
 
-def build_analysis_result(
-    request_id: str,
-    answer_transcript: str,
-    face_result: AnalysisSummary,
-    voice_result: AnalysisSummary,
-    face_recognition_count: int,
-    voice_segment_count: int,
-) -> AnalysisResult:
+def build_analysis_result(request_id: str, answer_transcript: str, face_result: AnalysisSummary, voice_result: AnalysisSummary, face_recognition_count: int, voice_segment_count: int) -> AnalysisResult:
     """Builds one final game-facing analysis result."""
     has_face_signal = face_recognition_count >= MIN_FACE_RECOGNITIONS_FOR_JUDGMENT
     has_voice_signal = voice_segment_count >= MIN_VOICE_SEGMENTS_FOR_JUDGMENT
@@ -34,19 +27,9 @@ def build_analysis_result(
 
     if has_face_evidence and has_voice_evidence:
         fused_result: FusedVerdictPayload = fuse_face_and_voice(face_result, voice_result)
-        return AnalysisResult(
-            request_id=request_id,
-            verdict=fused_result["verdict"],
-            answer_transcript=answer_transcript,
-            reason_codes=fused_result["reason_codes"],
-        )
+        return AnalysisResult(request_id=request_id, verdict=fused_result["verdict"], answer_transcript=answer_transcript, reason_codes=fused_result["reason_codes"])
 
-    return AnalysisResult(
-        request_id=request_id,
-        verdict=VerdictKind.UNCERTAIN,
-        answer_transcript=answer_transcript,
-        reason_codes=reason_codes,
-    )
+    return AnalysisResult(request_id=request_id, verdict=VerdictKind.UNCERTAIN, answer_transcript=answer_transcript, reason_codes=reason_codes)
 
 
 def _has_face_summary_signal(face_result: AnalysisSummary) -> bool:

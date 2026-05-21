@@ -18,10 +18,7 @@ def _clamp(value: float, min_value: float, max_value: float) -> float:
     return max(min_value, min(value, max_value))
 
 
-def fuse_face_and_voice(
-    face_result: EmotionSummary,
-    voice_result: EmotionSummary,
-) -> FusedVerdictPayload:
+def fuse_face_and_voice(face_result: EmotionSummary, voice_result: EmotionSummary) -> FusedVerdictPayload:
     """Fuses face and voice summaries into one final verdict payload."""
     face_score = float(face_result.get("avg_score", 0.0))
     voice_score = float(voice_result.get("avg_score", 0.0))

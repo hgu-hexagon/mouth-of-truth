@@ -20,15 +20,8 @@ def _ensure_package_root_on_sys_path() -> None:
 
 _ensure_package_root_on_sys_path()
 
-from mouth_of_truth.contracts.analysis_contracts import (
-    AnalysisRequest,
-    AnalysisResult,
-    read_analysis_request,
-    write_analysis_result,
-)
-from mouth_of_truth.fusion.judgment_policy import (
-    build_analysis_result as build_fused_analysis_result,
-)
+from mouth_of_truth.contracts.analysis_contracts import AnalysisRequest, AnalysisResult, read_analysis_request, write_analysis_result
+from mouth_of_truth.fusion.judgment_policy import build_analysis_result as build_fused_analysis_result
 
 
 AnalysisPayload = dict[str, Any]
@@ -70,10 +63,7 @@ def run_once(request_file_path: str | Path, result_file_path: str | Path) -> Non
 
 def _analyze_face_data(analysis_request: AnalysisRequest) -> AnalysisPayload:
     """Analyzes one saved face-frame directory, if it exists."""
-    from mouth_of_truth.face.frame_directory_pipeline import (
-        analyze_face_frame_directory,
-        build_empty_face_analysis,
-    )
+    from mouth_of_truth.face.frame_directory_pipeline import analyze_face_frame_directory, build_empty_face_analysis
 
     face_frames_directory_path = analysis_request.face_frames_directory_path.strip()
 
@@ -89,10 +79,7 @@ def _analyze_face_data(analysis_request: AnalysisRequest) -> AnalysisPayload:
 
 def _analyze_voice_data(analysis_request: AnalysisRequest) -> AnalysisPayload:
     """Analyzes one saved answer audio file, if it exists."""
-    from mouth_of_truth.voice.voice_emotion_pipeline import (
-        build_empty_voice_analysis,
-        run_voice_emotion_pipeline,
-    )
+    from mouth_of_truth.voice.voice_emotion_pipeline import build_empty_voice_analysis, run_voice_emotion_pipeline
 
     answer_audio_file_path = analysis_request.answer_audio_file_path.strip()
 

@@ -51,17 +51,7 @@ def read_analysis_request(file_path: str | Path) -> AnalysisRequest:
     answer_audio_file_path = resolve_runtime_relative_path(file_path, answer_audio_relative_path)
     face_frames_directory_path = resolve_runtime_relative_path(file_path, face_frames_relative_path)
 
-    return AnalysisRequest(
-        request_id=payload["RequestID"],
-        question_id=payload["QuestionID"],
-        question_text=payload["QuestionText"],
-        answer_transcript=payload.get("AnswerTranscript", ""),
-        answer_audio_file_path=answer_audio_file_path,
-        face_frames_directory_path=face_frames_directory_path,
-        face_frame_count=int(payload.get("FaceFrameCount", 0)),
-        voice_segment_count=int(payload.get("VoiceSegmentCount", 0)),
-        requested_at_utc=payload["RequestedAtUtc"],
-    )
+    return AnalysisRequest(request_id=payload["RequestID"], question_id=payload["QuestionID"], question_text=payload["QuestionText"], answer_transcript=payload.get("AnswerTranscript", ""), answer_audio_file_path=answer_audio_file_path, face_frames_directory_path=face_frames_directory_path, face_frame_count=int(payload.get("FaceFrameCount", 0)), voice_segment_count=int(payload.get("VoiceSegmentCount", 0)), requested_at_utc=payload["RequestedAtUtc"])
 
 
 def write_analysis_result(file_path: str | Path, analysis_result: AnalysisResult) -> None:

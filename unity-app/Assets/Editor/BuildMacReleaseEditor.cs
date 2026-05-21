@@ -320,10 +320,7 @@ namespace MouthOfTruth.Editor
 
             string archiveDirectoryPath = Path.GetDirectoryName(archivePath);
             Directory.CreateDirectory(string.IsNullOrEmpty(archiveDirectoryPath) ? runtimeRootPath : archiveDirectoryPath);
-            runProcess(
-                "/usr/bin/ditto",
-                $"-c -k --norsrc --noextattr --noqtn --noacl --keepParent \"{distributionRootPath}\" \"{archivePath}\"",
-                runtimeRootPath);
+            runProcess("/usr/bin/ditto", $"-c -k --norsrc --noextattr --noqtn --noacl --keepParent \"{distributionRootPath}\" \"{archivePath}\"", runtimeRootPath);
         }
 
         private static void runProcess(string fileName, string arguments, string workingDirectory)

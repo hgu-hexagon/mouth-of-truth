@@ -53,10 +53,7 @@ namespace MouthOfTruth.Editor
             renderCameraToPng(mainCamera, Path.Combine(OUTPUT_DIRECTORY_PATH, MOUTH_CHAMBER_BACKGROUND_FILE_NAME), mouthChamberCameraPosition, mouthChamberRotation, 26.0f);
 
             AssetDatabase.Refresh();
-            Debug.Log(
-                "Generated presentation background images:\n"
-                + $"- {Path.Combine(OUTPUT_DIRECTORY_PATH, CARD_SELECTION_BACKGROUND_FILE_NAME)}\n"
-                + $"- {Path.Combine(OUTPUT_DIRECTORY_PATH, MOUTH_CHAMBER_BACKGROUND_FILE_NAME)}");
+            Debug.Log("Generated presentation background images:\n" + $"- {Path.Combine(OUTPUT_DIRECTORY_PATH, CARD_SELECTION_BACKGROUND_FILE_NAME)}\n" + $"- {Path.Combine(OUTPUT_DIRECTORY_PATH, MOUTH_CHAMBER_BACKGROUND_FILE_NAME)}");
         }
 
         private static void renderCameraToPng(Camera sourceCamera, string outputFilePath, Vector3 position, Quaternion rotation, float fieldOfView)

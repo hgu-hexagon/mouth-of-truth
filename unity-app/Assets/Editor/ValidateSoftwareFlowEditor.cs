@@ -477,13 +477,7 @@ namespace MouthOfTruth.Editor
             for (int questionIndex = 0; questionIndex < questionCount; questionIndex += 1)
             {
                 string questionID = $"Q{questionIndex + 1:D4}";
-                questionDefinitions.Add(
-                    new QuestionDefinition(
-                        questionID,
-                        $"Synthetic question {questionIndex + 1}",
-                        "test",
-                        1,
-                        true));
+                questionDefinitions.Add(new QuestionDefinition(questionID, $"Synthetic question {questionIndex + 1}", "test", 1, true));
             }
 
             return questionDefinitions;
@@ -515,10 +509,7 @@ namespace MouthOfTruth.Editor
 
         private static void assertState(MouthOfTruthGameStateMachine gameStateMachine, EGameFlowState expectedState, string stepName)
         {
-            assertCondition(
-                gameStateMachine.CurrentState == expectedState,
-                $"Expected {stepName} to be {expectedState}, "
-                + $"but was {gameStateMachine.CurrentState}.");
+            assertCondition(gameStateMachine.CurrentState == expectedState, $"Expected {stepName} to be {expectedState}, " + $"but was {gameStateMachine.CurrentState}.");
         }
 
         private static void assertCondition(bool condition, string message)

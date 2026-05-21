@@ -132,8 +132,7 @@ namespace MouthOfTruth.Editor
 
             if (questionDefinitions.Count < 3)
             {
-                errors.Add(
-                    $"Question pool must contain at least three enabled questions. Current count: {questionDefinitions.Count}");
+                errors.Add($"Question pool must contain at least three enabled questions. Current count: {questionDefinitions.Count}");
             }
 
             validateQuestionNarrationAudio(questionDefinitions, errors);

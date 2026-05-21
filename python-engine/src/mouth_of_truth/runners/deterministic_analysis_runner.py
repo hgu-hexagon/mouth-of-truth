@@ -20,7 +20,7 @@ INSUFFICIENT_VOICE_DATA_REASON_CODE = "insufficient_voice_data"
 
 
 def build_deterministic_analysis_result(request_file_path: str | Path) -> AnalysisResult:
-    """Builds one deterministic placeholder result from a Unity bridge request."""
+    """Builds one deterministic validation result from a Unity bridge request."""
     analysis_request = read_analysis_request(request_file_path)
 
     has_face_signal = analysis_request.face_frame_count >= MINIMUM_FACE_RECOGNITION_COUNT
@@ -35,11 +35,7 @@ def build_deterministic_analysis_result(request_file_path: str | Path) -> Analys
             reason_codes=reason_codes,
         )
 
-    stable_hash = sha256(
-        f"{analysis_request.question_id}|{analysis_request.answer_transcript}".encode(
-            "utf-8"
-        )
-    ).hexdigest()
+    stable_hash = sha256(f"{analysis_request.question_id}|{analysis_request.answer_transcript}".encode("utf-8")).hexdigest()
     verdict = VerdictKind.TRUE if int(stable_hash[-1], 16) % 2 == 0 else VerdictKind.FALSE
 
     return AnalysisResult(

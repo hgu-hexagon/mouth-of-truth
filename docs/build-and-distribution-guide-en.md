@@ -69,6 +69,10 @@ Check the following from the repository root.
 - `unity-app/Assets/StreamingAssets/audio/questions/` contains narration audio matching the current question IDs.
 - `unity-app/Assets/StreamingAssets/art/` contains the product PNG/JPEG assets.
 
+`Validate Product Readiness` and release builds may resave `Assets/Scenes/Main.unity`
+and generated background images. Before distribution, confirm that those changes
+are the intended release-scene outputs and commit them together.
+
 ## 5. Package the Python Runtime
 
 ### macOS
@@ -200,7 +204,7 @@ The macOS package includes:
 - `Run Mouth of Truth Presentation Test.command`
 
 This runs the same product in presentation-capture mode and writes captures to
-`presentation-captures/test-run/`. It does not require a spoken answer and is
+`PresentationTestCaptures/` inside the release folder. It does not require a spoken answer and is
 intended to validate the visual flow for `TRUE`, `FALSE`, and `UNCERTAIN`.
 
 The Windows package includes:
@@ -218,9 +222,10 @@ Before distribution, run the normal launcher and verify:
 - three cards appear
 - card hover/dwell selection works
 - the selected card flips and question narration plays
-- the view approaches the Mouth of Truth
-- hand insertion starts answer collection
-- answer collection shows the eye-beam effect
+- the selected card is absorbed into the Mouth of Truth while the camera zooms at the same time
+- the pointer stays settled at bottom center during the hand prompt voice and the prompt fades when insertion movement is detected
+- the ritual hand rises from below toward the Mouth of Truth before answer collection starts
+- answer collection shows the fixed-base vertically sweeping eye-beam effect
 - analysis shows zoom, aura, and shake effects
 - the result screen appears
 - `TRY AGAIN` returns to the card-selection flow

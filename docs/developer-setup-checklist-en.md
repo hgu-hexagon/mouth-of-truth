@@ -150,12 +150,13 @@ In Unity Play Mode or a release build, verify:
 4. Confirm three question cards.
 5. Select a card with hover/dwell.
 6. Confirm the card flip and pre-recorded question narration.
-7. Confirm the approach toward the Mouth of Truth.
-8. Confirm hand-in-mouth detection.
-9. Confirm answer collection with eye-beam visuals.
-10. Confirm analysis zoom, aura, and shake visuals.
-11. Confirm `TRUE`, `FALSE`, and `UNCERTAIN` result presentation.
-12. Confirm `TRY AGAIN` and the top-left exit button.
+7. Confirm that the selected card is absorbed into the Mouth of Truth while the camera zooms at the same time.
+8. Confirm that the pointer stays settled at bottom center during the hand prompt voice and the prompt fades only when insertion movement is detected.
+9. Confirm that the ritual hand rises from below toward the Mouth of Truth.
+10. Confirm answer collection with fixed-base vertically sweeping eye-beam visuals.
+11. Confirm analysis zoom, aura, and shake visuals.
+12. Confirm `TRUE`, `FALSE`, and `UNCERTAIN` result presentation.
+13. Confirm `TRY AGAIN` and the top-left exit button.
 
 ## 11. macOS Release Build
 

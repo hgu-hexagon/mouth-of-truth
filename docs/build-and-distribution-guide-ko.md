@@ -71,6 +71,9 @@ Unity Hub에 `6000.4.1f1`이 보이지 않으면 Unity Download Archive에서 �
 - `unity-app/Assets/StreamingAssets/audio/questions/` 안에 `Q0001.wav`부터 현재 질문 ID에 맞는 음성 파일이 있다.
 - `unity-app/Assets/StreamingAssets/art/` 안에 제품용 PNG/JPEG 자산이 있다.
 
+`Validate Product Readiness`와 릴리즈 빌드는 `Assets/Scenes/Main.unity`와 생성 배경 이미지를 다시 저장할 수 있다.
+배포 직전에는 이 변경이 현재 릴리즈 씬 산출물인지 확인한 뒤 함께 커밋한다.
+
 ## 5. Python 런타임 패키징
 
 ### macOS
@@ -202,7 +205,7 @@ macOS 배포 폴더에는 아래 테스트 실행 파일이 포함된다.
 - `Run Mouth of Truth Presentation Test.command`
 
 이 파일은 실제 제품과 같은 화면/사운드 흐름을 자동으로 진행하면서
-`presentation-captures/test-run/`에 캡처용 결과를 남긴다. 실제 음성 답변은
+배포 폴더의 `PresentationTestCaptures/`에 캡처용 결과를 남긴다. 실제 음성 답변은
 요구하지 않으며, `TRUE`, `FALSE`, `UNCERTAIN` 결과 화면을 검증하는 용도로
 사용한다.
 
@@ -221,9 +224,10 @@ Windows 배포 폴더에는 아래 테스트 실행 파일이 포함된다.
 - 카드 3장이 표시된다.
 - 카드 hover/dwell 선택이 된다.
 - 카드가 뒤집히고 질문 음성이 재생된다.
-- 진실의 입으로 접근한다.
-- 손 삽입 후 답변 수집 화면으로 넘어간다.
-- 답변 수집 중 레이저 연출이 보인다.
+- 카드가 진실의 입으로 흡수되며 카메라 줌이 동시에 진행된다.
+- 안내 음성 중 포인터가 하단 중앙에 고정되고, 손 움직임 감지 시 안내 바가 사라진다.
+- 손이 아래에서 진실의 입 쪽으로 올라간 뒤 답변 수집 화면으로 넘어간다.
+- 답변 수집 중 고정 밑변 y축 스윕 레이저 연출이 보인다.
 - 판정 중 줌/오라/흔들림 연출이 보인다.
 - 결과 화면이 표시된다.
 - `TRY AGAIN` 이 다시 카드 선택 흐름으로 돌아간다.

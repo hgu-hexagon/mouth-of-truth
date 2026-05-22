@@ -74,8 +74,8 @@ Important paths:
 - `results/result_uncertain.wav`
 - `questions/Q0001.wav` through `questions/Q0012.wav`
 
-Question narration also keeps MP3 copies in the repository, but the runtime
-service checks WAV first.
+Question narration uses WAV files in the release path so the runtime audio
+loader can decode them directly.
 
 ## Model and Dataset Lineage
 

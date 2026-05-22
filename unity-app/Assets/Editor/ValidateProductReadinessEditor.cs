@@ -148,7 +148,7 @@ namespace MouthOfTruth.Editor
             {
                 string questionAudioFilePath = Path.Combine(
                     questionAudioDirectoryPath,
-                    $"{questionDefinition.ID}.mp3");
+                    $"{questionDefinition.ID}.wav");
 
                 if (File.Exists(questionAudioFilePath) == false)
                 {

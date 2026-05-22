@@ -9,13 +9,6 @@ namespace MouthOfTruth.Game.Narration
 {
     public class PrerecordedQuestionNarrationService : IQuestionNarrationService
     {
-        private static readonly string[] SUPPORTED_AUDIO_EXTENSIONS =
-        {
-            ".wav",
-            ".mp3",
-            ".ogg",
-        };
-
         private readonly AudioSource mAudioSource;
         private readonly IQuestionNarrationService mFallbackNarrationService;
         private readonly string mQuestionAudioDirectoryPath;
@@ -87,14 +80,11 @@ namespace MouthOfTruth.Game.Narration
                 return string.Empty;
             }
 
-            foreach (string audioExtension in SUPPORTED_AUDIO_EXTENSIONS)
-            {
-                string candidateFilePath = Path.Combine(mQuestionAudioDirectoryPath, $"{questionDefinition.ID}{audioExtension}");
+            string candidateFilePath = Path.Combine(mQuestionAudioDirectoryPath, $"{questionDefinition.ID}.wav");
 
-                if (File.Exists(candidateFilePath))
-                {
-                    return candidateFilePath;
-                }
+            if (File.Exists(candidateFilePath))
+            {
+                return candidateFilePath;
             }
 
             return string.Empty;

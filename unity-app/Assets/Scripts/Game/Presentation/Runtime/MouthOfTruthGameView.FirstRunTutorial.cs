@@ -22,29 +22,25 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mTutorialOverlayImage, true);
             setObjectActive(mTutorialDevicePanelImage, true);
-            setObjectActive(mTutorialDeviceImage, true);
             setObjectActive(mTutorialHandImage, true);
             setObjectActive(mTutorialTitleText, true);
-            setObjectActive(mTutorialBodyText, false);
+            setObjectActive(mTutorialBodyText, true);
             setObjectActive(mTutorialStepText, false);
             setObjectActive(mStartButton, false);
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mBackToTitleButton, false);
             setObjectActive(mExitButton, true);
-            mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
-            mTutorialDevicePanelImage.color = new Color(0.56f, 0.57f, 0.59f, 0.94f);
+            mTutorialOverlayImage.color = new Color(0.078f, 0.080f, 0.090f, 1.0f);
+            mTutorialDevicePanelImage.color = new Color(0.145f, 0.148f, 0.162f, 0.97f);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
-            mTutorialDeviceImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
             mTutorialTitleText.transform.SetAsLastSibling();
+            mTutorialBodyText.transform.SetAsLastSibling();
             mExitButton.transform.SetAsLastSibling();
             setText(mTutorialTitleText, "손을 장치 위에서 천천히 움직여 주세요");
+            setText(mTutorialBodyText, "손끝 방향으로 버튼과 카드를 가리키고, 같은 위치에 잠시 머물면 선택됩니다.");
             RectTransform handRectTransform = mTutorialHandImage.rectTransform;
-            RectTransform deviceRectTransform = mTutorialDeviceImage.rectTransform;
-            deviceRectTransform.sizeDelta = TUTORIAL_DEVICE_SIZE_PIXELS;
-            deviceRectTransform.anchoredPosition = new Vector2(0.0f, -88.0f);
-            mTutorialDeviceImage.color = Color.white;
 
             await animateOverTimeAsync(
                 tutorialDurationSeconds,
@@ -52,18 +48,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 {
                     float firstSegmentProgress = Mathf.Clamp01(progress / 0.48f);
                     float secondSegmentProgress = Mathf.Clamp01((progress - 0.48f) / 0.52f);
-                    Vector2 hoverStartPosition = new Vector2(0.0f, -34.0f);
-                    Vector2 hoverReadyPosition = new Vector2(0.0f, 82.0f);
+                    Vector2 hoverStartPosition = new Vector2(0.0f, -130.0f);
+                    Vector2 hoverReadyPosition = new Vector2(0.0f, -18.0f);
                     handRectTransform.anchoredPosition = progress < 0.48f
                         ? Vector2.Lerp(hoverStartPosition, hoverReadyPosition, easeOut(firstSegmentProgress))
-                        : getTutorialScanPosition(secondSegmentProgress) + new Vector2(0.0f, 98.0f);
-                    handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.00f, easeOut(firstSegmentProgress));
-                    mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
+                        : getTutorialScanPosition(secondSegmentProgress);
+                    handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.02f, easeOut(firstSegmentProgress));
+                    mTutorialOverlayImage.color = new Color(0.078f, 0.080f, 0.090f, 1.0f);
                 });
 
             setObjectActive(mTutorialOverlayImage, false);
             setObjectActive(mTutorialDevicePanelImage, false);
-            setObjectActive(mTutorialDeviceImage, false);
             setObjectActive(mTutorialHandImage, false);
             setObjectActive(mTutorialTitleText, false);
             setObjectActive(mTutorialBodyText, false);

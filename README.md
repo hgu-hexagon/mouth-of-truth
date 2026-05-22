@@ -25,7 +25,7 @@ and verdict generation.
 The current product flow includes:
 
 - title screen with `START GAME` and top-left exit control
-- first-run Leap Motion instruction sequence with a visible device image under the hand guide
+- first-run Leap Motion instruction sequence without the old numbered step text
 - temple approach sequence into the card-selection space
 - three hidden question cards drawn from a non-repeating JSON pool
 - pointer hover and dwell selection for cards and buttons

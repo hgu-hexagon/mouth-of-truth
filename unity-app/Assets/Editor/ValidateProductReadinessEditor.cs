@@ -96,7 +96,6 @@ namespace MouthOfTruth.Editor
                 MouthOfTruthAssetCatalog.UncertainVerdictPath,
                 MouthOfTruthAssetCatalog.PrimaryButtonFramePath,
                 MouthOfTruthAssetCatalog.HandPointerPath,
-                MouthOfTruthAssetCatalog.LeapMotionDevicePath,
                 MouthOfTruthAssetCatalog.CardSelectionGlowPath,
                 MouthOfTruthAssetCatalog.CardSelectionProgressFillPath,
                 MouthOfTruthAssetCatalog.TitleAmbiencePath,

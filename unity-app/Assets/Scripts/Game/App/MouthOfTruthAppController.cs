@@ -456,6 +456,12 @@ namespace MouthOfTruth.Game.App
 
         private void updatePointerPresentation(Vector2? pointerScreenPosition)
         {
+            if (mIsPresentationCaptureRunning)
+            {
+                mGameView.UpdatePointerVisual(false, null);
+                return;
+            }
+
             bool isCinematicTransition = mIsTransitionBusy
                 && (mGameStateMachine.CurrentState == EGameFlowState.InsertingHand || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult);
             bool shouldShowPointer = pointerScreenPosition.HasValue
@@ -1124,7 +1130,7 @@ namespace MouthOfTruth.Game.App
             {
                 float deltaSeconds = Mathf.Max(Time.deltaTime, 1.0f / 60.0f);
                 elapsedSeconds = Mathf.Min(CARD_SELECTION_DWELL_SECONDS, elapsedSeconds + deltaSeconds);
-                mGameView.UpdatePointerVisual(true, cardScreenCenter);
+                mGameView.UpdatePointerVisual(false, null);
                 mGameView.UpdateCardHoverVisual(questionCardSlot, Mathf.Clamp01(elapsedSeconds / CARD_SELECTION_DWELL_SECONDS));
                 confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(questionCardSlot, deltaSeconds);
                 await Task.Yield();
@@ -1140,7 +1146,7 @@ namespace MouthOfTruth.Game.App
                 throw new InvalidOperationException("Presentation capture could not confirm the center card.");
             }
 
-            mGameView.UpdatePointerVisual(true, cardScreenCenter);
+            mGameView.UpdatePointerVisual(false, null);
             mGameView.UpdateCardHoverVisual(questionCardSlot, 1.0f);
             return confirmedQuestionCardSlot.Value;
         }

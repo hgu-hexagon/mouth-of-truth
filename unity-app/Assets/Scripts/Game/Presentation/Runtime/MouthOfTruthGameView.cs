@@ -63,8 +63,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float ANSWER_BEAM_SOURCE_Y_FACTOR = 0.108f;
         private const float ANSWER_BEAM_END_BOTTOM_Y_FACTOR = -0.43f;
         private const float ANSWER_BEAM_END_TOP_Y_FACTOR = 0.50f;
-        private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.05f;
-        private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.64f;
+        private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = 3.0f;
         private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 4.36f;

@@ -12,6 +12,7 @@ namespace MouthOfTruth.Game.App
     public partial class MouthOfTruthAppController
     {
         private const float PRESENTATION_CAPTURE_CARD_ABSORPTION_PROGRESS = 0.82f;
+        private const float PRESENTATION_CAPTURE_TEMPLE_APPROACH_SECONDS = 2.17f;
         private const float PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS = 1.2f;
         private const float PRESENTATION_CAPTURE_HAND_INSERTION_SECONDS = 0.92f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
@@ -59,7 +60,7 @@ namespace MouthOfTruth.Game.App
             }
 
             Task approachToCardSelectionTask = mGameView.PlayTempleApproachToCardSelectionAsync();
-            yield return waitForRealtimeSecondsCoroutine(2.8f);
+            yield return waitForRealtimeSecondsCoroutine(PRESENTATION_CAPTURE_TEMPLE_APPROACH_SECONDS);
             yield return waitForPresentationFrameCoroutine();
             yield return captureScreenshotCoroutine(outputDirectoryPath, "03_temple_approach.png");
             yield return waitForTaskCoroutine(approachToCardSelectionTask);

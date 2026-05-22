@@ -184,6 +184,9 @@ Use `Run Mouth of Truth.command` for normal demos and user runs. Use
 `Run Mouth of Truth Presentation Test.command` for automated presentation-flow
 capture and visual checks.
 
+After a local macOS build, run `./tools/run-presentation-capture.sh` from the
+repository root to write the same capture sequence to `presentation-captures/latest/`.
+
 ## 12. Common Mistakes
 
 ### Unity was opened from the repository root

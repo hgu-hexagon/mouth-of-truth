@@ -207,6 +207,24 @@ This runs the same product in presentation-capture mode and writes captures to
 `PresentationTestCaptures/` inside the release folder. It does not require a spoken answer and is
 intended to validate the visual flow for `TRUE`, `FALSE`, and `UNCERTAIN`.
 
+The current capture output is generated in this order:
+
+- `01_start.png`
+- `02_first_run_tutorial.png`
+- `03_temple_approach.png`
+- `04_cards.png`
+- `05_card_focus.png`
+- `06_card_question.png`
+- `07_card_absorption.png`
+- `08_mouth_arrival.png`
+- `09_hand_prompt.png`
+- `10_hand_insertion.png`
+- `11_answering.png`
+- `12_analyzing.png`
+- `13_result_true.png`
+- `14_result_false.png`
+- `15_result_uncertain.png`
+
 The Windows package includes:
 
 - `Run Mouth of Truth Presentation Test.bat`

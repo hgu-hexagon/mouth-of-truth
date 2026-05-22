@@ -182,6 +182,9 @@ UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/
 자동 화면 캡처와 발표 흐름 점검에는 `Run Mouth of Truth Presentation Test.command`를
 사용한다.
 
+로컬 macOS 빌드 후 저장소 루트에서 `./tools/run-presentation-capture.sh`를 실행하면
+동일한 캡처 흐름이 `presentation-captures/latest/`에 생성된다.
+
 ## 12. 자주 발생하는 실수
 
 ### Unity를 저장소 루트에서 열었다

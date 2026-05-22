@@ -108,14 +108,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             float mouthDiameterPixels = Mathf.Max(1.0f, Mathf.Min(mMouthImage.rectTransform.rect.width, mMouthImage.rectTransform.rect.height));
-            EHandAnchorState exactAnchorState = EvaluateHandAnchorState(pointerCanvasPosition, getHandFrontPosition(), getHandInnerPosition(), mouthDiameterPixels);
+            Vector2 handDetectionOffset = getHandDetectionOffset(mouthDiameterPixels);
+            Vector2 handFrontPosition = getHandFrontPosition() + handDetectionOffset;
+            Vector2 handInnerPosition = getHandInnerPosition() + handDetectionOffset;
+            EHandAnchorState exactAnchorState = EvaluateHandAnchorState(pointerCanvasPosition, handFrontPosition, handInnerPosition, mouthDiameterPixels);
 
             if (exactAnchorState != EHandAnchorState.OutsideMouth)
             {
                 return exactAnchorState;
             }
 
-            return EvaluateMouthIntentAnchorState(pointerCanvasPosition, getHandFrontPosition(), getHandInnerPosition(), mouthDiameterPixels);
+            return EvaluateMouthIntentAnchorState(pointerCanvasPosition, handFrontPosition, handInnerPosition, mouthDiameterPixels);
         }
 
         public static EQuestionCardSlot? EvaluateQuestionCardIntentSlot(Vector2 screenPosition, float screenWidth, float screenHeight)
@@ -173,14 +176,17 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public static EHandAnchorState EvaluateMouthIntentAnchorState(Vector2 pointerCanvasPosition, Vector2 handFrontPosition, Vector2 handInnerPosition, float mouthDiameterPixels)
         {
             float clampedMouthDiameterPixels = Mathf.Max(1.0f, mouthDiameterPixels);
-            float intentHalfWidth = clampedMouthDiameterPixels * MOUTH_INTENT_HALF_WIDTH_FACTOR;
+            float intentLeftWidth = clampedMouthDiameterPixels * MOUTH_INTENT_LEFT_WIDTH_FACTOR;
+            float intentRightWidth = clampedMouthDiameterPixels * MOUTH_INTENT_RIGHT_WIDTH_FACTOR;
             float minimumY = Mathf.Min(handFrontPosition.y, handInnerPosition.y)
                 - (clampedMouthDiameterPixels * MOUTH_INTENT_LOWER_MARGIN_FACTOR);
             float maximumY = Mathf.Max(handFrontPosition.y, handInnerPosition.y)
                 + (clampedMouthDiameterPixels * MOUTH_INTENT_UPPER_MARGIN_FACTOR);
             float centerX = Mathf.Lerp(handFrontPosition.x, handInnerPosition.x, 0.5f);
+            float minimumX = centerX - intentLeftWidth;
+            float maximumX = centerX + intentRightWidth;
 
-            if (Mathf.Abs(pointerCanvasPosition.x - centerX) > intentHalfWidth || pointerCanvasPosition.y < minimumY || pointerCanvasPosition.y > maximumY)
+            if (pointerCanvasPosition.x < minimumX || pointerCanvasPosition.x > maximumX || pointerCanvasPosition.y < minimumY || pointerCanvasPosition.y > maximumY)
             {
                 return EHandAnchorState.OutsideMouth;
             }
@@ -189,6 +195,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return pointerCanvasPosition.y >= innerSwitchY
                 ? EHandAnchorState.AtInnerAnchor
                 : EHandAnchorState.AtFrontAnchor;
+        }
+
+        private static Vector2 getHandDetectionOffset(float mouthDiameterPixels)
+        {
+            return new Vector2(0.0f, Mathf.Max(1.0f, mouthDiameterPixels) * HAND_DETECTION_VERTICAL_OFFSET_FACTOR);
         }
 
         public void UpdatePointerVisual(bool isVisible, Vector2? pointerScreenPosition)

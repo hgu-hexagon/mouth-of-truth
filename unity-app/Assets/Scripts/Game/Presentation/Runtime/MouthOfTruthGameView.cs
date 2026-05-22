@@ -32,8 +32,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float CARD_INTENT_RIGHT_MIN_NORMALIZED_X = 0.61f;
         private const float CARD_INTENT_MIN_NORMALIZED_Y = 0.28f;
         private const float CARD_INTENT_MAX_NORMALIZED_Y = 0.84f;
-        private const float MOUTH_INTENT_HALF_WIDTH_FACTOR = 0.064f;
-        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.042f;
+        private const float HAND_DETECTION_VERTICAL_OFFSET_FACTOR = 0.105f;
+        private const float MOUTH_INTENT_LEFT_WIDTH_FACTOR = 0.1108f;
+        private const float MOUTH_INTENT_RIGHT_WIDTH_FACTOR = 0.0772f;
+        private const float MOUTH_INTENT_LOWER_MARGIN_FACTOR = 0.066f;
         private const float MOUTH_INTENT_UPPER_MARGIN_FACTOR = 0.040f;
         private const float MOUTH_INTENT_INNER_SWITCH_FACTOR = 0.58f;
         private const float BUTTON_INTENT_EXPANSION_PIXELS = 54.0f;
@@ -59,8 +61,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float ANALYSIS_FOCUS_RAMP_SECONDS = 2.10f;
         private const float ANSWER_BEAM_SWEEP_RATE = 0.725f;
         private const float ANSWER_BEAM_SOURCE_Y_FACTOR = 0.108f;
-        private const float ANSWER_BEAM_END_BOTTOM_Y_FACTOR = -0.46f;
-        private const float ANSWER_BEAM_END_TOP_Y_FACTOR = 0.04f;
+        private const float ANSWER_BEAM_END_BOTTOM_Y_FACTOR = -0.43f;
+        private const float ANSWER_BEAM_END_TOP_Y_FACTOR = 0.50f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.05f;
         private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.64f;
         private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
@@ -1336,15 +1338,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float easedSweepProgress = easeInOut(sweepProgress);
             float sourceYOffset = mouthHeight * ANSWER_BEAM_SOURCE_Y_FACTOR;
             float endYOffset = mouthHeight * Mathf.Lerp(ANSWER_BEAM_END_BOTTOM_Y_FACTOR, ANSWER_BEAM_END_TOP_Y_FACTOR, easedSweepProgress);
-            float beamHeight = Mathf.Max(1.0f, sourceYOffset - endYOffset);
+            float beamHeight = Mathf.Max(1.0f, Mathf.Abs(sourceYOffset - endYOffset));
+            float beamVerticalScale = endYOffset > sourceYOffset ? -1.0f : 1.0f;
             float beamAlpha = Mathf.Lerp(0.44f, 0.74f, Mathf.Pow(quickPulse, 1.18f));
             Vector2 beamSize = new Vector2(mouthWidth * 1.003f, beamHeight);
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
-            updateEyeBeamImage(mMouthLeftEyeBeamImage, new Vector2(-(mouthWidth * 0.084f), sourceYOffset), beamSize, beamColor, -2.6f, new Vector2(0.5f, 1.0f));
-            updateEyeBeamImage(mMouthRightEyeBeamImage, new Vector2(mouthWidth * 0.058f, sourceYOffset), beamSize, beamColor, 2.6f, new Vector2(0.5f, 1.0f));
+            updateEyeBeamImage(mMouthLeftEyeBeamImage, new Vector2(-(mouthWidth * 0.084f), sourceYOffset), beamSize, beamColor, -2.6f, new Vector2(0.5f, 1.0f), beamVerticalScale);
+            updateEyeBeamImage(mMouthRightEyeBeamImage, new Vector2(mouthWidth * 0.058f, sourceYOffset), beamSize, beamColor, 2.6f, new Vector2(0.5f, 1.0f), beamVerticalScale);
         }
 
-        private void updateEyeBeamImage(Image beamImage, Vector2 offsetFromMouthCenter, Vector2 sizeDelta, Color color, float rotationDegrees, Vector2 pivot)
+        private void updateEyeBeamImage(Image beamImage, Vector2 offsetFromMouthCenter, Vector2 sizeDelta, Color color, float rotationDegrees, Vector2 pivot, float verticalScale)
         {
             if (beamImage == null || beamImage.gameObject.activeSelf == false || mMouthImage == null)
             {
@@ -1358,7 +1361,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             beamRectTransform.pivot = pivot;
             beamRectTransform.anchoredPosition = mouthRectTransform.anchoredPosition + offsetFromMouthCenter;
             beamRectTransform.sizeDelta = sizeDelta;
-            beamRectTransform.localScale = Vector3.one;
+            beamRectTransform.localScale = new Vector3(1.0f, verticalScale, 1.0f);
             beamRectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, rotationDegrees);
             beamImage.color = color;
             placeEyeBeamImagesAboveMouth();

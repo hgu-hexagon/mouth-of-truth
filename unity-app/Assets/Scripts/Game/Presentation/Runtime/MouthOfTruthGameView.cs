@@ -57,10 +57,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_PANEL_DISMISS_SECONDS = 0.36f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float ANALYSIS_FOCUS_RAMP_SECONDS = 2.10f;
-        private const float ANSWER_BEAM_SWEEP_RATE = 0.58f;
-        private const float ANSWER_BEAM_MIN_HEIGHT_FACTOR = 0.16f;
-        private const float ANSWER_BEAM_MAX_HEIGHT_FACTOR = 0.98f;
-        private const float ANSWER_BEAM_BASE_Y_FACTOR = -0.46f;
+        private const float ANSWER_BEAM_SWEEP_RATE = 0.725f;
+        private const float ANSWER_BEAM_SOURCE_Y_FACTOR = 0.108f;
+        private const float ANSWER_BEAM_END_BOTTOM_Y_FACTOR = -0.46f;
+        private const float ANSWER_BEAM_END_TOP_Y_FACTOR = 0.04f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.05f;
         private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.64f;
         private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
@@ -1334,13 +1334,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
             float sweepProgress = Mathf.PingPong(elapsedSeconds * ANSWER_BEAM_SWEEP_RATE, 1.0f);
             float easedSweepProgress = easeInOut(sweepProgress);
-            float beamHeight = mouthHeight * Mathf.Lerp(ANSWER_BEAM_MIN_HEIGHT_FACTOR, ANSWER_BEAM_MAX_HEIGHT_FACTOR, easedSweepProgress);
+            float sourceYOffset = mouthHeight * ANSWER_BEAM_SOURCE_Y_FACTOR;
+            float endYOffset = mouthHeight * Mathf.Lerp(ANSWER_BEAM_END_BOTTOM_Y_FACTOR, ANSWER_BEAM_END_TOP_Y_FACTOR, easedSweepProgress);
+            float beamHeight = Mathf.Max(1.0f, sourceYOffset - endYOffset);
             float beamAlpha = Mathf.Lerp(0.44f, 0.74f, Mathf.Pow(quickPulse, 1.18f));
             Vector2 beamSize = new Vector2(mouthWidth * 1.003f, beamHeight);
-            float baseYOffset = mouthHeight * ANSWER_BEAM_BASE_Y_FACTOR;
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
-            updateEyeBeamImage(mMouthLeftEyeBeamImage, new Vector2(-(mouthWidth * 0.084f), baseYOffset), beamSize, beamColor, -2.6f, new Vector2(0.5f, 0.0f));
-            updateEyeBeamImage(mMouthRightEyeBeamImage, new Vector2(mouthWidth * 0.058f, baseYOffset), beamSize, beamColor, 2.6f, new Vector2(0.5f, 0.0f));
+            updateEyeBeamImage(mMouthLeftEyeBeamImage, new Vector2(-(mouthWidth * 0.084f), sourceYOffset), beamSize, beamColor, -2.6f, new Vector2(0.5f, 1.0f));
+            updateEyeBeamImage(mMouthRightEyeBeamImage, new Vector2(mouthWidth * 0.058f, sourceYOffset), beamSize, beamColor, 2.6f, new Vector2(0.5f, 1.0f));
         }
 
         private void updateEyeBeamImage(Image beamImage, Vector2 offsetFromMouthCenter, Vector2 sizeDelta, Color color, float rotationDegrees, Vector2 pivot)

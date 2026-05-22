@@ -31,7 +31,9 @@ namespace MouthOfTruth.Game.App
         private const float HAND_PROMPT_DISMISS_MOVEMENT_MIN_PIXELS = 28.0f;
         private const float HAND_PROMPT_DISMISS_MOVEMENT_SCREEN_HEIGHT_FACTOR = 0.018f;
         private const float MINIMUM_ANALYSIS_PRESENTATION_SECONDS = 2.5f;
+        private const float PRESENTATION_CAPTURE_CARD_ABSORPTION_PROGRESS = 0.82f;
         private const float PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS = 1.2f;
+        private const float PRESENTATION_CAPTURE_HAND_INSERTION_SECONDS = 0.92f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
         private const string PRESENTATION_CAPTURE_OUTPUT_DIRECTORY_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR";
         private const string PRESENTATION_CAPTURE_ARGUMENT_NAME = "-presentation-capture";
@@ -978,7 +980,7 @@ namespace MouthOfTruth.Game.App
             yield return waitForRealtimeSecondsCoroutine(2.65f);
             yield return waitForPresentationFrameCoroutine();
             yield return captureScreenshotCoroutine(outputDirectoryPath, "06_card_question.png");
-            yield return waitForTaskCoroutine(revealQuestionTask);
+            yield return waitForCardAbsorptionProgressCoroutine(revealQuestionTask, PRESENTATION_CAPTURE_CARD_ABSORPTION_PROGRESS);
 
             if (tryLogTaskFailure(revealQuestionTask))
             {
@@ -986,8 +988,14 @@ namespace MouthOfTruth.Game.App
                 yield break;
             }
 
-            yield return waitForPresentationFrameCoroutine();
-            yield return captureScreenshotCoroutine(outputDirectoryPath, "07_card_launch_complete.png");
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "07_card_absorption.png");
+            yield return waitForTaskCoroutine(revealQuestionTask);
+
+            if (tryLogTaskFailure(revealQuestionTask))
+            {
+                yield return finalizePresentationCaptureCoroutine();
+                yield break;
+            }
 
             Task prepareBackdropTask = mGameView.PrepareTempleGameplayBackdropAsync();
             yield return waitForTaskCoroutine(prepareBackdropTask);
@@ -1009,6 +1017,8 @@ namespace MouthOfTruth.Game.App
             yield return waitForRealtimeSecondsCoroutine(mGameView.HandPromptPanelHoldDurationSeconds + PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS);
 
             Task handInsertionTask = mGameView.AnimateHandInsertionAsync();
+            yield return waitForRealtimeSecondsCoroutine(PRESENTATION_CAPTURE_HAND_INSERTION_SECONDS);
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "09b_hand_insertion.png");
             yield return waitForTaskCoroutine(handInsertionTask);
 
             if (tryLogTaskFailure(handInsertionTask))
@@ -1018,8 +1028,7 @@ namespace MouthOfTruth.Game.App
             }
 
             mGameView.ShowAnswering();
-            yield return waitForRealtimeSecondsCoroutine(3.0f);
-            yield return waitForPresentationFrameCoroutine();
+            yield return waitForRealtimeSecondsCoroutine(mGameView.AnswerBeamSweepCycleDurationSeconds);
             yield return captureScreenshotCoroutine(outputDirectoryPath, "10_answering.png");
 
             mGameView.ShowAnalyzing();
@@ -1046,6 +1055,19 @@ namespace MouthOfTruth.Game.App
         {
             while (task.IsCompleted == false)
             {
+                yield return null;
+            }
+        }
+
+        private IEnumerator waitForCardAbsorptionProgressCoroutine(Task revealQuestionTask, float targetProgress)
+        {
+            while (revealQuestionTask.IsCompleted == false)
+            {
+                if (mGameView.IsCardAbsorptionPresentationActive && mGameView.CardAbsorptionPresentationProgress >= targetProgress)
+                {
+                    yield break;
+                }
+
                 yield return null;
             }
         }

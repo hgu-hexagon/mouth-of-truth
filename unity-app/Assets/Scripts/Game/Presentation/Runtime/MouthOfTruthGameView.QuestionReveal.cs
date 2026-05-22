@@ -11,6 +11,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public async Task PlayQuestionRevealAsync(EQuestionCardSlot selectedQuestionCardSlot, QuestionDefinition questionDefinition, Func<Task> questionNarrationTaskFactory = null)
         {
             resetHandPromptPanelAlpha();
+            mIsCardAbsorptionPresentationActive = false;
+            mCardAbsorptionPresentationProgress = 0.0f;
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mQuestionPanelImage, false);
@@ -107,11 +109,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Vector2 templeStartPosition = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.anchoredPosition : Vector2.zero;
             Vector2 templeTargetPosition = isTempleApproachSceneVisible ? getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER) : Vector2.zero;
             setTempleApproachMouthAlpha(isTempleApproachSceneVisible ? 0.0f : 1.0f);
+            mIsCardAbsorptionPresentationActive = true;
+            mCardAbsorptionPresentationProgress = 0.0f;
 
             await animateOverTimeAsync(
                 CARD_TO_MOUTH_ABSORPTION_SECONDS,
                 progress =>
                 {
+                    mCardAbsorptionPresentationProgress = progress;
                     float cameraProgress = easeInOut(progress);
                     float suctionProgress = easeIn(Mathf.Clamp01(progress * 1.04f));
                     float absorptionProgress = easeIn(Mathf.Clamp01((progress - 0.48f) / 0.52f));
@@ -139,6 +144,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, absorptionProgress));
                 });
 
+            mIsCardAbsorptionPresentationActive = false;
+            mCardAbsorptionPresentationProgress = 1.0f;
             setCardsVisible(false);
             if (isTempleApproachSceneVisible)
             {

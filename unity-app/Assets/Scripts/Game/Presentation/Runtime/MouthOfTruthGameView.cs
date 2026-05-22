@@ -195,10 +195,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mIsAnsweringPresentationActive;
         private bool mIsAnalyzingPresentationActive;
         private bool mIsHandPromptPanelDismissalActive;
+        private bool mIsCardAbsorptionPresentationActive;
         private float mAnsweringPresentationStartedAtSeconds;
         private float mAnalyzingPresentationStartedAtSeconds;
         private float mHandPromptPanelDismissalStartedAtSeconds;
         private float mHandPromptPanelDismissalStartAlpha = 1.0f;
+        private float mCardAbsorptionPresentationProgress;
         private float mLastCardHoverCueTimeSeconds = -999.0f;
 
         private bool mStartRequested;
@@ -209,6 +211,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public bool IsFirstRunTutorialVisible { get; private set; }
 
         public float AnalysisFocusRampDurationSeconds => ANALYSIS_FOCUS_RAMP_SECONDS;
+
+        public float AnswerBeamSweepCycleDurationSeconds => 2.0f / ANSWER_BEAM_SWEEP_RATE;
+
+        public bool IsCardAbsorptionPresentationActive => mIsCardAbsorptionPresentationActive;
+
+        public float CardAbsorptionPresentationProgress => mCardAbsorptionPresentationProgress;
 
         public float HandPromptPanelHoldDurationSeconds => getHandPromptPanelHoldSeconds();
 

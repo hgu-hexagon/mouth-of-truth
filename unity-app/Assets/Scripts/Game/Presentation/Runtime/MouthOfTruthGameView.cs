@@ -189,8 +189,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private EUiActionTarget? mLastHoveredUiActionTarget;
         private bool mIsAnsweringPresentationActive;
         private bool mIsAnalyzingPresentationActive;
+        private bool mIsHandPromptPanelDismissalActive;
         private float mAnsweringPresentationStartedAtSeconds;
         private float mAnalyzingPresentationStartedAtSeconds;
+        private float mHandPromptPanelDismissalStartedAtSeconds;
+        private float mHandPromptPanelDismissalStartAlpha = 1.0f;
         private float mLastCardHoverCueTimeSeconds = -999.0f;
 
         private bool mStartRequested;
@@ -227,6 +230,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             ensureAmbiencePlayback();
             stabilizeAudioSourceLevels();
+            updateHandPromptPanelDismissal();
             updateAnsweringPresentation();
             updateAnalyzingPresentation();
         }
@@ -1493,6 +1497,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void hideHandPromptPanelImmediately()
         {
+            mIsHandPromptPanelDismissalActive = false;
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mQuestionText, false);
             resetHandPromptPanelAlpha();
@@ -1500,6 +1505,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void hideHandPromptPanelAfterFade()
         {
+            mIsHandPromptPanelDismissalActive = false;
             setHandPromptPanelAlpha(0.0f);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mQuestionText, false);
@@ -1507,7 +1513,39 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void resetHandPromptPanelAlpha()
         {
+            mIsHandPromptPanelDismissalActive = false;
+            mHandPromptPanelDismissalStartAlpha = 1.0f;
             setHandPromptPanelAlpha(1.0f);
+        }
+
+        private void updateHandPromptPanelDismissal()
+        {
+            if (mIsHandPromptPanelDismissalActive == false)
+            {
+                return;
+            }
+
+            float elapsedSeconds = Time.unscaledTime - mHandPromptPanelDismissalStartedAtSeconds;
+            float progress = Mathf.Clamp01(elapsedSeconds / HAND_PROMPT_PANEL_DISMISS_SECONDS);
+            float easedProgress = easeOut(progress);
+            setHandPromptPanelAlpha(Mathf.Lerp(mHandPromptPanelDismissalStartAlpha, 0.0f, easedProgress));
+
+            if (progress < 1.0f)
+            {
+                return;
+            }
+
+            hideHandPromptPanelAfterFade();
+        }
+
+        private float getHandPromptPanelAlpha()
+        {
+            if (mQuestionPanelImage != null)
+            {
+                return mQuestionPanelImage.color.a;
+            }
+
+            return mQuestionText != null ? mQuestionText.color.a : 0.0f;
         }
 
         private void setHandPromptPanelAlpha(float alpha)

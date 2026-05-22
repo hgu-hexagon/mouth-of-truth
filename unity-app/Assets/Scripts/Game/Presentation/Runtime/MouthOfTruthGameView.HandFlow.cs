@@ -57,10 +57,24 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             playInterfaceCueClean(mHandPromptClip, 0.74f);
         }
 
+        public void BeginHandPromptDismissal()
+        {
+            bool isPromptVisible = mQuestionPanelImage != null && mQuestionText != null && (mQuestionPanelImage.gameObject.activeSelf || mQuestionText.gameObject.activeSelf);
+
+            if (isPromptVisible == false)
+            {
+                return;
+            }
+
+            mIsHandPromptPanelDismissalActive = true;
+            mHandPromptPanelDismissalStartedAtSeconds = Time.unscaledTime;
+            mHandPromptPanelDismissalStartAlpha = getHandPromptPanelAlpha();
+        }
+
         public async Task AnimateHandInsertionAsync()
         {
-            resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
+            BeginHandPromptDismissal();
             if (isTempleApproachSceneActive())
             {
                 applyTempleStageBackgroundPresentation(0.30f);
@@ -93,18 +107,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     float verticalLift = Mathf.Sin(easedProgress * Mathf.PI) * 7.0f;
                     float handScale = Mathf.Lerp(0.86f, 1.04f, easeOut(Mathf.Clamp01(easedProgress / 0.70f)));
                     float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
-                    float promptFadeProgress = easeOut(Mathf.Clamp01(progress / HAND_PROMPT_PANEL_DISMISS_SECONDS));
 
                     setRitualHandVisual(handPosition + new Vector2(0.0f, verticalLift), RITUAL_HAND_SIZE_PIXELS, handAlpha, handScale, Mathf.Lerp(-2.0f, 1.0f, easedProgress));
-                    if (promptFadeProgress >= 1.0f)
-                    {
-                        hideHandPromptPanelAfterFade();
-                    }
-                    else
-                    {
-                        setHandPromptPanelAlpha(Mathf.Lerp(1.0f, 0.0f, promptFadeProgress));
-                    }
-
                     setGameplayOverlayAlpha(Mathf.Lerp(0.30f, 0.40f, mouthPulse));
 
                     if (isTempleApproachSceneActive())

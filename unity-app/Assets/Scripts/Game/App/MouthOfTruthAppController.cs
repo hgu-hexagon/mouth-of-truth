@@ -28,6 +28,8 @@ namespace MouthOfTruth.Game.App
         private const float UI_ACTION_DWELL_SECONDS = 1.05f;
         private const float POINTER_REACQUIRE_GUARD_SECONDS = 0.45f;
         private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 0.0f;
+        private const float HAND_PROMPT_DISMISS_MOVEMENT_MIN_PIXELS = 28.0f;
+        private const float HAND_PROMPT_DISMISS_MOVEMENT_SCREEN_HEIGHT_FACTOR = 0.018f;
         private const float MINIMUM_ANALYSIS_PRESENTATION_SECONDS = 2.5f;
         private const float PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS = 1.2f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
@@ -52,8 +54,10 @@ namespace MouthOfTruth.Game.App
         private float mPointerReacquireGuardRemainingSeconds;
         private float mPointerPresentationOverrideRemainingSeconds;
         private Vector2? mPresentedPointerScreenPosition;
+        private Vector2? mHandPromptDismissalBaselineScreenPosition;
         private string mLastObservedTranscript = string.Empty;
         private EHandAnchorState mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
+        private bool mHasDismissedHandPromptByMovement;
 
         private void Awake()
         {
@@ -170,6 +174,10 @@ namespace MouthOfTruth.Game.App
                     break;
 
                 case EGameFlowState.AwaitingHandInsertion:
+                    updateHandPromptDismissal(presentedPointerScreenPosition);
+                    updateHandInsertion(activatablePointerScreenPosition);
+                    break;
+
                 case EGameFlowState.AnswerPaused:
                     updateHandInsertion(activatablePointerScreenPosition);
                     break;
@@ -308,6 +316,37 @@ namespace MouthOfTruth.Game.App
 
             mLastObservedHandAnchorState = handAnchorState;
             _ = insertHandAsync();
+        }
+
+        private void updateHandPromptDismissal(Vector2? pointerScreenPosition)
+        {
+            if (mPointerPresentationOverrideRemainingSeconds > 0.0f || pointerScreenPosition.HasValue == false)
+            {
+                mHandPromptDismissalBaselineScreenPosition = null;
+                return;
+            }
+
+            if (mHasDismissedHandPromptByMovement)
+            {
+                return;
+            }
+
+            if (mHandPromptDismissalBaselineScreenPosition.HasValue == false)
+            {
+                mHandPromptDismissalBaselineScreenPosition = pointerScreenPosition.Value;
+                return;
+            }
+
+            float dismissalMovementThresholdPixels = Mathf.Max(HAND_PROMPT_DISMISS_MOVEMENT_MIN_PIXELS, Screen.height * HAND_PROMPT_DISMISS_MOVEMENT_SCREEN_HEIGHT_FACTOR);
+            float pointerMovementPixels = Vector2.Distance(mHandPromptDismissalBaselineScreenPosition.Value, pointerScreenPosition.Value);
+
+            if (pointerMovementPixels < dismissalMovementThresholdPixels)
+            {
+                return;
+            }
+
+            mHasDismissedHandPromptByMovement = true;
+            mGameView.BeginHandPromptDismissal();
         }
 
         private void updateAnswering(Vector2? pointerScreenPosition)
@@ -610,6 +649,13 @@ namespace MouthOfTruth.Game.App
             mAnswerCaptureInputAdapter.Reset();
             mFaceCaptureInputAdapter?.Reset();
             mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
+            resetHandPromptDismissalTracking();
+        }
+
+        private void resetHandPromptDismissalTracking()
+        {
+            mHandPromptDismissalBaselineScreenPosition = null;
+            mHasDismissedHandPromptByMovement = false;
         }
 
         private void resetInteractionSelectionState()
@@ -620,6 +666,7 @@ namespace MouthOfTruth.Game.App
             mPointerReacquireGuardRemainingSeconds = 0.0f;
             mPointerPresentationOverrideRemainingSeconds = 0.0f;
             mPresentedPointerScreenPosition = null;
+            resetHandPromptDismissalTracking();
             mGameStateMachine?.ResetCardSelectionHover();
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
         }

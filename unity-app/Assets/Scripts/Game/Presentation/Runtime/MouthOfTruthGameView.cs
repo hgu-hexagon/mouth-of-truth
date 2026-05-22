@@ -81,6 +81,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 POINTER_CURSOR_SIZE_PIXELS = new Vector2(46.0f, 46.0f);
         private static readonly Vector2 HELD_POINTER_CURSOR_SIZE_PIXELS = new Vector2(58.0f, 58.0f);
         private static readonly Vector2 RITUAL_HAND_SIZE_PIXELS = new Vector2(340.0f, 380.0f);
+        private static readonly Vector2 TUTORIAL_DEVICE_SIZE_PIXELS = new Vector2(980.0f, 446.0f);
+        private static readonly Vector2 TUTORIAL_HAND_SIZE_PIXELS = new Vector2(250.0f, 280.0f);
         private static readonly Vector2 ANSWERING_FOCUS_MOUTH_ANCHOR = new Vector2(0.5f, 0.51f);
         private static readonly Vector2 ANSWERING_FOCUS_MOUTH_SIZE_PIXELS = new Vector2(1120.0f, 1120.0f);
         private static readonly Vector2 RESULT_MOUTH_ANCHOR = new Vector2(0.5f, 0.52f);
@@ -111,6 +113,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Image mLoadingOverlayImage;
         private Image mTutorialOverlayImage;
         private Image mTutorialDevicePanelImage;
+        private Image mTutorialDeviceImage;
         private Image mTutorialHandImage;
         private Text mTutorialTitleText;
         private Text mTutorialBodyText;
@@ -153,6 +156,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mExitIconButtonSprite;
         private Sprite mPointerCursorSprite;
         private Sprite mRitualHandSprite;
+        private Sprite mLeapMotionDeviceSprite;
         private Sprite mVerdictTrueSprite;
         private Sprite mVerdictFalseSprite;
         private Sprite mVerdictUncertainSprite;
@@ -353,6 +357,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mBackToTitleButton, false);
             setCardsVisible(false);
+            setObjectActive(mTutorialOverlayImage, false);
+            setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialDeviceImage, false);
+            setObjectActive(mTutorialHandImage, false);
+            setObjectActive(mTutorialTitleText, false);
+            setObjectActive(mTutorialBodyText, false);
+            setObjectActive(mTutorialStepText, false);
             setText(mPromptText, string.Empty);
             setText(mStatusText, string.Empty);
             setText(mAnswerTimerText, string.Empty);
@@ -650,26 +661,29 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mTutorialOverlayImage, true);
             setObjectActive(mTutorialDevicePanelImage, true);
+            setObjectActive(mTutorialDeviceImage, true);
             setObjectActive(mTutorialHandImage, true);
             setObjectActive(mTutorialTitleText, true);
-            setObjectActive(mTutorialBodyText, true);
-            setObjectActive(mTutorialStepText, true);
+            setObjectActive(mTutorialBodyText, false);
+            setObjectActive(mTutorialStepText, false);
             setObjectActive(mStartButton, false);
             setObjectActive(mTryAgainButton, false);
             setObjectActive(mBackToTitleButton, false);
             setObjectActive(mExitButton, true);
-            mTutorialOverlayImage.color = new Color(0.078f, 0.080f, 0.090f, 1.0f);
-            mTutorialDevicePanelImage.color = new Color(0.145f, 0.148f, 0.162f, 0.97f);
+            mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
+            mTutorialDevicePanelImage.color = new Color(0.56f, 0.57f, 0.59f, 0.94f);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
+            mTutorialDeviceImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
             mTutorialTitleText.transform.SetAsLastSibling();
-            mTutorialBodyText.transform.SetAsLastSibling();
-            mTutorialStepText.transform.SetAsLastSibling();
             mExitButton.transform.SetAsLastSibling();
             setText(mTutorialTitleText, "손을 장치 위에서 천천히 움직여 주세요");
-            setText(mTutorialBodyText, "손끝 방향으로 버튼과 카드를 가리키고, 같은 위치에 잠시 머물면 선택됩니다.");
             RectTransform handRectTransform = mTutorialHandImage.rectTransform;
+            RectTransform deviceRectTransform = mTutorialDeviceImage.rectTransform;
+            deviceRectTransform.sizeDelta = TUTORIAL_DEVICE_SIZE_PIXELS;
+            deviceRectTransform.anchoredPosition = new Vector2(0.0f, -88.0f);
+            mTutorialDeviceImage.color = Color.white;
 
             await animateOverTimeAsync(
                 tutorialDurationSeconds,
@@ -677,20 +691,18 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 {
                     float firstSegmentProgress = Mathf.Clamp01(progress / 0.48f);
                     float secondSegmentProgress = Mathf.Clamp01((progress - 0.48f) / 0.52f);
-                    Vector2 hoverStartPosition = new Vector2(0.0f, -130.0f);
-                    Vector2 hoverReadyPosition = new Vector2(0.0f, -18.0f);
+                    Vector2 hoverStartPosition = new Vector2(0.0f, -34.0f);
+                    Vector2 hoverReadyPosition = new Vector2(0.0f, 82.0f);
                     handRectTransform.anchoredPosition = progress < 0.48f
                         ? Vector2.Lerp(hoverStartPosition, hoverReadyPosition, easeOut(firstSegmentProgress))
-                        : getTutorialScanPosition(secondSegmentProgress);
-                    handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.02f, easeOut(firstSegmentProgress));
-                    mTutorialOverlayImage.color = new Color(0.078f, 0.080f, 0.090f, 1.0f);
-                    setText(mTutorialStepText, progress < 0.48f
-                        ? "1. 손을 Leap Motion 위에 자연스럽게 올립니다."
-                        : "2. 왼쪽, 가운데, 오른쪽 방향을 천천히 가리킵니다.");
+                        : getTutorialScanPosition(secondSegmentProgress) + new Vector2(0.0f, 98.0f);
+                    handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.00f, easeOut(firstSegmentProgress));
+                    mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
                 });
 
             setObjectActive(mTutorialOverlayImage, false);
             setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialDeviceImage, false);
             setObjectActive(mTutorialHandImage, false);
             setObjectActive(mTutorialTitleText, false);
             setObjectActive(mTutorialBodyText, false);
@@ -1323,6 +1335,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mRitualHandSprite = mPointerCursorSprite;
             }
 
+            mLeapMotionDeviceSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.LeapMotionDevicePath);
+            if (mLeapMotionDeviceSprite == null)
+            {
+                mLeapMotionDeviceSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.62f, 0.63f, 0.64f, 1.0f));
+            }
+
             mVerdictTrueSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TrueVerdictPath);
             if (mVerdictTrueSprite == null)
             {
@@ -1457,6 +1475,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mPointerImage.sprite = mPointerCursorSprite;
             mPointerImage.preserveAspect = true;
             mPointerImage.raycastTarget = false;
+            mTutorialDeviceImage.sprite = mLeapMotionDeviceSprite;
+            mTutorialDeviceImage.preserveAspect = true;
+            mTutorialDeviceImage.raycastTarget = false;
             mTutorialHandImage.sprite = mRitualHandSprite;
             mTutorialHandImage.preserveAspect = true;
             mTutorialHandImage.raycastTarget = false;
@@ -2118,19 +2139,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mPointerImage.raycastTarget = false;
             mAnalyzingDotsText.transform.SetAsLastSibling();
             mTutorialOverlayImage = createFullScreenImage("FirstRunTutorialOverlay", mCanvasRootTransform, new Color(0.0f, 0.0f, 0.0f, 0.0f));
-            mTutorialDevicePanelImage = createImage("FirstRunTutorialPanel", mCanvasRootTransform, new Vector2(0.5f, 0.46f), new Vector2(0.5f, 0.46f), Vector2.zero, new Vector2(900.0f, 520.0f), new Color(0.12f, 0.12f, 0.135f, 0.96f));
-            mTutorialHandImage = createImage("FirstRunTutorialHand", mCanvasRootTransform, new Vector2(0.5f, 0.48f), new Vector2(0.5f, 0.48f), Vector2.zero, new Vector2(260.0f, 290.0f), Color.white);
+            mTutorialDevicePanelImage = createImage("FirstRunTutorialPanel", mCanvasRootTransform, new Vector2(0.5f, 0.46f), new Vector2(0.5f, 0.46f), Vector2.zero, new Vector2(1120.0f, 610.0f), new Color(0.56f, 0.57f, 0.59f, 0.94f));
+            mTutorialDeviceImage = createImage("FirstRunTutorialDevice", mCanvasRootTransform, new Vector2(0.5f, 0.46f), new Vector2(0.5f, 0.46f), new Vector2(0.0f, -88.0f), TUTORIAL_DEVICE_SIZE_PIXELS, Color.white);
+            mTutorialHandImage = createImage("FirstRunTutorialHand", mCanvasRootTransform, new Vector2(0.5f, 0.48f), new Vector2(0.5f, 0.48f), Vector2.zero, TUTORIAL_HAND_SIZE_PIXELS, Color.white);
             mTutorialTitleText = createText("FirstRunTutorialTitle", mCanvasRootTransform, new Vector2(0.5f, 0.755f), new Vector2(0.5f, 0.755f), Vector2.zero, new Vector2(980.0f, 64.0f), 34, FontStyle.Bold);
             mTutorialBodyText = createText("FirstRunTutorialBody", mCanvasRootTransform, new Vector2(0.5f, 0.25f), new Vector2(0.5f, 0.25f), Vector2.zero, new Vector2(1040.0f, 72.0f), 26, FontStyle.Normal);
             mTutorialStepText = createText("FirstRunTutorialStep", mCanvasRootTransform, new Vector2(0.5f, 0.17f), new Vector2(0.5f, 0.17f), Vector2.zero, new Vector2(980.0f, 54.0f), 24, FontStyle.Bold);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
+            mTutorialDeviceImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
             mTutorialTitleText.transform.SetAsLastSibling();
             mTutorialBodyText.transform.SetAsLastSibling();
             mTutorialStepText.transform.SetAsLastSibling();
             setObjectActive(mTutorialOverlayImage, false);
             setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialDeviceImage, false);
             setObjectActive(mTutorialHandImage, false);
             setObjectActive(mTutorialTitleText, false);
             setObjectActive(mTutorialBodyText, false);

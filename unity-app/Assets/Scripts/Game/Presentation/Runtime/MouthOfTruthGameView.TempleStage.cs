@@ -8,7 +8,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
     {
         public async Task PlayTempleApproachToCardSelectionAsync()
         {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();

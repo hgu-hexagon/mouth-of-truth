@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -54,9 +53,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS = 0.16f;
         private const float FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS = 4.0f;
         private const float FIRST_RUN_TUTORIAL_DURATION_SCALE = 3.0f;
-        private const float HAND_INSERTION_DURATION_SECONDS = 2.85f;
+        private const float HAND_INSERTION_DURATION_SECONDS = 2.35f;
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
-        private const float HAND_PROMPT_PANEL_FADE_SECONDS = 0.45f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float ANALYSIS_FOCUS_RAMP_SECONDS = 2.10f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.05f;
@@ -191,7 +189,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private bool mUseHeldHandPresentation;
         private bool mIsAnsweringPresentationActive;
         private bool mIsAnalyzingPresentationActive;
-        private Coroutine mHandPromptPanelFadeCoroutine;
         private float mHeldHandBaseProgress;
         private float mHeldHandPulseAmplitude;
         private float mHeldHandPulseSpeed;
@@ -208,7 +205,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public float AnalysisFocusRampDurationSeconds => ANALYSIS_FOCUS_RAMP_SECONDS;
 
-        public float HandPromptPanelAutoFadeTotalDurationSeconds => getHandPromptPanelHoldSeconds() + HAND_PROMPT_PANEL_FADE_SECONDS;
+        public float HandPromptPanelHoldDurationSeconds => getHandPromptPanelHoldSeconds();
 
         [Serializable]
         private sealed class TutorialSequenceMetadata
@@ -321,7 +318,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowStartScreen()
         {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -375,7 +372,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowCardSelection(QuestionRoundSelection questionRoundSelection)
         {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -528,7 +525,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public async Task PlayQuestionRevealAsync(EQuestionCardSlot selectedQuestionCardSlot, QuestionDefinition questionDefinition, Func<Task> questionNarrationTaskFactory = null)
         {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            resetHandPromptPanelAlpha();
             setObjectActive(mPromptText, false);
             setObjectActive(mStatusText, false);
             setObjectActive(mQuestionPanelImage, false);
@@ -727,7 +724,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowAwaitingHandInsertion()
         {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -768,6 +765,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnswerInputField.text = string.Empty;
             mAnswerInputField.interactable = false;
             setText(mQuestionText, "“손을 내밀고, 진실을 답하라.”");
+            setHandPromptPanelAlpha(1.0f);
             if (isTempleSceneActive == false)
             {
                 applyMouthAnchoredLayout();
@@ -775,12 +773,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             setHandVisual(0.0f);
             playInterfaceCueClean(mHandPromptClip, 0.74f);
-            beginHandPromptPanelAutoFade();
         }
 
         public async Task AnimateHandInsertionAsync()
         {
-            hideHandPromptPanelImmediately();
+            resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableHeldHandPresentation();
             if (isTempleApproachSceneActive())
@@ -798,33 +795,28 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setEyeBeamImagesActive(false);
             setObjectActive(mRitualHandImage, true);
             placeRitualHandAboveMouth();
-            playInterfaceCue(mHandInsertClip, 0.68f);
-            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -270.0f);
-            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -42.0f);
-            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -18.0f);
+            playInterfaceCue(mHandInsertClip, 0.58f);
+            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -330.0f);
+            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -72.0f);
+            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -36.0f);
 
             await animateOverTimeAsync(
                 HAND_INSERTION_DURATION_SECONDS,
                 progress =>
                 {
                     float easedProgress = easeInOut(progress);
-                    float approachProgress = Mathf.Clamp01(easedProgress / 0.46f);
-                    float insertionProgress = Mathf.Clamp01((easedProgress - 0.40f) / 0.60f);
-                    Vector2 handPosition = easedProgress < 0.46f
-                        ? Vector2.Lerp(startPosition, frontPosition, easeOut(approachProgress))
-                        : Vector2.Lerp(frontPosition, innerPosition, easeInOut(insertionProgress));
-                    float handAlpha = easedProgress < 0.82f
-                        ? Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(easedProgress / 0.30f)))
-                        : Mathf.Lerp(1.0f, 0.72f, Mathf.Clamp01((easedProgress - 0.82f) / 0.18f));
-                    float arc = Mathf.Sin(easedProgress * Mathf.PI) * 9.0f;
-                    float handScale = easedProgress < 0.50f
-                        ? Mathf.Lerp(0.72f, 1.08f, easeOut(easedProgress / 0.50f))
-                        : Mathf.Lerp(1.08f, 0.94f, easeInOut((easedProgress - 0.50f) / 0.50f));
+                    float reachProgress = easeInOut(Mathf.Clamp01((easedProgress - 0.58f) / 0.42f));
+                    Vector2 handPosition = Vector2.Lerp(Vector2.Lerp(startPosition, frontPosition, easeOut(Mathf.Clamp01(easedProgress / 0.72f))), innerPosition, reachProgress);
+                    float fadeOutProgress = easeIn(Mathf.Clamp01((easedProgress - 0.82f) / 0.18f));
+                    float handAlpha = Mathf.Lerp(Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(easedProgress / 0.24f))), 0.0f, fadeOutProgress);
+                    float verticalLift = Mathf.Sin(easedProgress * Mathf.PI) * 7.0f;
+                    float handScale = Mathf.Lerp(0.86f, 1.04f, easeOut(Mathf.Clamp01(easedProgress / 0.70f)));
                     float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
-                    float mouthPull = Mathf.Clamp01((easedProgress - 0.50f) / 0.50f);
+                    float promptFadeProgress = easeOut(Mathf.Clamp01(progress / 0.18f));
 
-                    setRitualHandVisual(handPosition + new Vector2(arc, 0.0f), RITUAL_HAND_SIZE_PIXELS, handAlpha, handScale, Mathf.Lerp(-5.0f, 2.0f, easedProgress));
-                    setGameplayOverlayAlpha(Mathf.Lerp(0.30f, 0.48f, mouthPulse));
+                    setRitualHandVisual(handPosition + new Vector2(0.0f, verticalLift), RITUAL_HAND_SIZE_PIXELS, handAlpha, handScale, Mathf.Lerp(-2.0f, 1.0f, easedProgress));
+                    setHandPromptPanelAlpha(Mathf.Lerp(1.0f, 0.0f, promptFadeProgress));
+                    setGameplayOverlayAlpha(Mathf.Lerp(0.30f, 0.40f, mouthPulse));
 
                     if (isTempleApproachSceneActive())
                     {
@@ -833,19 +825,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     }
                     else
                     {
-                        mMouthImage.rectTransform.localScale = Vector3.one * (1.0f + (mouthPulse * 0.12f) + (mouthPull * 0.055f));
+                        mMouthImage.rectTransform.localScale = Vector3.one * (1.0f + (mouthPulse * 0.045f));
                     }
                 });
 
-            await animateOverTimeAsync(
-                0.46f,
-                progress =>
-                {
-                    float easedProgress = easeIn(progress);
-                    setRitualHandVisual(innerPosition + new Vector2(0.0f, Mathf.Lerp(0.0f, 42.0f, easedProgress)), RITUAL_HAND_SIZE_PIXELS, Mathf.Lerp(0.72f, 0.0f, easedProgress), Mathf.Lerp(0.94f, 0.82f, easedProgress), Mathf.Lerp(2.0f, 0.0f, easedProgress));
-                    setGameplayOverlayAlpha(Mathf.Lerp(0.48f, 0.36f, easedProgress));
-                });
-
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mQuestionText, false);
+            resetHandPromptPanelAlpha();
             setObjectActive(mRitualHandImage, false);
             await playMouthJudgementFocusTransitionAsync();
         }
@@ -1079,7 +1065,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public void ShowResult(EVerdictKind verdictKind, string transcriptText)
         {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
+            resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
             disableHeldHandPresentation();
@@ -1943,13 +1929,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mSceneOverlayImage.color = new Color(tintColor.r, tintColor.g, tintColor.b, Mathf.Clamp01(alpha));
         }
 
-        private void beginHandPromptPanelAutoFade()
-        {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
-            setHandPromptPanelAlpha(1.0f);
-            mHandPromptPanelFadeCoroutine = StartCoroutine(fadeHandPromptPanelAfterDelay(getHandPromptPanelHoldSeconds()));
-        }
-
         private float getHandPromptPanelHoldSeconds()
         {
             return mHandPromptClip != null
@@ -1957,51 +1936,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 : HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS;
         }
 
-        private IEnumerator fadeHandPromptPanelAfterDelay(float holdSeconds)
-        {
-            float holdElapsedSeconds = 0.0f;
-
-            while (holdElapsedSeconds < holdSeconds)
-            {
-                holdElapsedSeconds += Time.deltaTime;
-                yield return null;
-            }
-
-            float fadeElapsedSeconds = 0.0f;
-
-            while (fadeElapsedSeconds < HAND_PROMPT_PANEL_FADE_SECONDS)
-            {
-                fadeElapsedSeconds += Time.deltaTime;
-                float alpha = Mathf.Lerp(1.0f, 0.0f, easeOut(fadeElapsedSeconds / HAND_PROMPT_PANEL_FADE_SECONDS));
-                setHandPromptPanelAlpha(alpha);
-                yield return null;
-            }
-
-            setObjectActive(mQuestionPanelImage, false);
-            setObjectActive(mQuestionText, false);
-            setHandPromptPanelAlpha(1.0f);
-            mHandPromptPanelFadeCoroutine = null;
-        }
-
         private void hideHandPromptPanelImmediately()
         {
-            stopHandPromptPanelAutoFade(restoreAlpha: true);
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mQuestionText, false);
+            resetHandPromptPanelAlpha();
         }
 
-        private void stopHandPromptPanelAutoFade(bool restoreAlpha)
+        private void resetHandPromptPanelAlpha()
         {
-            if (mHandPromptPanelFadeCoroutine != null)
-            {
-                StopCoroutine(mHandPromptPanelFadeCoroutine);
-                mHandPromptPanelFadeCoroutine = null;
-            }
-
-            if (restoreAlpha)
-            {
-                setHandPromptPanelAlpha(1.0f);
-            }
+            setHandPromptPanelAlpha(1.0f);
         }
 
         private void setHandPromptPanelAlpha(float alpha)

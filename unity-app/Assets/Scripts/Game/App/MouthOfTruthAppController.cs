@@ -28,6 +28,7 @@ namespace MouthOfTruth.Game.App
         private const float UI_ACTION_DWELL_SECONDS = 1.05f;
         private const float POINTER_REACQUIRE_GUARD_SECONDS = 0.45f;
         private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 0.0f;
+        private const float POINTER_PRESENTATION_FOLLOW_RATE = 9.0f;
         private const float MINIMUM_ANALYSIS_PRESENTATION_SECONDS = 2.5f;
         private const float PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS = 1.2f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
@@ -51,6 +52,7 @@ namespace MouthOfTruth.Game.App
         private bool mWasPointerAvailableLastFrame;
         private float mPointerReacquireGuardRemainingSeconds;
         private float mPointerPresentationOverrideRemainingSeconds;
+        private Vector2? mPresentedPointerScreenPosition;
         private string mLastObservedTranscript = string.Empty;
         private EHandAnchorState mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
 
@@ -123,8 +125,8 @@ namespace MouthOfTruth.Game.App
             }
 
             bool canAcceptPointerActivation = mPointerPresentationOverrideRemainingSeconds <= 0.0f
-                && updatePointerActivationGuard(pointerScreenPosition);
-            Vector2? activatablePointerScreenPosition = canAcceptPointerActivation ? pointerScreenPosition : null;
+                && updatePointerActivationGuard(presentedPointerScreenPosition);
+            Vector2? activatablePointerScreenPosition = canAcceptPointerActivation ? presentedPointerScreenPosition : null;
 
             if (mIsTransitionBusy || mIsPresentationCaptureRunning)
             {
@@ -489,7 +491,7 @@ namespace MouthOfTruth.Game.App
             mGameStateMachine.MarkQuestionRevealCompleted();
             mGameStateMachine.MarkQuestionNarrationCompleted();
             mGameView.ShowAwaitingHandInsertion();
-            beginBottomCenterPointerSettle();
+            beginBottomCenterPointerSettle(mGameView.HandPromptPanelHoldDurationSeconds);
             mGameView.SetAnswerTranscriptEditable(mAnswerCaptureInputAdapter.RequiresManualTextEntry);
             resetAnswerTracking();
             mIsTransitionBusy = false;
@@ -618,24 +620,41 @@ namespace MouthOfTruth.Game.App
             mWasPointerAvailableLastFrame = false;
             mPointerReacquireGuardRemainingSeconds = 0.0f;
             mPointerPresentationOverrideRemainingSeconds = 0.0f;
+            mPresentedPointerScreenPosition = null;
             mGameStateMachine?.ResetCardSelectionHover();
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
         }
 
         private Vector2? getPresentedPointerScreenPosition(Vector2? pointerScreenPosition)
         {
-            if (mPointerPresentationOverrideRemainingSeconds <= 0.0f)
+            if (mPointerPresentationOverrideRemainingSeconds > 0.0f)
             {
-                return pointerScreenPosition;
+                mPointerPresentationOverrideRemainingSeconds = Mathf.Max(0.0f, mPointerPresentationOverrideRemainingSeconds - Time.deltaTime);
+                mPresentedPointerScreenPosition = getBottomCenterPointerScreenPosition();
+                return mPresentedPointerScreenPosition;
             }
 
-            mPointerPresentationOverrideRemainingSeconds = Mathf.Max(0.0f, mPointerPresentationOverrideRemainingSeconds - Time.deltaTime);
-            return getBottomCenterPointerScreenPosition();
+            if (pointerScreenPosition.HasValue == false)
+            {
+                mPresentedPointerScreenPosition = null;
+                return null;
+            }
+
+            if (mPresentedPointerScreenPosition.HasValue == false)
+            {
+                mPresentedPointerScreenPosition = pointerScreenPosition.Value;
+                return mPresentedPointerScreenPosition;
+            }
+
+            float followProgress = 1.0f - Mathf.Exp(-POINTER_PRESENTATION_FOLLOW_RATE * Time.deltaTime);
+            mPresentedPointerScreenPosition = Vector2.Lerp(mPresentedPointerScreenPosition.Value, pointerScreenPosition.Value, followProgress);
+            return mPresentedPointerScreenPosition;
         }
 
-        private void beginBottomCenterPointerSettle()
+        private void beginBottomCenterPointerSettle(float durationSeconds = POST_CARD_SELECTION_POINTER_SETTLE_SECONDS)
         {
-            mPointerPresentationOverrideRemainingSeconds = POST_CARD_SELECTION_POINTER_SETTLE_SECONDS;
+            mPointerPresentationOverrideRemainingSeconds = Mathf.Max(0.0f, durationSeconds);
+            mPresentedPointerScreenPosition = getBottomCenterPointerScreenPosition();
             warpSystemPointerToBottomCenter();
             mWasPointerAvailableLastFrame = false;
             mPointerReacquireGuardRemainingSeconds = 0.0f;
@@ -942,7 +961,7 @@ namespace MouthOfTruth.Game.App
             mGameView.ShowAwaitingHandInsertion();
             yield return waitForPresentationFrameCoroutine();
             yield return captureScreenshotCoroutine(outputDirectoryPath, "09_hand_prompt.png");
-            yield return waitForRealtimeSecondsCoroutine(mGameView.HandPromptPanelAutoFadeTotalDurationSeconds + PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS);
+            yield return waitForRealtimeSecondsCoroutine(mGameView.HandPromptPanelHoldDurationSeconds + PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS);
 
             Task handInsertionTask = mGameView.AnimateHandInsertionAsync();
             yield return waitForTaskCoroutine(handInsertionTask);

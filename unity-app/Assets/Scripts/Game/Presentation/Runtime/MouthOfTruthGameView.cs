@@ -54,11 +54,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float FIRST_RUN_TUTORIAL_DURATION_SCALE = 3.0f;
         private const float HAND_INSERTION_DURATION_SECONDS = 2.35f;
         private const float HAND_PROMPT_PANEL_FALLBACK_HOLD_SECONDS = 1.65f;
+        private const float HAND_PROMPT_PANEL_DISMISS_SECONDS = 0.36f;
         private const float MOUTH_JUDGEMENT_FOCUS_SECONDS = 0.72f;
         private const float ANALYSIS_FOCUS_RAMP_SECONDS = 2.10f;
         private const float ANSWER_BEAM_SWEEP_RATE = 0.58f;
-        private const float ANSWER_BEAM_MIN_HEIGHT_FACTOR = 0.26f;
-        private const float ANSWER_BEAM_MAX_HEIGHT_FACTOR = 0.80f;
+        private const float ANSWER_BEAM_MIN_HEIGHT_FACTOR = 0.16f;
+        private const float ANSWER_BEAM_MAX_HEIGHT_FACTOR = 0.98f;
+        private const float ANSWER_BEAM_BASE_Y_FACTOR = -0.46f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.05f;
         private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.64f;
         private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
@@ -1326,16 +1328,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             float mouthWidth = mMouthImage.rectTransform.sizeDelta.x;
             float mouthHeight = mMouthImage.rectTransform.sizeDelta.y;
-            float sweepProgress = Mathf.Repeat(elapsedSeconds * ANSWER_BEAM_SWEEP_RATE, 1.0f);
+            float sweepProgress = Mathf.PingPong(elapsedSeconds * ANSWER_BEAM_SWEEP_RATE, 1.0f);
             float easedSweepProgress = easeInOut(sweepProgress);
-            float resetFade = Mathf.Sin(sweepProgress * Mathf.PI);
-            float beamHeight = mouthHeight * Mathf.Lerp(ANSWER_BEAM_MAX_HEIGHT_FACTOR, ANSWER_BEAM_MIN_HEIGHT_FACTOR, easedSweepProgress);
-            float beamAlpha = Mathf.Lerp(0.42f, 0.72f, Mathf.Pow(quickPulse, 1.18f)) * Mathf.Lerp(0.40f, 1.0f, resetFade);
+            float beamHeight = mouthHeight * Mathf.Lerp(ANSWER_BEAM_MIN_HEIGHT_FACTOR, ANSWER_BEAM_MAX_HEIGHT_FACTOR, easedSweepProgress);
+            float beamAlpha = Mathf.Lerp(0.44f, 0.74f, Mathf.Pow(quickPulse, 1.18f));
             Vector2 beamSize = new Vector2(mouthWidth * 1.003f, beamHeight);
-            float eyeYOffset = mouthHeight * 0.108f;
+            float baseYOffset = mouthHeight * ANSWER_BEAM_BASE_Y_FACTOR;
             Color beamColor = new Color(0.95f, 0.20f, 0.14f, beamAlpha);
-            updateEyeBeamImage(mMouthLeftEyeBeamImage, new Vector2(-(mouthWidth * 0.084f), eyeYOffset), beamSize, beamColor, -2.6f, new Vector2(0.5f, 1.0f));
-            updateEyeBeamImage(mMouthRightEyeBeamImage, new Vector2(mouthWidth * 0.058f, eyeYOffset), beamSize, beamColor, 2.6f, new Vector2(0.5f, 1.0f));
+            updateEyeBeamImage(mMouthLeftEyeBeamImage, new Vector2(-(mouthWidth * 0.084f), baseYOffset), beamSize, beamColor, -2.6f, new Vector2(0.5f, 0.0f));
+            updateEyeBeamImage(mMouthRightEyeBeamImage, new Vector2(mouthWidth * 0.058f, baseYOffset), beamSize, beamColor, 2.6f, new Vector2(0.5f, 0.0f));
         }
 
         private void updateEyeBeamImage(Image beamImage, Vector2 offsetFromMouthCenter, Vector2 sizeDelta, Color color, float rotationDegrees, Vector2 pivot)
@@ -1495,6 +1496,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mQuestionPanelImage, false);
             setObjectActive(mQuestionText, false);
             resetHandPromptPanelAlpha();
+        }
+
+        private void hideHandPromptPanelAfterFade()
+        {
+            setHandPromptPanelAlpha(0.0f);
+            setObjectActive(mQuestionPanelImage, false);
+            setObjectActive(mQuestionText, false);
         }
 
         private void resetHandPromptPanelAlpha()

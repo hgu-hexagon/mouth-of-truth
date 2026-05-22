@@ -22,6 +22,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             configureExitButtonAsTopLeftIcon();
             setObjectActive(mTutorialOverlayImage, true);
             setObjectActive(mTutorialDevicePanelImage, true);
+            setObjectActive(mTutorialLeapMotionDeviceImage, true);
             setObjectActive(mTutorialHandImage, true);
             setObjectActive(mTutorialTitleText, true);
             setObjectActive(mTutorialBodyText, true);
@@ -34,11 +35,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mTutorialDevicePanelImage.color = new Color(0.145f, 0.148f, 0.162f, 0.97f);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
+            mTutorialLeapMotionDeviceImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
             mTutorialTitleText.transform.SetAsLastSibling();
             mTutorialBodyText.transform.SetAsLastSibling();
             mExitButton.transform.SetAsLastSibling();
-            setText(mTutorialTitleText, "손을 장치 위에서 천천히 움직여 주세요");
+            setText(mTutorialTitleText, "손을 장치 위 30cm 높이에서 천천히 움직여 주세요");
             setText(mTutorialBodyText, "손끝 방향으로 버튼과 카드를 가리키고, 같은 위치에 잠시 머물면 선택됩니다.");
             RectTransform handRectTransform = mTutorialHandImage.rectTransform;
 
@@ -59,6 +61,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             setObjectActive(mTutorialOverlayImage, false);
             setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialLeapMotionDeviceImage, false);
             setObjectActive(mTutorialHandImage, false);
             setObjectActive(mTutorialTitleText, false);
             setObjectActive(mTutorialBodyText, false);

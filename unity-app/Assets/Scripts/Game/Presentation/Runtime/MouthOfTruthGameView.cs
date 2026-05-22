@@ -85,6 +85,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 HELD_POINTER_CURSOR_SIZE_PIXELS = new Vector2(58.0f, 58.0f);
         private static readonly Vector2 RITUAL_HAND_SIZE_PIXELS = new Vector2(340.0f, 380.0f);
         private static readonly Vector2 TUTORIAL_HAND_SIZE_PIXELS = new Vector2(260.0f, 290.0f);
+        private static readonly Vector2 TUTORIAL_LEAP_MOTION_DEVICE_SIZE_PIXELS = new Vector2(350.0f, 160.0f);
         private static readonly Vector2 ANSWERING_FOCUS_MOUTH_ANCHOR = new Vector2(0.5f, 0.51f);
         private static readonly Vector2 ANSWERING_FOCUS_MOUTH_SIZE_PIXELS = new Vector2(1120.0f, 1120.0f);
         private static readonly Vector2 RESULT_MOUTH_ANCHOR = new Vector2(0.5f, 0.52f);
@@ -115,6 +116,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Image mLoadingOverlayImage;
         private Image mTutorialOverlayImage;
         private Image mTutorialDevicePanelImage;
+        private Image mTutorialLeapMotionDeviceImage;
         private Image mTutorialHandImage;
         private Text mTutorialTitleText;
         private Text mTutorialBodyText;
@@ -157,6 +159,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private Sprite mExitIconButtonSprite;
         private Sprite mPointerCursorSprite;
         private Sprite mRitualHandSprite;
+        private Sprite mLeapMotionDeviceSprite;
         private Sprite mVerdictTrueSprite;
         private Sprite mVerdictFalseSprite;
         private Sprite mVerdictUncertainSprite;
@@ -906,6 +909,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 mRitualHandSprite = mPointerCursorSprite;
             }
 
+            mLeapMotionDeviceSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.LeapMotionDevicePath);
+            if (mLeapMotionDeviceSprite == null)
+            {
+                mLeapMotionDeviceSprite = RuntimeSpriteLoader.CreateSolidSprite(Color.clear);
+            }
+
             mVerdictTrueSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TrueVerdictPath);
             if (mVerdictTrueSprite == null)
             {
@@ -1043,6 +1052,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mTutorialHandImage.sprite = mRitualHandSprite;
             mTutorialHandImage.preserveAspect = true;
             mTutorialHandImage.raycastTarget = false;
+            mTutorialLeapMotionDeviceImage.sprite = mLeapMotionDeviceSprite;
+            mTutorialLeapMotionDeviceImage.preserveAspect = true;
+            mTutorialLeapMotionDeviceImage.raycastTarget = false;
             mTutorialOverlayImage.raycastTarget = false;
             mTutorialDevicePanelImage.type = Image.Type.Sliced;
             mTutorialDevicePanelImage.raycastTarget = false;
@@ -1699,18 +1711,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mAnalyzingDotsText.transform.SetAsLastSibling();
             mTutorialOverlayImage = createFullScreenImage("FirstRunTutorialOverlay", mCanvasRootTransform, new Color(0.0f, 0.0f, 0.0f, 0.0f));
             mTutorialDevicePanelImage = createImage("FirstRunTutorialPanel", mCanvasRootTransform, new Vector2(0.5f, 0.46f), new Vector2(0.5f, 0.46f), Vector2.zero, new Vector2(900.0f, 520.0f), new Color(0.12f, 0.12f, 0.135f, 0.96f));
+            mTutorialLeapMotionDeviceImage = createImage("FirstRunTutorialLeapMotionDevice", mCanvasRootTransform, new Vector2(0.5f, 0.46f), new Vector2(0.5f, 0.46f), Vector2.zero, TUTORIAL_LEAP_MOTION_DEVICE_SIZE_PIXELS, Color.white);
             mTutorialHandImage = createImage("FirstRunTutorialHand", mCanvasRootTransform, new Vector2(0.5f, 0.48f), new Vector2(0.5f, 0.48f), Vector2.zero, TUTORIAL_HAND_SIZE_PIXELS, Color.white);
             mTutorialTitleText = createText("FirstRunTutorialTitle", mCanvasRootTransform, new Vector2(0.5f, 0.755f), new Vector2(0.5f, 0.755f), Vector2.zero, new Vector2(980.0f, 64.0f), 34, FontStyle.Bold);
             mTutorialBodyText = createText("FirstRunTutorialBody", mCanvasRootTransform, new Vector2(0.5f, 0.25f), new Vector2(0.5f, 0.25f), Vector2.zero, new Vector2(1040.0f, 72.0f), 26, FontStyle.Normal);
             mTutorialStepText = createText("FirstRunTutorialStep", mCanvasRootTransform, new Vector2(0.5f, 0.17f), new Vector2(0.5f, 0.17f), Vector2.zero, new Vector2(980.0f, 54.0f), 24, FontStyle.Bold);
             mTutorialOverlayImage.transform.SetAsLastSibling();
             mTutorialDevicePanelImage.transform.SetAsLastSibling();
+            mTutorialLeapMotionDeviceImage.transform.SetAsLastSibling();
             mTutorialHandImage.transform.SetAsLastSibling();
             mTutorialTitleText.transform.SetAsLastSibling();
             mTutorialBodyText.transform.SetAsLastSibling();
             mTutorialStepText.transform.SetAsLastSibling();
             setObjectActive(mTutorialOverlayImage, false);
             setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialLeapMotionDeviceImage, false);
             setObjectActive(mTutorialHandImage, false);
             setObjectActive(mTutorialTitleText, false);
             setObjectActive(mTutorialBodyText, false);

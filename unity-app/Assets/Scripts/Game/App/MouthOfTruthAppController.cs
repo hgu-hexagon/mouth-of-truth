@@ -57,9 +57,13 @@ namespace MouthOfTruth.Game.App
         private float mPointerPresentationOverrideRemainingSeconds;
         private Vector2? mPresentedPointerScreenPosition;
         private Vector2? mHandPromptDismissalBaselineScreenPosition;
+        private Vector2 mPointerPresentationRebaseInputScreenPosition;
+        private Vector2 mPointerPresentationRebaseOutputScreenPosition;
         private string mLastObservedTranscript = string.Empty;
         private EHandAnchorState mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
         private bool mHasDismissedHandPromptByMovement;
+        private bool mIsPointerPresentationRebaseActive;
+        private bool mShouldRebasePointerAfterPresentationOverride;
 
         private void Awake()
         {
@@ -546,6 +550,7 @@ namespace MouthOfTruth.Game.App
         private async Task insertHandAsync()
         {
             mIsTransitionBusy = true;
+            resetPointerPresentationRebase();
             bool isResumingAnswer = mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused;
 
             if (mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion)
@@ -674,6 +679,7 @@ namespace MouthOfTruth.Game.App
             mPointerReacquireGuardRemainingSeconds = 0.0f;
             mPointerPresentationOverrideRemainingSeconds = 0.0f;
             mPresentedPointerScreenPosition = null;
+            resetPointerPresentationRebase();
             resetHandPromptDismissalTracking();
             mGameStateMachine?.ResetCardSelectionHover();
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
@@ -685,16 +691,35 @@ namespace MouthOfTruth.Game.App
             {
                 mPointerPresentationOverrideRemainingSeconds = Mathf.Max(0.0f, mPointerPresentationOverrideRemainingSeconds - Time.deltaTime);
                 mPresentedPointerScreenPosition = getBottomCenterPointerScreenPosition();
+                warpSystemPointerToBottomCenter();
+
+                if (mPointerPresentationOverrideRemainingSeconds <= 0.0f)
+                {
+                    mShouldRebasePointerAfterPresentationOverride = true;
+                    mIsPointerPresentationRebaseActive = false;
+                }
+
                 return mPresentedPointerScreenPosition;
             }
 
             if (pointerScreenPosition.HasValue == false)
             {
                 mPresentedPointerScreenPosition = null;
+                if (mIsPointerPresentationRebaseActive)
+                {
+                    mIsPointerPresentationRebaseActive = false;
+                    mShouldRebasePointerAfterPresentationOverride = true;
+                }
+
                 return null;
             }
 
-            mPresentedPointerScreenPosition = pointerScreenPosition.Value;
+            if (mShouldRebasePointerAfterPresentationOverride)
+            {
+                beginPointerPresentationRebase(pointerScreenPosition.Value, getBottomCenterPointerScreenPosition());
+            }
+
+            mPresentedPointerScreenPosition = mIsPointerPresentationRebaseActive ? getRebasedPointerScreenPosition(pointerScreenPosition.Value) : pointerScreenPosition.Value;
             return mPresentedPointerScreenPosition;
         }
 
@@ -702,10 +727,34 @@ namespace MouthOfTruth.Game.App
         {
             mPointerPresentationOverrideRemainingSeconds = Mathf.Max(0.0f, durationSeconds);
             mPresentedPointerScreenPosition = getBottomCenterPointerScreenPosition();
+            mShouldRebasePointerAfterPresentationOverride = mPointerPresentationOverrideRemainingSeconds > 0.0f;
+            mIsPointerPresentationRebaseActive = false;
             warpSystemPointerToBottomCenter();
             mWasPointerAvailableLastFrame = false;
             mPointerReacquireGuardRemainingSeconds = 0.0f;
             resetPointerActivationDwellState();
+        }
+
+        private void beginPointerPresentationRebase(Vector2 inputScreenPosition, Vector2 outputScreenPosition)
+        {
+            mPointerPresentationRebaseInputScreenPosition = inputScreenPosition;
+            mPointerPresentationRebaseOutputScreenPosition = outputScreenPosition;
+            mShouldRebasePointerAfterPresentationOverride = false;
+            mIsPointerPresentationRebaseActive = true;
+        }
+
+        private Vector2 getRebasedPointerScreenPosition(Vector2 inputScreenPosition)
+        {
+            Vector2 rebasedPointerScreenPosition = mPointerPresentationRebaseOutputScreenPosition + inputScreenPosition - mPointerPresentationRebaseInputScreenPosition;
+            return new Vector2(Mathf.Clamp(rebasedPointerScreenPosition.x, 0.0f, Screen.width), Mathf.Clamp(rebasedPointerScreenPosition.y, 0.0f, Screen.height));
+        }
+
+        private void resetPointerPresentationRebase()
+        {
+            mIsPointerPresentationRebaseActive = false;
+            mShouldRebasePointerAfterPresentationOverride = false;
+            mPointerPresentationRebaseInputScreenPosition = Vector2.zero;
+            mPointerPresentationRebaseOutputScreenPosition = Vector2.zero;
         }
 
         private static Vector2 getBottomCenterPointerScreenPosition()
@@ -1018,7 +1067,7 @@ namespace MouthOfTruth.Game.App
 
             Task handInsertionTask = mGameView.AnimateHandInsertionAsync();
             yield return waitForRealtimeSecondsCoroutine(PRESENTATION_CAPTURE_HAND_INSERTION_SECONDS);
-            yield return captureScreenshotCoroutine(outputDirectoryPath, "09b_hand_insertion.png");
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "10_hand_insertion.png");
             yield return waitForTaskCoroutine(handInsertionTask);
 
             if (tryLogTaskFailure(handInsertionTask))
@@ -1029,24 +1078,24 @@ namespace MouthOfTruth.Game.App
 
             mGameView.ShowAnswering();
             yield return waitForRealtimeSecondsCoroutine(mGameView.AnswerBeamSweepCycleDurationSeconds);
-            yield return captureScreenshotCoroutine(outputDirectoryPath, "10_answering.png");
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "11_answering.png");
 
             mGameView.ShowAnalyzing();
             yield return waitForRealtimeSecondsCoroutine(mGameView.AnalysisFocusRampDurationSeconds + 0.35f);
             yield return waitForPresentationFrameCoroutine();
-            yield return captureScreenshotCoroutine(outputDirectoryPath, "11_analyzing.png");
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "12_analyzing.png");
 
             mGameView.ShowResult(EVerdictKind.True, string.Empty);
             yield return waitForPresentationFrameCoroutine();
-            yield return captureScreenshotCoroutine(outputDirectoryPath, "12_result_true.png");
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "13_result_true.png");
 
             mGameView.ShowResult(EVerdictKind.False, string.Empty);
             yield return waitForPresentationFrameCoroutine();
-            yield return captureScreenshotCoroutine(outputDirectoryPath, "13_result_false.png");
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "14_result_false.png");
 
             mGameView.ShowResult(EVerdictKind.Uncertain, string.Empty);
             yield return waitForPresentationFrameCoroutine();
-            yield return captureScreenshotCoroutine(outputDirectoryPath, "14_result_uncertain.png");
+            yield return captureScreenshotCoroutine(outputDirectoryPath, "15_result_uncertain.png");
             Debug.Log("Presentation capture sequence completed.");
             yield return finalizePresentationCaptureCoroutine();
         }

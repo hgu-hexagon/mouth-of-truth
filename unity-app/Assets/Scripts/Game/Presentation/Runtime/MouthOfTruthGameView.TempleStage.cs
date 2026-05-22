@@ -66,43 +66,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             await fadeTempleApproachMouthAsync(0.0f, TEMPLE_APPROACH_MOUTH_HIDE_SECONDS);
         }
 
-        public async Task PlayTempleApproachToMouthAsync()
-        {
-            if (mTempleApproachCameraRectTransform == null)
-            {
-                return;
-            }
-
-            float startCameraScale = mTempleApproachCameraRectTransform.localScale.x;
-            Vector2 startCameraPosition = mTempleApproachCameraRectTransform.anchoredPosition;
-            Vector2 centeredMouthCameraPosition = getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
-
-            await animateOverTimeAsync(
-                TEMPLE_APPROACH_STAIR_DURATION_SECONDS,
-                progress =>
-                {
-                    float easedProgress = easeInOut(progress);
-                    float arrivalProgress = easeOut(Mathf.Clamp01((easedProgress - 0.48f) / 0.52f));
-                    float stairBob = Mathf.Sin(easedProgress * Mathf.PI * 2.0f) * easedProgress * (1.0f - arrivalProgress) * 1.8f;
-                    float cameraScale = Mathf.Lerp(startCameraScale, TEMPLE_APPROACH_END_SCALE, easedProgress);
-                    Vector2 cameraPosition = Vector2.Lerp(startCameraPosition, centeredMouthCameraPosition, easedProgress);
-                    float cameraYOffset = cameraPosition.y + stairBob;
-                    mTempleApproachCameraRectTransform.localScale = Vector3.one * cameraScale;
-                    mTempleApproachCameraRectTransform.anchoredPosition = new Vector2(cameraPosition.x, cameraYOffset);
-                    mTempleApproachMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.86f, 1.0f, easedProgress));
-                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
-                });
-
-            await animateOverTimeAsync(
-                TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS,
-                progress =>
-                {
-                    float pulse = Mathf.Sin(progress * Mathf.PI);
-                    setTempleCameraPoseCenteredOnMouth(TEMPLE_APPROACH_END_SCALE + (pulse * 0.003f), TEMPLE_MOUTH_FOCUS_CENTER);
-                    setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
-                });
-        }
-
         public Task PrepareTempleGameplayBackdropAsync()
         {
             if (isTempleApproachSceneActive() == false)

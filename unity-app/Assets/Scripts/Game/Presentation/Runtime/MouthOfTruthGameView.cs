@@ -50,7 +50,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float CARD_REVEAL_CUE_SETTLE_SECONDS = 0.46f;
         private const float CARD_FLIP_CLOSE_SECONDS = 0.28f;
         private const float CARD_FLIP_OPEN_SECONDS = 0.36f;
-        private const float HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS = 0.90f;
+        private const float CARD_TO_MOUTH_ABSORPTION_SECONDS = 1.17f;
+        private const float HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS = 0.16f;
         private const float FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS = 4.0f;
         private const float FIRST_RUN_TUTORIAL_DURATION_SCALE = 3.0f;
         private const float HAND_INSERTION_DURATION_SECONDS = 2.85f;
@@ -60,8 +61,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float ANALYSIS_FOCUS_RAMP_SECONDS = 2.10f;
         private const float TEMPLE_APPROACH_DURATION_SECONDS = 6.05f;
         private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS * 0.64f;
-        private const float TEMPLE_APPROACH_STAIR_DURATION_SECONDS = TEMPLE_APPROACH_DURATION_SECONDS - TEMPLE_APPROACH_FORWARD_DURATION_SECONDS;
-        private const float TEMPLE_APPROACH_ARRIVAL_HOLD_SECONDS = 0.80f;
         private const float TEMPLE_APPROACH_MOUTH_HIDE_SECONDS = 0.48f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 4.36f;
@@ -622,33 +621,49 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             bool isTempleApproachSceneVisible = mTempleApproachCameraObject != null;
             prepareCardLaunchPresentation(isTempleApproachSceneVisible);
             Vector2 launchStartPosition = selectedCardView.RectTransform.anchoredPosition;
-            Vector2 launchTargetPosition = isTempleApproachSceneVisible
-                ? getTempleApproachMouthCanvasPosition() + new Vector2(0.0f, -24.0f)
-                : getMouthAnchorPosition() + new Vector2(0.0f, -24.0f);
+            float templeStartScale = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.localScale.x : 1.0f;
+            Vector2 templeStartPosition = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.anchoredPosition : Vector2.zero;
+            Vector2 templeTargetPosition = isTempleApproachSceneVisible ? getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER) : Vector2.zero;
+            setTempleApproachMouthAlpha(isTempleApproachSceneVisible ? 0.0f : 1.0f);
 
             await animateOverTimeAsync(
-                0.78f,
+                CARD_TO_MOUTH_ABSORPTION_SECONDS,
                 progress =>
                 {
-                    float easedProgress = easeOut(progress);
-                    Vector2 basePosition = Vector2.Lerp(launchStartPosition, launchTargetPosition, easedProgress);
-                    float arcLift = Mathf.Sin(easedProgress * Mathf.PI) * 56.0f;
-                    selectedCardView.RectTransform.anchoredPosition = basePosition + new Vector2(0.0f, arcLift);
-                    selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.82f, easedProgress));
-                    selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, easedProgress));
+                    float cameraProgress = easeInOut(progress);
+                    float suctionProgress = easeIn(Mathf.Clamp01(progress * 1.04f));
+                    float absorptionProgress = easeIn(Mathf.Clamp01((progress - 0.48f) / 0.52f));
+                    Vector2 launchTargetPosition;
 
                     if (isTempleApproachSceneVisible)
                     {
-                        setTempleApproachMouthAlpha(Mathf.Lerp(0.0f, 0.90f, easeOut(easedProgress)));
+                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_APPROACH_END_SCALE, cameraProgress);
+                        Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, cameraProgress);
+                        float inhaleBob = Mathf.Sin(progress * Mathf.PI * 2.0f) * (1.0f - cameraProgress) * 1.2f;
+                        setTempleCameraPose(cameraScale, cameraPosition.y + inhaleBob, cameraPosition.x);
+                        setTempleApproachMouthAlpha(Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(progress / 0.42f))));
+                        launchTargetPosition = getTempleApproachMouthCanvasPosition() + new Vector2(0.0f, -20.0f);
                     }
                     else
                     {
-                        mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.94f, 1.0f, easedProgress);
+                        launchTargetPosition = getMouthAnchorPosition() + new Vector2(0.0f, -24.0f);
+                        mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.94f, 1.04f, Mathf.Sin(progress * Mathf.PI));
                     }
+
+                    Vector2 basePosition = Vector2.Lerp(launchStartPosition, launchTargetPosition, suctionProgress);
+                    Vector2 inhaleOffset = new Vector2(Mathf.Sin(progress * Mathf.PI * 3.0f) * (1.0f - absorptionProgress) * 16.0f, Mathf.Sin(progress * Mathf.PI) * 34.0f * (1.0f - absorptionProgress));
+                    selectedCardView.RectTransform.anchoredPosition = basePosition + inhaleOffset;
+                    selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.18f, absorptionProgress));
+                    selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, absorptionProgress));
                 });
 
             setCardsVisible(false);
-            setTempleApproachMouthAlpha(isTempleApproachSceneVisible ? 0.90f : 0.0f);
+            if (isTempleApproachSceneVisible)
+            {
+                setTempleCameraPoseCenteredOnMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
+                setTempleApproachMouthAlpha(1.0f);
+            }
+
             selectedCardView.SetAlpha(1.0f);
             selectedCardView.ResetTransformState();
             await animateOverTimeAsync(HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS, _ => { });

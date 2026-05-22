@@ -485,7 +485,6 @@ namespace MouthOfTruth.Game.App
             mGameView.UpdatePointerVisual(false, null);
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
             await mGameView.PlayQuestionRevealAsync(selectedQuestionCardSlot, selectedQuestionDefinition, () => mQuestionNarrationService.SpeakQuestionAsync(selectedQuestionDefinition, mLifecycleCancellationTokenSource.Token));
-            await mGameView.PlayTempleApproachToMouthAsync();
             await mGameView.PrepareTempleGameplayBackdropAsync();
             mGameStateMachine.MarkQuestionRevealCompleted();
             mGameStateMachine.MarkQuestionNarrationCompleted();
@@ -925,15 +924,6 @@ namespace MouthOfTruth.Game.App
 
             yield return waitForPresentationFrameCoroutine();
             yield return captureScreenshotCoroutine(outputDirectoryPath, "07_card_launch_complete.png");
-
-            Task approachToMouthTask = mGameView.PlayTempleApproachToMouthAsync();
-            yield return waitForTaskCoroutine(approachToMouthTask);
-
-            if (tryLogTaskFailure(approachToMouthTask))
-            {
-                yield return finalizePresentationCaptureCoroutine();
-                yield break;
-            }
 
             Task prepareBackdropTask = mGameView.PrepareTempleGameplayBackdropAsync();
             yield return waitForTaskCoroutine(prepareBackdropTask);

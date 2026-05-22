@@ -28,7 +28,6 @@ namespace MouthOfTruth.Game.App
         private const float UI_ACTION_DWELL_SECONDS = 1.05f;
         private const float POINTER_REACQUIRE_GUARD_SECONDS = 0.45f;
         private const float POST_CARD_SELECTION_POINTER_SETTLE_SECONDS = 0.0f;
-        private const float POINTER_PRESENTATION_FOLLOW_RATE = 9.0f;
         private const float MINIMUM_ANALYSIS_PRESENTATION_SECONDS = 2.5f;
         private const float PRESENTATION_CAPTURE_HAND_INSERTION_EXTRA_DELAY_SECONDS = 1.2f;
         private const string PRESENTATION_CAPTURE_ENVIRONMENT_VARIABLE_NAME = "MOUTH_OF_TRUTH_PRESENTATION_CAPTURE";
@@ -640,14 +639,7 @@ namespace MouthOfTruth.Game.App
                 return null;
             }
 
-            if (mPresentedPointerScreenPosition.HasValue == false)
-            {
-                mPresentedPointerScreenPosition = pointerScreenPosition.Value;
-                return mPresentedPointerScreenPosition;
-            }
-
-            float followProgress = 1.0f - Mathf.Exp(-POINTER_PRESENTATION_FOLLOW_RATE * Time.deltaTime);
-            mPresentedPointerScreenPosition = Vector2.Lerp(mPresentedPointerScreenPosition.Value, pointerScreenPosition.Value, followProgress);
+            mPresentedPointerScreenPosition = pointerScreenPosition.Value;
             return mPresentedPointerScreenPosition;
         }
 

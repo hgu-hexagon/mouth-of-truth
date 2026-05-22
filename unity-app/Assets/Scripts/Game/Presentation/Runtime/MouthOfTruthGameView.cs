@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using MouthOfTruth.Game.Analysis;
 using MouthOfTruth.Game.Data;
@@ -189,12 +188,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private MouthAnchorSet mMouthAnchorSet;
         private bool mUseWorldEnvironmentLayout;
         private EUiActionTarget? mLastHoveredUiActionTarget;
-        private bool mUseHeldHandPresentation;
         private bool mIsAnsweringPresentationActive;
         private bool mIsAnalyzingPresentationActive;
-        private float mHeldHandBaseProgress;
-        private float mHeldHandPulseAmplitude;
-        private float mHeldHandPulseSpeed;
         private float mAnsweringPresentationStartedAtSeconds;
         private float mAnalyzingPresentationStartedAtSeconds;
         private float mLastCardHoverCueTimeSeconds = -999.0f;
@@ -209,14 +204,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         public float AnalysisFocusRampDurationSeconds => ANALYSIS_FOCUS_RAMP_SECONDS;
 
         public float HandPromptPanelHoldDurationSeconds => getHandPromptPanelHoldSeconds();
-
-        [Serializable]
-        private sealed class TutorialSequenceMetadata
-        {
-            public float fr;
-            public float ip;
-            public float op;
-        }
 
         public async Task InitializeAsync()
         {
@@ -241,7 +228,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             ensureAmbiencePlayback();
             stabilizeAudioSourceLevels();
-            updateHeldHandPresentation();
             updateAnsweringPresentation();
             updateAnalyzingPresentation();
         }
@@ -272,17 +258,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.color = new Color(1.0f, Mathf.Lerp(0.93f, 1.0f, slowPulse), Mathf.Lerp(0.78f, 0.94f, slowPulse), 1.0f);
             mMouthImage.rectTransform.localScale = Vector3.one * breathScale;
             updateAnsweringEyeBeamImages(elapsedSeconds, quickPulse);
-        }
-
-        private void updateHeldHandPresentation()
-        {
-            if (mUseHeldHandPresentation == false || mHandImage == null || mHandImage.gameObject.activeSelf == false)
-            {
-                return;
-            }
-
-            float insertionProgress = Mathf.Clamp01(mHeldHandBaseProgress + (Mathf.Sin(Time.unscaledTime * mHeldHandPulseSpeed) * mHeldHandPulseAmplitude));
-            setHandVisual(insertionProgress);
         }
 
         private void updateAnalyzingPresentation()
@@ -324,7 +299,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
-            disableHeldHandPresentation();
             destroyTempleApproachScene();
             resetStageMotionTransforms();
             applyStartScreenLayout();
@@ -378,7 +352,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
-            disableHeldHandPresentation();
             resetStageMotionTransforms();
             applyCardSelectionLayout();
             configureExitButtonAsTopLeftIcon();
@@ -526,415 +499,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return RectTransformUtility.WorldToScreenPoint(mCanvas.worldCamera, worldCenter);
         }
 
-        public async Task PlayQuestionRevealAsync(EQuestionCardSlot selectedQuestionCardSlot, QuestionDefinition questionDefinition, Func<Task> questionNarrationTaskFactory = null)
-        {
-            resetHandPromptPanelAlpha();
-            setObjectActive(mPromptText, false);
-            setObjectActive(mStatusText, false);
-            setObjectActive(mQuestionPanelImage, false);
-            setObjectActive(mQuestionText, false);
-            setObjectActive(mSceneOverlayImage, true);
-            setMouthEffectImagesActive(false, false);
-            setOverlayAlpha(0.12f);
-            mLastAudibleHoveredCardSlot = null;
-            mLastCardHoverCueTimeSeconds = Time.unscaledTime;
-            playInterfaceCueClean(mCardSelectClip, 0.58f);
-            await animateOverTimeAsync(CARD_SELECTION_CUE_SETTLE_SECONDS, _ => { });
-
-            foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
-            {
-                bool isSelected = pair.Key == selectedQuestionCardSlot;
-                pair.Value.SetVisualState(isDimmed: isSelected == false, isSelected, 0.0f);
-                pair.Value.gameObject.SetActive(isSelected);
-            }
-
-            QuestionCardView selectedCardView = mCardViews[selectedQuestionCardSlot];
-            Vector2 startPosition = selectedCardView.RectTransform.anchoredPosition;
-            Vector2 endPosition = getCenteredCardRevealPosition();
-
-            await animateOverTimeAsync(
-                0.75f,
-                progress =>
-                {
-                    float easedProgress = easeOut(progress);
-                    selectedCardView.RectTransform.anchoredPosition = Vector2.Lerp(startPosition, endPosition, easedProgress);
-                    selectedCardView.RectTransform.localScale = Vector3.one * Mathf.Lerp(1.0f, 1.22f, easedProgress);
-                });
-
-            await animateOverTimeAsync(
-                CARD_FLIP_CLOSE_SECONDS,
-                progress =>
-                {
-                    float easedProgress = easeInOut(progress);
-                    float verticalScale = 1.22f + (Mathf.Sin(progress * Mathf.PI) * 0.02f);
-                    selectedCardView.SetScale(Mathf.Lerp(1.22f, 0.08f, easedProgress), verticalScale);
-                });
-
-            selectedCardView.SetFront(mCardFrontSprite, questionDefinition.Text);
-            playInterfaceCueClean(mCardRevealClip, 0.58f);
-
-            await animateOverTimeAsync(
-                CARD_FLIP_OPEN_SECONDS + CARD_REVEAL_CUE_SETTLE_SECONDS,
-                progress =>
-                {
-                    float easedProgress = easeOut(progress);
-                    float settlePulse = Mathf.Sin(progress * Mathf.PI) * 0.012f;
-                    selectedCardView.SetScale(Mathf.Lerp(0.08f, 1.26f, easedProgress), Mathf.Lerp(1.24f, 1.26f, easedProgress) + settlePulse);
-                });
-
-            await animateOverTimeAsync(
-                CARD_FRONT_FOCUS_BEFORE_NARRATION_SECONDS,
-                progress =>
-                {
-                    float pulse = Mathf.Sin(progress * Mathf.PI) * 0.006f;
-                    selectedCardView.SetScale(1.26f + pulse);
-                });
-
-            Task questionNarrationTask = Task.CompletedTask;
-            if (questionNarrationTaskFactory != null)
-            {
-                questionNarrationTask = questionNarrationTaskFactory.Invoke();
-            }
-
-            float cardFrontReadHoldDurationSeconds = getCardFrontReadHoldDurationSeconds(questionDefinition.Text);
-            float elapsedFrontReadHoldSeconds = 0.0f;
-
-            while (elapsedFrontReadHoldSeconds < cardFrontReadHoldDurationSeconds
-                || questionNarrationTask.IsCompleted == false)
-            {
-                elapsedFrontReadHoldSeconds += Time.deltaTime;
-                float progress = Mathf.Clamp01(elapsedFrontReadHoldSeconds / cardFrontReadHoldDurationSeconds);
-                float pulse = Mathf.Sin(progress * Mathf.PI) * 0.012f;
-                selectedCardView.SetScale(1.26f + pulse);
-                await Task.Yield();
-            }
-
-            await questionNarrationTask;
-            await animateOverTimeAsync(
-                CARD_FRONT_AFTER_NARRATION_HOLD_SECONDS,
-                progress =>
-                {
-                    float pulse = Mathf.Sin(progress * Mathf.PI) * 0.008f;
-                    selectedCardView.SetScale(1.26f + pulse);
-                });
-
-            bool isTempleApproachSceneVisible = mTempleApproachCameraObject != null;
-            prepareCardLaunchPresentation(isTempleApproachSceneVisible);
-            Vector2 launchStartPosition = selectedCardView.RectTransform.anchoredPosition;
-            float templeStartScale = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.localScale.x : 1.0f;
-            Vector2 templeStartPosition = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.anchoredPosition : Vector2.zero;
-            Vector2 templeTargetPosition = isTempleApproachSceneVisible ? getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER) : Vector2.zero;
-            setTempleApproachMouthAlpha(isTempleApproachSceneVisible ? 0.0f : 1.0f);
-
-            await animateOverTimeAsync(
-                CARD_TO_MOUTH_ABSORPTION_SECONDS,
-                progress =>
-                {
-                    float cameraProgress = easeInOut(progress);
-                    float suctionProgress = easeIn(Mathf.Clamp01(progress * 1.04f));
-                    float absorptionProgress = easeIn(Mathf.Clamp01((progress - 0.48f) / 0.52f));
-                    Vector2 launchTargetPosition;
-
-                    if (isTempleApproachSceneVisible)
-                    {
-                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_APPROACH_END_SCALE, cameraProgress);
-                        Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, cameraProgress);
-                        float inhaleBob = Mathf.Sin(progress * Mathf.PI * 2.0f) * (1.0f - cameraProgress) * 1.2f;
-                        setTempleCameraPose(cameraScale, cameraPosition.y + inhaleBob, cameraPosition.x);
-                        setTempleApproachMouthAlpha(Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(progress / 0.42f))));
-                        launchTargetPosition = getTempleApproachMouthCanvasPosition() + new Vector2(0.0f, -20.0f);
-                    }
-                    else
-                    {
-                        launchTargetPosition = getMouthAnchorPosition() + new Vector2(0.0f, -24.0f);
-                        mMouthImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.94f, 1.04f, Mathf.Sin(progress * Mathf.PI));
-                    }
-
-                    Vector2 basePosition = Vector2.Lerp(launchStartPosition, launchTargetPosition, suctionProgress);
-                    Vector2 inhaleOffset = new Vector2(Mathf.Sin(progress * Mathf.PI * 3.0f) * (1.0f - absorptionProgress) * 16.0f, Mathf.Sin(progress * Mathf.PI) * 34.0f * (1.0f - absorptionProgress));
-                    selectedCardView.RectTransform.anchoredPosition = basePosition + inhaleOffset;
-                    selectedCardView.SetScale(Mathf.Lerp(1.26f, 0.18f, absorptionProgress));
-                    selectedCardView.SetAlpha(Mathf.Lerp(1.0f, 0.0f, absorptionProgress));
-                });
-
-            setCardsVisible(false);
-            if (isTempleApproachSceneVisible)
-            {
-                setTempleCameraPoseCenteredOnMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
-                setTempleApproachMouthAlpha(1.0f);
-            }
-
-            selectedCardView.SetAlpha(1.0f);
-            selectedCardView.ResetTransformState();
-            await animateOverTimeAsync(HAND_PROMPT_AFTER_CARD_LAUNCH_DELAY_SECONDS, _ => { });
-        }
-
-        public async Task PlayFirstRunTutorialAsync()
-        {
-            float tutorialDurationSeconds = getFirstRunTutorialDurationSeconds() * FIRST_RUN_TUTORIAL_DURATION_SCALE;
-            IsFirstRunTutorialVisible = true;
-            configureExitButtonAsTopLeftIcon();
-            setObjectActive(mTutorialOverlayImage, true);
-            setObjectActive(mTutorialDevicePanelImage, true);
-            setObjectActive(mTutorialDeviceImage, true);
-            setObjectActive(mTutorialHandImage, true);
-            setObjectActive(mTutorialTitleText, true);
-            setObjectActive(mTutorialBodyText, false);
-            setObjectActive(mTutorialStepText, false);
-            setObjectActive(mStartButton, false);
-            setObjectActive(mTryAgainButton, false);
-            setObjectActive(mBackToTitleButton, false);
-            setObjectActive(mExitButton, true);
-            mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
-            mTutorialDevicePanelImage.color = new Color(0.56f, 0.57f, 0.59f, 0.94f);
-            mTutorialOverlayImage.transform.SetAsLastSibling();
-            mTutorialDevicePanelImage.transform.SetAsLastSibling();
-            mTutorialDeviceImage.transform.SetAsLastSibling();
-            mTutorialHandImage.transform.SetAsLastSibling();
-            mTutorialTitleText.transform.SetAsLastSibling();
-            mExitButton.transform.SetAsLastSibling();
-            setText(mTutorialTitleText, "손을 장치 위에서 천천히 움직여 주세요");
-            RectTransform handRectTransform = mTutorialHandImage.rectTransform;
-            RectTransform deviceRectTransform = mTutorialDeviceImage.rectTransform;
-            deviceRectTransform.sizeDelta = TUTORIAL_DEVICE_SIZE_PIXELS;
-            deviceRectTransform.anchoredPosition = new Vector2(0.0f, -88.0f);
-            mTutorialDeviceImage.color = Color.white;
-
-            await animateOverTimeAsync(
-                tutorialDurationSeconds,
-                progress =>
-                {
-                    float firstSegmentProgress = Mathf.Clamp01(progress / 0.48f);
-                    float secondSegmentProgress = Mathf.Clamp01((progress - 0.48f) / 0.52f);
-                    Vector2 hoverStartPosition = new Vector2(0.0f, -34.0f);
-                    Vector2 hoverReadyPosition = new Vector2(0.0f, 82.0f);
-                    handRectTransform.anchoredPosition = progress < 0.48f
-                        ? Vector2.Lerp(hoverStartPosition, hoverReadyPosition, easeOut(firstSegmentProgress))
-                        : getTutorialScanPosition(secondSegmentProgress) + new Vector2(0.0f, 98.0f);
-                    handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.00f, easeOut(firstSegmentProgress));
-                    mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
-                });
-
-            setObjectActive(mTutorialOverlayImage, false);
-            setObjectActive(mTutorialDevicePanelImage, false);
-            setObjectActive(mTutorialDeviceImage, false);
-            setObjectActive(mTutorialHandImage, false);
-            setObjectActive(mTutorialTitleText, false);
-            setObjectActive(mTutorialBodyText, false);
-            setObjectActive(mTutorialStepText, false);
-            IsFirstRunTutorialVisible = false;
-        }
-
-        public void ShowAwaitingHandInsertion()
-        {
-            resetHandPromptPanelAlpha();
-            disableAnsweringPresentation();
-            disableAnalyzingPresentation();
-            disableHeldHandPresentation();
-            bool isTempleSceneActive = isTempleApproachSceneActive();
-
-            if (isTempleSceneActive)
-            {
-                applyTempleStageBackgroundPresentation(0.26f);
-                applyHandPromptPanelLayout();
-            }
-            else
-            {
-                applyAwaitingHandInsertionLayout();
-                mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-                setBackgroundTint(STAGE_BACKGROUND_TINT);
-                setObjectActive(mBackgroundImage, true);
-                setObjectActive(mCarpetImage, false);
-            }
-
-            setObjectActive(mSceneOverlayImage, true);
-            setGameplayOverlayAlpha(0.26f);
-            configureExitButtonAsTopLeftIcon();
-            setObjectActive(mExitButton, true);
-            setObjectActive(mMouthImage, true);
-            setMouthEffectImagesActive(false, false);
-            setEyeBeamImagesActive(false);
-            setObjectActive(mHandImage, false);
-            setObjectActive(mRitualHandImage, false);
-            setObjectActive(mPointerImage, false);
-            setObjectActive(mAnswerInputField, false);
-            setObjectActive(mAnswerTimerText, false);
-            setObjectActive(mQuestionPanelImage, true);
-            setObjectActive(mQuestionText, true);
-            setObjectActive(mStatusPanelImage, false);
-            setObjectActive(mPromptText, false);
-            setObjectActive(mStatusText, false);
-            setObjectActive(mResultPanelImage, false);
-            mAnswerInputField.text = string.Empty;
-            mAnswerInputField.interactable = false;
-            setText(mQuestionText, "“손을 내밀고, 진실을 답하라.”");
-            setHandPromptPanelAlpha(1.0f);
-            if (isTempleSceneActive == false)
-            {
-                applyMouthAnchoredLayout();
-            }
-
-            setHandVisual(0.0f);
-            playInterfaceCueClean(mHandPromptClip, 0.74f);
-        }
-
-        public async Task AnimateHandInsertionAsync()
-        {
-            resetHandPromptPanelAlpha();
-            disableAnsweringPresentation();
-            disableHeldHandPresentation();
-            if (isTempleApproachSceneActive())
-            {
-                applyTempleStageBackgroundPresentation(0.30f);
-                applyTopLeftExitButtonLayout();
-            }
-            else
-            {
-                applyAnswerStageLayout();
-            }
-
-            setObjectActive(mHandImage, false);
-            setMouthEffectImagesActive(false, false);
-            setEyeBeamImagesActive(false);
-            setObjectActive(mRitualHandImage, true);
-            placeRitualHandAboveMouth();
-            playInterfaceCue(mHandInsertClip, 0.58f);
-            Vector2 startPosition = getHandFrontPosition() + new Vector2(0.0f, -330.0f);
-            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -72.0f);
-            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, -36.0f);
-
-            await animateOverTimeAsync(
-                HAND_INSERTION_DURATION_SECONDS,
-                progress =>
-                {
-                    float easedProgress = easeInOut(progress);
-                    float reachProgress = easeInOut(Mathf.Clamp01((easedProgress - 0.58f) / 0.42f));
-                    Vector2 handPosition = Vector2.Lerp(Vector2.Lerp(startPosition, frontPosition, easeOut(Mathf.Clamp01(easedProgress / 0.72f))), innerPosition, reachProgress);
-                    float fadeOutProgress = easeIn(Mathf.Clamp01((easedProgress - 0.82f) / 0.18f));
-                    float handAlpha = Mathf.Lerp(Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(easedProgress / 0.24f))), 0.0f, fadeOutProgress);
-                    float verticalLift = Mathf.Sin(easedProgress * Mathf.PI) * 7.0f;
-                    float handScale = Mathf.Lerp(0.86f, 1.04f, easeOut(Mathf.Clamp01(easedProgress / 0.70f)));
-                    float mouthPulse = Mathf.Sin(easedProgress * Mathf.PI);
-                    float promptFadeProgress = easeOut(Mathf.Clamp01(progress / 0.18f));
-
-                    setRitualHandVisual(handPosition + new Vector2(0.0f, verticalLift), RITUAL_HAND_SIZE_PIXELS, handAlpha, handScale, Mathf.Lerp(-2.0f, 1.0f, easedProgress));
-                    setHandPromptPanelAlpha(Mathf.Lerp(1.0f, 0.0f, promptFadeProgress));
-                    setGameplayOverlayAlpha(Mathf.Lerp(0.30f, 0.40f, mouthPulse));
-
-                    if (isTempleApproachSceneActive())
-                    {
-                        setTempleApproachMouthColor(new Color(1.0f, 0.96f, 0.86f, 1.0f));
-                        syncTempleStageMouthOverlay(0.0f);
-                    }
-                    else
-                    {
-                        mMouthImage.rectTransform.localScale = Vector3.one * (1.0f + (mouthPulse * 0.045f));
-                    }
-                });
-
-            setObjectActive(mQuestionPanelImage, false);
-            setObjectActive(mQuestionText, false);
-            resetHandPromptPanelAlpha();
-            setObjectActive(mRitualHandImage, false);
-            await playMouthJudgementFocusTransitionAsync();
-        }
-
-        public void ShowAnswering()
-        {
-            hideHandPromptPanelImmediately();
-            disableAnalyzingPresentation();
-            if (isTempleApproachSceneActive())
-            {
-                applyTempleStageBackgroundPresentation(0.32f);
-                applyTopLeftExitButtonLayout();
-            }
-            else
-            {
-                applyAnswerStageLayout();
-                mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-                setBackgroundTint(STAGE_BACKGROUND_TINT);
-                setObjectActive(mBackgroundImage, true);
-                setObjectActive(mCarpetImage, false);
-            }
-
-            setObjectActive(mSceneOverlayImage, true);
-            setGameplayOverlayAlpha(0.32f);
-            configureExitButtonAsTopLeftIcon();
-            setObjectActive(mExitButton, true);
-            setObjectActive(mQuestionPanelImage, false);
-            setObjectActive(mQuestionText, false);
-            setObjectActive(mStatusPanelImage, false);
-            setObjectActive(mPromptText, false);
-            setObjectActive(mStatusText, false);
-            setObjectActive(mAnswerTimerText, false);
-            setObjectActive(mHandImage, false);
-            setObjectActive(mRitualHandImage, false);
-            if (isTempleApproachSceneActive())
-            {
-                syncTempleStageMouthOverlay(0.0f);
-                syncMouthEffectImageLayout(mMouthListeningAuraImage, 1.26f);
-                syncMouthEffectImageLayout(mMouthAnalyzingAuraImage, 1.18f);
-            }
-            else
-            {
-                applyAnsweringFocusLayout();
-            }
-
-            setMouthEffectImagesActive(false, false);
-            setEyeBeamImagesActive(true);
-            disableHeldHandPresentation();
-            enableAnsweringPresentation();
-        }
-
-        public void ShowAnalyzing()
-        {
-            hideHandPromptPanelImmediately();
-            disableAnsweringPresentation();
-            disableHeldHandPresentation();
-            if (isTempleApproachSceneActive())
-            {
-                applyTempleStageBackgroundPresentation(0.36f);
-                applyTopLeftExitButtonLayout();
-            }
-            else
-            {
-                applyAnswerStageLayout();
-                mBackgroundImage.sprite = mMouthChamberBackgroundSprite;
-                setBackgroundTint(STAGE_BACKGROUND_TINT);
-                setObjectActive(mBackgroundImage, true);
-                setObjectActive(mCarpetImage, false);
-            }
-
-            if (isTempleApproachSceneActive())
-            {
-                syncTempleStageMouthOverlay(0.0f);
-                syncMouthEffectImageLayout(mMouthListeningAuraImage, 1.26f);
-                syncMouthEffectImageLayout(mMouthAnalyzingAuraImage, 1.18f);
-            }
-            else
-            {
-                applyAnsweringFocusLayout();
-            }
-
-            mAnswerInputField.interactable = false;
-            setObjectActive(mSceneOverlayImage, true);
-            setGameplayOverlayAlpha(0.36f);
-            configureExitButtonAsTopLeftIcon();
-            setObjectActive(mExitButton, true);
-            setObjectActive(mQuestionPanelImage, false);
-            setObjectActive(mQuestionText, false);
-            setObjectActive(mStatusPanelImage, false);
-            setObjectActive(mPromptText, false);
-            setObjectActive(mStatusText, false);
-            setObjectActive(mAnswerTimerText, false);
-            setObjectActive(mPointerImage, false);
-            setObjectActive(mHandImage, false);
-            setObjectActive(mRitualHandImage, false);
-            setMouthEffectImagesActive(true, true);
-            setEyeBeamImagesActive(false);
-            enableAnalyzingPresentation();
-        }
-
         public async Task PlayAnalysisCompleteTransitionAsync()
         {
             if (mIsAnalyzingPresentationActive == false)
@@ -1071,7 +635,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
-            disableHeldHandPresentation();
             applyResultLayout(verdictKind);
             configureExitButtonAsTopLeftIcon();
             setCardsVisible(false);
@@ -2481,62 +2044,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             updateAction?.Invoke(1.0f);
         }
 
-        private static float getCardFrontReadHoldDurationSeconds(string questionText)
-        {
-            int questionLength = string.IsNullOrWhiteSpace(questionText)
-                ? 0
-                : questionText.Trim().Length;
-            float weightedDuration = questionLength * CARD_FRONT_READ_HOLD_PER_CHARACTER_SECONDS;
-            return Mathf.Clamp(CARD_FRONT_READ_HOLD_MINIMUM_SECONDS + weightedDuration, CARD_FRONT_READ_HOLD_MINIMUM_SECONDS, CARD_FRONT_READ_HOLD_MAXIMUM_SECONDS);
-        }
-
-        private static Vector2 getTutorialScanPosition(float progress)
-        {
-            float clampedProgress = Mathf.Clamp01(progress);
-
-            Vector2 centerPosition = new Vector2(0.0f, -18.0f);
-            Vector2 leftPosition = new Vector2(-220.0f, -20.0f);
-            Vector2 rightPosition = new Vector2(220.0f, -20.0f);
-
-            if (clampedProgress < 0.28f)
-            {
-                return Vector2.Lerp(centerPosition, leftPosition, easeInOutStatic(clampedProgress / 0.28f));
-            }
-
-            if (clampedProgress < 0.65f)
-            {
-                return Vector2.Lerp(leftPosition, rightPosition, easeInOutStatic((clampedProgress - 0.28f) / 0.37f));
-            }
-
-            return Vector2.Lerp(rightPosition, centerPosition, easeInOutStatic((clampedProgress - 0.65f) / 0.35f));
-        }
-
-        private static float getFirstRunTutorialDurationSeconds()
-        {
-            try
-            {
-                if (File.Exists(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath) == false)
-                {
-                    return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
-                }
-
-                string json = File.ReadAllText(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath);
-                TutorialSequenceMetadata metadata = JsonUtility.FromJson<TutorialSequenceMetadata>(json);
-
-                if (metadata == null || metadata.fr <= 0.0f || metadata.op <= metadata.ip)
-                {
-                    return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
-                }
-
-                return Mathf.Clamp((metadata.op - metadata.ip) / metadata.fr, 3.0f, 5.0f);
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning("Failed to read first-run tutorial sequence metadata.\n" + exception);
-                return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
-            }
-        }
-
         private static float easeInOutStatic(float progress)
         {
             float clampedProgress = Mathf.Clamp01(progress);
@@ -2559,137 +2066,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             float clampedProgress = Mathf.Clamp01(progress);
             return clampedProgress * clampedProgress * (3.0f - (2.0f * clampedProgress));
-        }
-
-        private void setRitualHandVisual(Vector2 anchoredPosition, Vector2 sizeDelta, float alpha, float scale, float rotationDegrees)
-        {
-            if (mRitualHandImage == null)
-            {
-                return;
-            }
-
-            RectTransform ritualHandRectTransform = mRitualHandImage.rectTransform;
-            ritualHandRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            ritualHandRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            ritualHandRectTransform.anchoredPosition = anchoredPosition;
-            ritualHandRectTransform.sizeDelta = sizeDelta;
-            ritualHandRectTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, rotationDegrees);
-            ritualHandRectTransform.localScale = Vector3.one * Mathf.Max(0.0f, scale);
-            mRitualHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(alpha));
-        }
-
-        private void setHandVisual(float insertionProgress)
-        {
-            RectTransform handRectTransform = mHandImage.rectTransform;
-            float easedProgress = easeOut(Mathf.Clamp01(insertionProgress));
-            Vector2 frontPosition = getHandFrontPosition() + new Vector2(0.0f, -10.0f);
-            Vector2 innerPosition = getHandInnerPosition() + new Vector2(0.0f, 10.0f);
-            float lateralArcOffset = Mathf.Sin(easedProgress * Mathf.PI) * 4.0f;
-            handRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            handRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            handRectTransform.anchoredPosition = Vector2.Lerp(frontPosition, innerPosition, easedProgress)
-                + new Vector2(lateralArcOffset, 0.0f);
-            handRectTransform.localRotation = Quaternion.identity;
-            handRectTransform.localScale = Vector3.one * Mathf.Lerp(1.05f, 0.86f, easedProgress);
-            mHandImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(0.94f, 0.82f, easedProgress));
-        }
-
-        private void enableHeldHandPresentation(float baseProgress, float pulseAmplitude, float pulseSpeed)
-        {
-            mUseHeldHandPresentation = true;
-            mHeldHandBaseProgress = Mathf.Clamp01(baseProgress);
-            mHeldHandPulseAmplitude = Mathf.Max(0.0f, pulseAmplitude);
-            mHeldHandPulseSpeed = Mathf.Max(0.0f, pulseSpeed);
-            setHandVisual(mHeldHandBaseProgress);
-        }
-
-        private void disableHeldHandPresentation()
-        {
-            mUseHeldHandPresentation = false;
-            mHeldHandBaseProgress = 0.0f;
-            mHeldHandPulseAmplitude = 0.0f;
-            mHeldHandPulseSpeed = 0.0f;
-        }
-
-        private void enableAnsweringPresentation()
-        {
-            mIsAnsweringPresentationActive = true;
-            mAnsweringPresentationStartedAtSeconds = Time.unscaledTime;
-
-            if (mQuestionPanelImage != null)
-            {
-                mQuestionPanelImage.color = Color.white;
-            }
-
-            if (mAnalyzingDotsText != null)
-            {
-                setObjectActive(mAnalyzingDotsText, false);
-                setText(mAnalyzingDotsText, string.Empty);
-            }
-        }
-
-        private void disableAnsweringPresentation()
-        {
-            mIsAnsweringPresentationActive = false;
-            setEyeBeamImagesActive(false);
-
-            if (mQuestionPanelImage != null)
-            {
-                mQuestionPanelImage.color = Color.white;
-            }
-
-            if (mIsAnalyzingPresentationActive == false)
-            {
-                setMouthEffectImagesActive(false, false);
-            }
-
-            if (mAnalyzingDotsText != null && mIsAnalyzingPresentationActive == false)
-            {
-                setObjectActive(mAnalyzingDotsText, false);
-                setText(mAnalyzingDotsText, string.Empty);
-                mAnalyzingDotsText.rectTransform.localScale = Vector3.one;
-            }
-        }
-
-        private void enableAnalyzingPresentation()
-        {
-            mIsAnalyzingPresentationActive = true;
-            mAnalyzingPresentationStartedAtSeconds = Time.unscaledTime;
-
-            if (isTempleApproachSceneActive())
-            {
-                syncTempleStageMouthOverlay(0.0f);
-            }
-            else
-            {
-                mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, 0.56f);
-                mMouthImage.rectTransform.localScale = Vector3.one;
-            }
-
-            setObjectActive(mAnalyzingDotsText, false);
-            setText(mAnalyzingDotsText, string.Empty);
-        }
-
-        private void disableAnalyzingPresentation(bool preserveMouthLayout = false)
-        {
-            mIsAnalyzingPresentationActive = false;
-            setEyeBeamImagesActive(false);
-
-            if (mMouthImage != null && preserveMouthLayout == false && isTempleApproachSceneActive() == false)
-            {
-                mMouthImage.rectTransform.anchoredPosition = getMouthAnchorPosition();
-                mMouthImage.color = Color.white;
-                mMouthImage.rectTransform.localScale = Vector3.one;
-            }
-
-            setMouthEffectImagesActive(false, false);
-
-            if (mAnalyzingDotsText != null)
-            {
-                setObjectActive(mAnalyzingDotsText, false);
-                setText(mAnalyzingDotsText, string.Empty);
-                mAnalyzingDotsText.rectTransform.localScale = Vector3.one;
-            }
         }
 
         private static bool isInsideAnchorWindow(Vector2 offsetFromAnchor, float halfWidth, float halfHeight)

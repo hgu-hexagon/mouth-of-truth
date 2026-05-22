@@ -1,0 +1,120 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using UnityEngine;
+
+namespace MouthOfTruth.Game.Presentation.Runtime
+{
+    public partial class MouthOfTruthGameView
+    {
+        [Serializable]
+        private sealed class TutorialSequenceMetadata
+        {
+            public float fr;
+            public float ip;
+            public float op;
+        }
+
+        public async Task PlayFirstRunTutorialAsync()
+        {
+            float tutorialDurationSeconds = getFirstRunTutorialDurationSeconds() * FIRST_RUN_TUTORIAL_DURATION_SCALE;
+            IsFirstRunTutorialVisible = true;
+            configureExitButtonAsTopLeftIcon();
+            setObjectActive(mTutorialOverlayImage, true);
+            setObjectActive(mTutorialDevicePanelImage, true);
+            setObjectActive(mTutorialDeviceImage, true);
+            setObjectActive(mTutorialHandImage, true);
+            setObjectActive(mTutorialTitleText, true);
+            setObjectActive(mTutorialBodyText, false);
+            setObjectActive(mTutorialStepText, false);
+            setObjectActive(mStartButton, false);
+            setObjectActive(mTryAgainButton, false);
+            setObjectActive(mBackToTitleButton, false);
+            setObjectActive(mExitButton, true);
+            mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
+            mTutorialDevicePanelImage.color = new Color(0.56f, 0.57f, 0.59f, 0.94f);
+            mTutorialOverlayImage.transform.SetAsLastSibling();
+            mTutorialDevicePanelImage.transform.SetAsLastSibling();
+            mTutorialDeviceImage.transform.SetAsLastSibling();
+            mTutorialHandImage.transform.SetAsLastSibling();
+            mTutorialTitleText.transform.SetAsLastSibling();
+            mExitButton.transform.SetAsLastSibling();
+            setText(mTutorialTitleText, "손을 장치 위에서 천천히 움직여 주세요");
+            RectTransform handRectTransform = mTutorialHandImage.rectTransform;
+            RectTransform deviceRectTransform = mTutorialDeviceImage.rectTransform;
+            deviceRectTransform.sizeDelta = TUTORIAL_DEVICE_SIZE_PIXELS;
+            deviceRectTransform.anchoredPosition = new Vector2(0.0f, -88.0f);
+            mTutorialDeviceImage.color = Color.white;
+
+            await animateOverTimeAsync(
+                tutorialDurationSeconds,
+                progress =>
+                {
+                    float firstSegmentProgress = Mathf.Clamp01(progress / 0.48f);
+                    float secondSegmentProgress = Mathf.Clamp01((progress - 0.48f) / 0.52f);
+                    Vector2 hoverStartPosition = new Vector2(0.0f, -34.0f);
+                    Vector2 hoverReadyPosition = new Vector2(0.0f, 82.0f);
+                    handRectTransform.anchoredPosition = progress < 0.48f
+                        ? Vector2.Lerp(hoverStartPosition, hoverReadyPosition, easeOut(firstSegmentProgress))
+                        : getTutorialScanPosition(secondSegmentProgress) + new Vector2(0.0f, 98.0f);
+                    handRectTransform.localScale = Vector3.one * Mathf.Lerp(0.78f, 1.00f, easeOut(firstSegmentProgress));
+                    mTutorialOverlayImage.color = new Color(0.072f, 0.074f, 0.082f, 1.0f);
+                });
+
+            setObjectActive(mTutorialOverlayImage, false);
+            setObjectActive(mTutorialDevicePanelImage, false);
+            setObjectActive(mTutorialDeviceImage, false);
+            setObjectActive(mTutorialHandImage, false);
+            setObjectActive(mTutorialTitleText, false);
+            setObjectActive(mTutorialBodyText, false);
+            setObjectActive(mTutorialStepText, false);
+            IsFirstRunTutorialVisible = false;
+        }
+
+        private static Vector2 getTutorialScanPosition(float progress)
+        {
+            float clampedProgress = Mathf.Clamp01(progress);
+            Vector2 centerPosition = new Vector2(0.0f, -18.0f);
+            Vector2 leftPosition = new Vector2(-220.0f, -20.0f);
+            Vector2 rightPosition = new Vector2(220.0f, -20.0f);
+
+            if (clampedProgress < 0.28f)
+            {
+                return Vector2.Lerp(centerPosition, leftPosition, easeInOutStatic(clampedProgress / 0.28f));
+            }
+
+            if (clampedProgress < 0.65f)
+            {
+                return Vector2.Lerp(leftPosition, rightPosition, easeInOutStatic((clampedProgress - 0.28f) / 0.37f));
+            }
+
+            return Vector2.Lerp(rightPosition, centerPosition, easeInOutStatic((clampedProgress - 0.65f) / 0.35f));
+        }
+
+        private static float getFirstRunTutorialDurationSeconds()
+        {
+            try
+            {
+                if (File.Exists(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath) == false)
+                {
+                    return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
+                }
+
+                string json = File.ReadAllText(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath);
+                TutorialSequenceMetadata metadata = JsonUtility.FromJson<TutorialSequenceMetadata>(json);
+
+                if (metadata == null || metadata.fr <= 0.0f || metadata.op <= metadata.ip)
+                {
+                    return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
+                }
+
+                return Mathf.Clamp((metadata.op - metadata.ip) / metadata.fr, 3.0f, 5.0f);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("Failed to read first-run tutorial sequence metadata.\n" + exception);
+                return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
+            }
+        }
+    }
+}

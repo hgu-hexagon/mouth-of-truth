@@ -11,7 +11,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             resetHandPromptPanelAlpha();
             disableAnsweringPresentation();
             disableAnalyzingPresentation();
-            disableHeldHandPresentation();
             resetStageMotionTransforms();
             applyCardSelectionLayout();
             configureExitButtonAsTopLeftIcon();

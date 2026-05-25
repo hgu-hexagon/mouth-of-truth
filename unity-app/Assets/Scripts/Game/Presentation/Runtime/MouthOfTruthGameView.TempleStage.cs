@@ -44,6 +44,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setCardsVisible(false);
             createTempleApproachScene();
             setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_START_OVERLAY_ALPHA);
+            hideFirstRunTutorialPresentation();
 
             await animateOverTimeAsync(
                 TEMPLE_APPROACH_FORWARD_DURATION_SECONDS,
@@ -62,7 +63,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mTempleApproachCameraRectTransform.localScale = Vector3.one * TEMPLE_APPROACH_STAIR_START_SCALE;
             mTempleApproachCameraRectTransform.anchoredPosition = Vector2.zero;
             setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
-            await fadeTempleApproachMouthAsync(0.0f, TEMPLE_APPROACH_MOUTH_HIDE_SECONDS);
+            await fadeTempleApproachMouthPresentationAsync(CARD_SELECTION_SOFT_MOUTH_SHARP_ALPHA, CARD_SELECTION_SOFT_MOUTH_BLUR_ALPHA, TEMPLE_APPROACH_MOUTH_SOFTEN_SECONDS);
         }
 
         public Task PrepareTempleGameplayBackdropAsync()
@@ -77,7 +78,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mSceneOverlayImage, true);
             setOverlayTint(STAGE_OVERLAY_TINT, TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA);
             setObjectActive(mMouthImage, true);
-            setTempleApproachMouthAlpha(1.0f);
+            setTempleApproachMouthPresentation(1.0f, 0.0f);
             syncTempleStageMouthOverlay(0.0f);
             return Task.CompletedTask;
         }
@@ -106,9 +107,22 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             approachCarpetImage.sprite = mCarpetImage.sprite;
             approachCarpetImage.raycastTarget = false;
 
+            mTempleApproachMouthBlurImages = new Image[TEMPLE_MOUTH_BLUR_OFFSETS.Length];
+            for (int index = 0; index < TEMPLE_MOUTH_BLUR_OFFSETS.Length; index += 1)
+            {
+                Vector2 blurOffset = TEMPLE_MOUTH_BLUR_OFFSETS[index] * CARD_SELECTION_MOUTH_BLUR_SPREAD_PIXELS;
+                Image blurImage = createImage($"TempleApproachMouthBlur{index}", mTempleApproachCameraRectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), TEMPLE_APPROACH_MOUTH_POSITION + blurOffset, TEMPLE_APPROACH_MOUTH_SIZE + new Vector2(CARD_SELECTION_MOUTH_BLUR_SPREAD_PIXELS * 2.0f, CARD_SELECTION_MOUTH_BLUR_SPREAD_PIXELS * 2.0f), Color.clear);
+                blurImage.sprite = mMouthImage.sprite;
+                blurImage.preserveAspect = true;
+                blurImage.raycastTarget = false;
+                mTempleApproachMouthBlurImages[index] = blurImage;
+            }
+
             mTempleApproachMouthImage = createImage("TempleApproachMouth", mTempleApproachCameraRectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), TEMPLE_APPROACH_MOUTH_POSITION, TEMPLE_APPROACH_MOUTH_SIZE, new Color(1.0f, 1.0f, 1.0f, 0.86f));
             mTempleApproachMouthImage.sprite = mMouthImage.sprite;
+            mTempleApproachMouthImage.preserveAspect = true;
             mTempleApproachMouthImage.raycastTarget = false;
+            setTempleApproachMouthBlurAlpha(0.0f);
         }
 
         private void destroyTempleApproachScene()
@@ -121,6 +135,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mTempleApproachCameraObject = null;
             mTempleApproachCameraRectTransform = null;
             mTempleApproachMouthImage = null;
+            mTempleApproachMouthBlurImages = null;
         }
 
         private void prepareCardLaunchPresentation(bool preserveTempleApproachScene)
@@ -169,28 +184,35 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mSceneOverlayImage, true);
             setOverlayTint(STAGE_OVERLAY_TINT, overlayAlpha);
             setObjectActive(mMouthImage, true);
-            setTempleApproachMouthAlpha(1.0f);
+            setTempleApproachMouthPresentation(1.0f, 0.0f);
             syncTempleStageMouthOverlay(0.0f);
         }
 
-        private async Task fadeTempleApproachMouthAsync(float targetAlpha, float durationSeconds)
+        private async Task fadeTempleApproachMouthPresentationAsync(float targetSharpAlpha, float targetBlurAlpha, float durationSeconds)
         {
             if (mTempleApproachMouthImage == null)
             {
                 return;
             }
 
-            float startAlpha = mTempleApproachMouthImage.color.a;
+            float startSharpAlpha = mTempleApproachMouthImage.color.a;
+            float startBlurAlpha = getTempleApproachMouthBlurAlpha();
 
             await animateOverTimeAsync(
                 durationSeconds,
                 progress =>
                 {
                     float easedProgress = easeInOut(progress);
-                    setTempleApproachMouthAlpha(Mathf.Lerp(startAlpha, targetAlpha, easedProgress));
+                    setTempleApproachMouthPresentation(Mathf.Lerp(startSharpAlpha, targetSharpAlpha, easedProgress), Mathf.Lerp(startBlurAlpha, targetBlurAlpha, easedProgress));
                 });
 
-            setTempleApproachMouthAlpha(targetAlpha);
+            setTempleApproachMouthPresentation(targetSharpAlpha, targetBlurAlpha);
+        }
+
+        private void setTempleApproachMouthPresentation(float sharpAlpha, float blurAlpha)
+        {
+            setTempleApproachMouthAlpha(sharpAlpha);
+            setTempleApproachMouthBlurAlpha(blurAlpha);
         }
 
         private void setTempleApproachMouthAlpha(float alpha)
@@ -203,6 +225,36 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float clampedAlpha = Mathf.Clamp01(alpha);
             Color currentColor = mTempleApproachMouthImage.color;
             mTempleApproachMouthImage.color = new Color(currentColor.r, currentColor.g, currentColor.b, clampedAlpha);
+        }
+
+        private float getTempleApproachMouthBlurAlpha()
+        {
+            if (mTempleApproachMouthBlurImages == null || mTempleApproachMouthBlurImages.Length == 0 || mTempleApproachMouthBlurImages[0] == null)
+            {
+                return 0.0f;
+            }
+
+            return Mathf.Clamp01(mTempleApproachMouthBlurImages[0].color.a * mTempleApproachMouthBlurImages.Length);
+        }
+
+        private void setTempleApproachMouthBlurAlpha(float alpha)
+        {
+            if (mTempleApproachMouthBlurImages == null || mTempleApproachMouthBlurImages.Length == 0)
+            {
+                return;
+            }
+
+            float layerAlpha = Mathf.Clamp01(alpha) / mTempleApproachMouthBlurImages.Length;
+
+            foreach (Image blurImage in mTempleApproachMouthBlurImages)
+            {
+                if (blurImage == null)
+                {
+                    continue;
+                }
+
+                blurImage.color = new Color(1.0f, 0.96f, 0.88f, layerAlpha);
+            }
         }
 
         private void setTempleApproachMouthColor(Color color)

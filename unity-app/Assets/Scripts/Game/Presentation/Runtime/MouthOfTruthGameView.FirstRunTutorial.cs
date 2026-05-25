@@ -59,6 +59,11 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     mTutorialOverlayImage.color = new Color(0.078f, 0.080f, 0.090f, 1.0f);
                 });
 
+            hideStartScreenPresentationBehindTutorial();
+        }
+
+        private void hideFirstRunTutorialPresentation()
+        {
             setObjectActive(mTutorialOverlayImage, false);
             setObjectActive(mTutorialDevicePanelImage, false);
             setObjectActive(mTutorialLeapMotionDeviceImage, false);
@@ -67,6 +72,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mTutorialBodyText, false);
             setObjectActive(mTutorialStepText, false);
             IsFirstRunTutorialVisible = false;
+        }
+
+        private void hideStartScreenPresentationBehindTutorial()
+        {
+            setObjectActive(mLogoImage, false);
+            setObjectActive(mTitleVignetteImage, false);
+            setObjectActive(mStartButton, false);
         }
 
         private static Vector2 getTutorialScanPosition(float progress)

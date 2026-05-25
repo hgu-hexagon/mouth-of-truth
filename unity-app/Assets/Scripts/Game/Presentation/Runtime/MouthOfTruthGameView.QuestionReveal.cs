@@ -108,7 +108,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             float templeStartScale = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.localScale.x : 1.0f;
             Vector2 templeStartPosition = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.anchoredPosition : Vector2.zero;
             Vector2 templeTargetPosition = isTempleApproachSceneVisible ? getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER) : Vector2.zero;
-            setTempleApproachMouthAlpha(isTempleApproachSceneVisible ? 0.0f : 1.0f);
+            if (isTempleApproachSceneVisible)
+            {
+                setTempleApproachMouthPresentation(CARD_SELECTION_SOFT_MOUTH_SHARP_ALPHA, CARD_SELECTION_SOFT_MOUTH_BLUR_ALPHA);
+            }
+            else
+            {
+                setTempleApproachMouthAlpha(1.0f);
+            }
+
             mIsCardAbsorptionPresentationActive = true;
             mCardAbsorptionPresentationProgress = 0.0f;
 
@@ -128,7 +136,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, cameraProgress);
                         float inhaleBob = Mathf.Sin(progress * Mathf.PI * 2.0f) * (1.0f - cameraProgress) * 1.2f;
                         setTempleCameraPose(cameraScale, cameraPosition.y + inhaleBob, cameraPosition.x);
-                        setTempleApproachMouthAlpha(Mathf.Lerp(0.0f, 1.0f, easeOut(Mathf.Clamp01(progress / 0.42f))));
+                        float mouthRevealProgress = easeOut(Mathf.Clamp01(progress / 0.42f));
+                        setTempleApproachMouthPresentation(Mathf.Lerp(CARD_SELECTION_SOFT_MOUTH_SHARP_ALPHA, 1.0f, mouthRevealProgress), Mathf.Lerp(CARD_SELECTION_SOFT_MOUTH_BLUR_ALPHA, 0.0f, mouthRevealProgress));
                         launchTargetPosition = getTempleApproachMouthCanvasPosition() + new Vector2(0.0f, -20.0f);
                     }
                     else
@@ -150,7 +159,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (isTempleApproachSceneVisible)
             {
                 setTempleCameraPoseCenteredOnMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
-                setTempleApproachMouthAlpha(1.0f);
+                setTempleApproachMouthPresentation(1.0f, 0.0f);
             }
 
             selectedCardView.SetAlpha(1.0f);

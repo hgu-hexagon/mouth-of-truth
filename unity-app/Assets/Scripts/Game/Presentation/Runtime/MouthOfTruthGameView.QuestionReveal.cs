@@ -110,7 +110,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             Vector2 templeTargetPosition = isTempleApproachSceneVisible ? getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER) : Vector2.zero;
             if (isTempleApproachSceneVisible)
             {
-                setTempleApproachMouthPresentation(CARD_SELECTION_SOFT_MOUTH_SHARP_ALPHA, CARD_SELECTION_SOFT_MOUTH_BLUR_ALPHA);
+                setTempleApproachMouthAlpha(CARD_SELECTION_DIM_MOUTH_ALPHA);
             }
             else
             {
@@ -137,7 +137,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         float inhaleBob = Mathf.Sin(progress * Mathf.PI * 2.0f) * (1.0f - cameraProgress) * 1.2f;
                         setTempleCameraPose(cameraScale, cameraPosition.y + inhaleBob, cameraPosition.x);
                         float mouthRevealProgress = easeOut(Mathf.Clamp01(progress / 0.42f));
-                        setTempleApproachMouthPresentation(Mathf.Lerp(CARD_SELECTION_SOFT_MOUTH_SHARP_ALPHA, 1.0f, mouthRevealProgress), Mathf.Lerp(CARD_SELECTION_SOFT_MOUTH_BLUR_ALPHA, 0.0f, mouthRevealProgress));
+                        setTempleApproachMouthAlpha(Mathf.Lerp(CARD_SELECTION_DIM_MOUTH_ALPHA, 1.0f, mouthRevealProgress));
                         launchTargetPosition = getTempleApproachMouthCanvasPosition() + new Vector2(0.0f, -20.0f);
                     }
                     else
@@ -159,7 +159,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             if (isTempleApproachSceneVisible)
             {
                 setTempleCameraPoseCenteredOnMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
-                setTempleApproachMouthPresentation(1.0f, 0.0f);
+                setTempleApproachMouthAlpha(1.0f);
             }
 
             selectedCardView.SetAlpha(1.0f);

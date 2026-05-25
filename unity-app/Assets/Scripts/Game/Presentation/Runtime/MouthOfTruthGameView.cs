@@ -64,7 +64,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float ANSWER_BEAM_END_BOTTOM_Y_FACTOR = -0.43f;
         private const float ANSWER_BEAM_END_TOP_Y_FACTOR = 0.50f;
         private const float TEMPLE_APPROACH_FORWARD_DURATION_SECONDS = 3.0f;
-        private const float TEMPLE_APPROACH_MOUTH_SOFTEN_SECONDS = 0.48f;
+        private const float TEMPLE_APPROACH_MOUTH_DIM_SECONDS = 0.48f;
         private const float TEMPLE_APPROACH_STAIR_START_SCALE = 1.85f;
         private const float TEMPLE_APPROACH_END_SCALE = 4.36f;
         private const float TEMPLE_ANSWER_FOCUS_SCALE = 4.36f;
@@ -73,9 +73,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const float TEMPLE_APPROACH_START_OVERLAY_ALPHA = 0.42f;
         private const float TEMPLE_APPROACH_STAGE_OVERLAY_ALPHA = 0.18f;
         private const float CARD_SELECTION_SETTLED_OVERLAY_ALPHA = 0.18f;
-        private const float CARD_SELECTION_SOFT_MOUTH_SHARP_ALPHA = 0.08f;
-        private const float CARD_SELECTION_SOFT_MOUTH_BLUR_ALPHA = 0.36f;
-        private const float CARD_SELECTION_MOUTH_BLUR_SPREAD_PIXELS = 8.0f;
+        private const float CARD_SELECTION_DIM_MOUTH_ALPHA = 0.22f;
         private const float CARD_SELECTION_ENTRANCE_SECONDS = 0.82f;
         private const float CARD_SELECTION_ENTRANCE_SETTLE_SECONDS = 0.22f;
         private const float AMBIENCE_AUDIO_VOLUME = 0.32f;
@@ -106,17 +104,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private static readonly Vector2 TEMPLE_APPROACH_MOUTH_SIZE = new Vector2(246.0f, 246.0f);
         private static readonly Vector2 TEMPLE_HAND_FRONT_OFFSET_FACTOR = new Vector2(0.0f, -0.20f);
         private static readonly Vector2 TEMPLE_HAND_INNER_OFFSET_FACTOR = new Vector2(0.0f, -0.17f);
-        private static readonly Vector2[] TEMPLE_MOUTH_BLUR_OFFSETS =
-        {
-            new Vector2(-1.0f, 0.0f),
-            new Vector2(1.0f, 0.0f),
-            new Vector2(0.0f, -1.0f),
-            new Vector2(0.0f, 1.0f),
-            new Vector2(-0.72f, -0.72f),
-            new Vector2(-0.72f, 0.72f),
-            new Vector2(0.72f, -0.72f),
-            new Vector2(0.72f, 0.72f),
-        };
         private readonly Dictionary<EQuestionCardSlot, QuestionCardView> mCardViews = new Dictionary<EQuestionCardSlot, QuestionCardView>();
         private readonly Vector3[] mHitTestWorldCorners = new Vector3[4];
         private readonly Vector3[] mTempleMouthWorldCorners = new Vector3[4];
@@ -154,7 +141,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private GameObject mTempleApproachCameraObject;
         private RectTransform mTempleApproachCameraRectTransform;
         private Image mTempleApproachMouthImage;
-        private Image[] mTempleApproachMouthBlurImages;
         private Image mHandImage;
         private Image mRitualHandImage;
         private Image mPointerImage;
@@ -387,7 +373,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             if (isTempleApproachSceneVisible)
             {
-                setTempleApproachMouthPresentation(CARD_SELECTION_SOFT_MOUTH_SHARP_ALPHA, CARD_SELECTION_SOFT_MOUTH_BLUR_ALPHA);
+                setTempleApproachMouthAlpha(CARD_SELECTION_DIM_MOUTH_ALPHA);
             }
 
             setObjectActive(mLogoImage, false);

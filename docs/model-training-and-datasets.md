@@ -8,6 +8,24 @@
 않습니다. 대신 런타임이 기대하는 모델 artifact 위치, label 체계, 점수 규칙,
 검증 방법을 고정합니다.
 
+## 재현성 범위
+
+이 저장소가 고정하는 것은 현재 모델을 실행하고 교체하기 위한 runtime 계약입니다.
+구체적으로 dataset 계열, label 체계, artifact 경로, checksum, Python/Unity bridge
+계약, 판정 정책을 문서화합니다.
+
+아래 항목은 현재 저장소만으로는 원본 학습을 그대로 재현한다고 주장하지 않습니다.
+
+- 실제 학습에 사용된 원본 dataset package와 전처리 산출물
+- 정확한 train/validation/test split과 random seed
+- epoch, batch size, optimizer, learning rate 등 학습 hyperparameter
+- 학습 로그, 평가 metric, confusion matrix
+- 학습 당시 hardware와 end-to-end latency 기록
+
+새 모델을 같은 데이터셋 계열로 다시 학습하거나 교체할 때 남겨야 할 기준은
+`training/README.md`에 정리합니다. 이 기준은 후속 학습을 위한 기록 형식이며,
+현재 포함된 checkpoint의 원본 학습 이력을 대체하지 않습니다.
+
 ## 요약
 
 | 모델 | 데이터셋/모델 | 용도 | 런타임 artifact |
@@ -203,10 +221,11 @@ python-engine/src/mouth_of_truth/voice/voice_score_logic.py
 ## 학습 재현 가이드
 
 이 저장소에는 학습 스크립트가 포함되어 있지 않습니다. 후속 프로젝트에서 학습
-코드를 추가할 때는 아래 구조를 권장합니다.
+코드를 추가할 때는 아래 구조와 기록 기준을 권장합니다.
 
 ```text
 training/
+  README.md
   face/
     prepare_raf_db.py
     train_yolo_raf_db.py
@@ -220,7 +239,13 @@ training/
 단, 원본 dataset, 전처리된 image/audio, 학습 checkpoint, 학습 log는 Git에 넣지
 않습니다. 별도 artifact storage, GitHub Release asset, 내부 storage를 사용합니다.
 
-권장 기록 항목:
+현재 저장소에 포함된 기준 메모:
+
+```text
+training/README.md
+```
+
+새 모델을 학습했다면 최소한 아래 항목을 함께 남깁니다.
 
 - dataset version 또는 download/release date
 - 신청/사용 조건 확인 날짜

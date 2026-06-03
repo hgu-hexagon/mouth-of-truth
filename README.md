@@ -16,9 +16,9 @@ and verdict generation.
 - `assets/`
   Lightweight reference-asset documentation.
 - `bridge/`
-  Runtime JSON exchange directory used by local validation and release launchers.
+  Runtime JSON exchange directory used by release launchers.
 - `tools/`
-  Build and presentation-capture helper scripts.
+  Release build helper scripts.
 
 ## Current Product Flow
 
@@ -37,7 +37,6 @@ The current product flow includes:
 - analysis presentation with zoom, shake, and aura effects
 - result presentation for `TRUE`, `FALSE`, and `UNCERTAIN`
 - `TRY AGAIN` flow that returns to the card-selection experience
-- presentation-test launcher for automated visual capture
 
 ## Input and Analysis Notes
 
@@ -60,30 +59,9 @@ The macOS release build creates:
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
-- `dist/macos/MouthOfTruth/Run Mouth of Truth Presentation Test.command`
 - `dist/macos/MouthOfTruth-macos.zip`
 
-The normal user-facing launcher is `Run Mouth of Truth.command`. The presentation
-test launcher runs the same product in capture mode without requiring a spoken
-answer.
-
-Presentation capture emits these sequential screenshots for release review:
-
-- `01_start.png`
-- `02_first_run_tutorial.png`
-- `03_temple_approach.png`
-- `04_cards.png`
-- `05_card_focus.png`
-- `06_card_question.png`
-- `07_card_absorption.png`
-- `08_mouth_arrival.png`
-- `09_hand_prompt.png`
-- `10_hand_insertion.png`
-- `11_answering.png`
-- `12_analyzing.png`
-- `13_result_true.png`
-- `14_result_false.png`
-- `15_result_uncertain.png`
+The user-facing launcher is `Run Mouth of Truth.command`.
 
 ## Developer Documentation
 

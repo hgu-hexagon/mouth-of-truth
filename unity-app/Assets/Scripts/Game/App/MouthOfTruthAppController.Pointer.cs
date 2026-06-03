@@ -44,12 +44,6 @@ namespace MouthOfTruth.Game.App
 
         private void updatePointerPresentation(Vector2? pointerScreenPositionOrNull)
         {
-            if (mIsPresentationCaptureRunning)
-            {
-                mGameView.UpdatePointerVisual(false, null);
-                return;
-            }
-
             bool isCinematicTransition = mIsTransitionBusy
                 && (mGameStateMachine.CurrentState == EGameFlowState.InsertingHand || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult);
             bool shouldShowPointer = pointerScreenPositionOrNull.HasValue

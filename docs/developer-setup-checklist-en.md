@@ -110,37 +110,7 @@ The analysis client is selected in this order:
 The normal Python bridge returns `TRUE` or `FALSE` only when both usable face
 evidence and usable voice evidence exist. Missing evidence returns `UNCERTAIN`.
 
-## 9. Unity Validations
-
-Run these Unity menu items:
-
-- `Mouth Of Truth > Validate Software Flow`
-- `Mouth Of Truth > Validate Product Readiness`
-
-To run them from the command line, adjust the Unity path for your machine and
-run:
-
-```bash
-"/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
-  -batchmode \
-  -nographics \
-  -projectPath unity-app \
-  -quit \
-  -executeMethod MouthOfTruth.Editor.ValidateSoftwareFlowEditor.Run \
-  -logFile unity-app/Logs/validate-software-flow.log
-```
-
-```bash
-"/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
-  -batchmode \
-  -nographics \
-  -projectPath unity-app \
-  -quit \
-  -executeMethod MouthOfTruth.Editor.ValidateProductReadinessEditor.Run \
-  -logFile unity-app/Logs/validate-product-readiness.log
-```
-
-## 10. Manual Development Flow Check
+## 9. Manual Product Flow Check
 
 In Unity Play Mode or a release build, verify:
 
@@ -158,7 +128,7 @@ In Unity Play Mode or a release build, verify:
 12. Confirm `TRUE`, `FALSE`, and `UNCERTAIN` result presentation.
 13. Confirm `TRY AGAIN` and the top-left exit button.
 
-## 11. macOS Release Build
+## 10. macOS Release Build
 
 Package the Python runtime first:
 
@@ -170,24 +140,18 @@ python-engine/scripts/package_python_runtime.sh
 Then run:
 
 ```bash
-UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
+UNITY_EDITOR_PATH="<unity-editor-executable>" \
 ./tools/build-macos-release.sh
 ```
 
 Successful output includes:
 
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
-- `dist/macos/MouthOfTruth/Run Mouth of Truth Presentation Test.command`
 - `dist/macos/MouthOfTruth-macos.zip`
 
-Use `Run Mouth of Truth.command` for normal demos and user runs. Use
-`Run Mouth of Truth Presentation Test.command` for automated presentation-flow
-capture and visual checks.
+Use `Run Mouth of Truth.command` for demos and user runs.
 
-After a local macOS build, run `./tools/run-presentation-capture.sh` from the
-repository root to write the same capture sequence to `presentation-captures/latest/`.
-
-## 12. Common Mistakes
+## 11. Common Mistakes
 
 ### Unity was opened from the repository root
 

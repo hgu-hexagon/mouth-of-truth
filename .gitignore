@@ -2,6 +2,15 @@
 .DS_Store
 Thumbs.db
 
+# Local-only work notes and generated diagnostics
+.local-docs/
+*.log
+*.tmp
+*.bak
+*.orig
+.env
+.env.*
+
 # Python
 .venv/
 __pycache__/
@@ -21,6 +30,7 @@ presentation-captures/
 
 # Python runtime outputs
 python-runtime/
+python-runtime-windows/
 python-runtime.tar.gz
 python-engine/data/session-workspace/*
 !python-engine/data/session-workspace/.gitkeep

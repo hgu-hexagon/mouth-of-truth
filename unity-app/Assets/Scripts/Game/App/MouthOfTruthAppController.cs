@@ -35,7 +35,6 @@ namespace MouthOfTruth.Game.App
 
         private bool mIsInitialized;
         private bool mIsTransitionBusy;
-        private bool mIsPresentationCaptureRunning;
         private bool mHasShownFirstRunTutorial;
         private string mLastObservedTranscript = string.Empty;
 
@@ -44,13 +43,6 @@ namespace MouthOfTruth.Game.App
             Application.runInBackground = true;
             Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
             Screen.fullScreen = true;
-
-            if (isPresentationCaptureEnabled())
-            {
-                QualitySettings.vSyncCount = 0;
-                Application.targetFrameRate = 60;
-                Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.FullScreenWindow);
-            }
         }
 
         private void Start()
@@ -62,7 +54,7 @@ namespace MouthOfTruth.Game.App
         {
             try
             {
-                Debug.Log($"MouthOfTruthAppController started. Presentation capture enabled: {isPresentationCaptureEnabled()}.");
+                Debug.Log("MouthOfTruthAppController started.");
                 mLifecycleCancellationTokenSource = new CancellationTokenSource();
                 mAnswerAnalysisClient = createAnalysisClient();
                 _ = warmUpAnalysisClientAsync();
@@ -76,18 +68,10 @@ namespace MouthOfTruth.Game.App
                 Debug.Log("MouthOfTruthGameView initialized.");
                 applyRuntimeCursorPresentation(isFocused: true);
 
-                if (isPresentationCaptureEnabled() == false)
-                {
-                    await requestCaptureAuthorizationsAsync();
-                }
+                await requestCaptureAuthorizationsAsync();
 
                 initializeStateMachine();
                 mIsInitialized = true;
-
-                if (isPresentationCaptureEnabled())
-                {
-                    StartCoroutine(runPresentationCaptureSequenceCoroutine());
-                }
             }
             catch (Exception exception)
             {
@@ -116,7 +100,7 @@ namespace MouthOfTruth.Game.App
                 && updatePointerActivationGuard(presentedPointerScreenPositionOrNull);
             Vector2? activatablePointerScreenPositionOrNull = canAcceptPointerActivation ? presentedPointerScreenPositionOrNull : null;
 
-            if (mIsTransitionBusy || mIsPresentationCaptureRunning)
+            if (mIsTransitionBusy)
             {
                 if (mGameView.IsFirstRunTutorialVisible)
                 {
@@ -547,11 +531,6 @@ namespace MouthOfTruth.Game.App
 
         private IAnswerAnalysisClient createAnalysisClient()
         {
-            if (isPresentationCaptureEnabled())
-            {
-                return new DeterministicAnswerAnalysisClient();
-            }
-
             string analysisMode = Environment.GetEnvironmentVariable("MOUTH_OF_TRUTH_ANALYSIS_MODE");
 
             if (string.Equals(analysisMode, "python", StringComparison.OrdinalIgnoreCase))
@@ -589,21 +568,11 @@ namespace MouthOfTruth.Game.App
 
         private IHandInteractionInputAdapter createHandInteractionInputAdapter()
         {
-            if (isPresentationCaptureEnabled())
-            {
-                return new KeyboardHandInputAdapter();
-            }
-
             return new CompositeHandInteractionInputAdapter(new LeapHandInputAdapter(), new KeyboardHandInputAdapter());
         }
 
         private IAnswerCaptureInputAdapter createAnswerCaptureInputAdapter()
         {
-            if (isPresentationCaptureEnabled())
-            {
-                return new PresentationCaptureAnswerInputAdapter();
-            }
-
             MicrophoneAnswerInputAdapter microphoneAnswerInputAdapter = new MicrophoneAnswerInputAdapter();
 
             if (microphoneAnswerInputAdapter.HasAvailableDevice())
@@ -635,11 +604,6 @@ namespace MouthOfTruth.Game.App
 
         private IFaceCaptureInputAdapter createFaceCaptureInputAdapter()
         {
-            if (isPresentationCaptureEnabled())
-            {
-                return new NoOpFaceCaptureInputAdapter();
-            }
-
             return new WebcamFaceCaptureInputAdapter();
         }
 

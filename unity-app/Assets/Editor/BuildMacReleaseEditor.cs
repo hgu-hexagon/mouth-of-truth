@@ -286,27 +286,6 @@ namespace MouthOfTruth.Editor
 
             File.WriteAllText(launcherScriptPath, launcherScriptContents);
             runProcess("/bin/chmod", $"+x \"{launcherScriptPath}\"", distributionRootPath);
-
-            string testLauncherScriptPath = Path.Combine(distributionRootPath, "Run Mouth of Truth Presentation Test.command");
-            string testLauncherScriptContents =
-                "#!/usr/bin/env zsh\n"
-                + "set -euo pipefail\n"
-                + "SCRIPT_DIRECTORY_PATH=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\n"
-                + "CAPTURE_OUTPUT_DIRECTORY_PATH=\"${SCRIPT_DIRECTORY_PATH}/PresentationTestCaptures\"\n"
-                + "rm -rf \"${CAPTURE_OUTPUT_DIRECTORY_PATH}\"\n"
-                + "mkdir -p \"${CAPTURE_OUTPUT_DIRECTORY_PATH}\"\n"
-                + "export MOUTH_OF_TRUTH_RUNTIME_ROOT=\"${SCRIPT_DIRECTORY_PATH}\"\n"
-                + "open -n -W \\\n"
-                + "  --env MOUTH_OF_TRUTH_RUNTIME_ROOT=\"${SCRIPT_DIRECTORY_PATH}\" \\\n"
-                + "  --env MOUTH_OF_TRUTH_PRESENTATION_CAPTURE=1 \\\n"
-                + "  --env MOUTH_OF_TRUTH_CAPTURE_OUTPUT_DIR=\"${CAPTURE_OUTPUT_DIRECTORY_PATH}\" \\\n"
-                + "  --stdout \"${CAPTURE_OUTPUT_DIRECTORY_PATH}/presentation-test.stdout.log\" \\\n"
-                + "  --stderr \"${CAPTURE_OUTPUT_DIRECTORY_PATH}/presentation-test.stderr.log\" \\\n"
-                + "  \"${SCRIPT_DIRECTORY_PATH}/MouthOfTruth.app\" \\\n"
-                + "  --args -presentation-capture -screen-fullscreen 1 -logFile \"${CAPTURE_OUTPUT_DIRECTORY_PATH}/presentation-test.log\"\n";
-
-            File.WriteAllText(testLauncherScriptPath, testLauncherScriptContents);
-            runProcess("/bin/chmod", $"+x \"{testLauncherScriptPath}\"", distributionRootPath);
         }
 
         private static void writeDistributionArchive(string runtimeRootPath, string distributionRootPath)

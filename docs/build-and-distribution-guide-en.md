@@ -8,9 +8,7 @@ Windows product package.
 After following this guide, a developer should be able to create:
 
 - the macOS release folder and ZIP
-- the macOS presentation/capture test launcher
 - the Windows release folder
-- the Windows presentation/capture test launcher
 - clear user-facing launch instructions
 
 ## 2. Release Package Structure
@@ -64,14 +62,12 @@ Check the following from the repository root.
 - The Unity project opens from `unity-app/`.
 - The main scene is `unity-app/Assets/Scenes/Main.unity`.
 - `python -m compileall python-engine/src` passes.
-- `Mouth Of Truth > Validate Software Flow` passes in Unity.
-- `Mouth Of Truth > Validate Product Readiness` passes in Unity.
 - `unity-app/Assets/StreamingAssets/audio/questions/` contains narration audio matching the current question IDs.
 - `unity-app/Assets/StreamingAssets/art/` contains the product PNG/JPEG assets.
 
-`Validate Product Readiness` and release builds may resave `Assets/Scenes/Main.unity`
-and generated background images. Before distribution, confirm that those changes
-are the intended release-scene outputs and commit them together.
+Release builds may resave `Assets/Scenes/Main.unity` and generated background
+images. Before distribution, confirm that those changes are the intended
+release-scene outputs and commit them together.
 
 ## 5. Package the Python Runtime
 
@@ -120,7 +116,7 @@ After completion, `python-runtime-windows/` must exist at the repository root.
 Run from the repository root:
 
 ```bash
-UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
+UNITY_EDITOR_PATH="<unity-editor-executable>" \
 ./tools/build-macos-release.sh
 ```
 
@@ -130,7 +126,6 @@ Successful output:
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
-- `dist/macos/MouthOfTruth/Run Mouth of Truth Presentation Test.command`
 - `dist/macos/MouthOfTruth/python-engine/`
 - `dist/macos/MouthOfTruth/python-runtime/`
 - `dist/macos/MouthOfTruth/bridge/`
@@ -149,14 +144,13 @@ Run from Windows PowerShell at the repository root:
 If Unity is installed elsewhere, pass the editor path explicitly.
 
 ```powershell
-.\tools\build-windows-release.ps1 -UnityEditorPath "C:\Path\To\Unity.exe"
+.\tools\build-windows-release.ps1 -UnityEditorPath "<unity-editor-executable>"
 ```
 
 Successful output:
 
 - `dist/windows/MouthOfTruth/MouthOfTruth.exe`
 - `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
-- `dist/windows/MouthOfTruth/Run Mouth of Truth Presentation Test.bat`
 - `dist/windows/MouthOfTruth/MouthOfTruth_Data/`
 - `dist/windows/MouthOfTruth/python-engine/`
 - `dist/windows/MouthOfTruth/python-runtime/`
@@ -197,39 +191,7 @@ For Leap Motion demos, the target machine must have the Ultraleap tracking
 runtime installed and running. The device must be visible to the operating
 system and hand tracking must be active in the Ultraleap runtime.
 
-## 9. Presentation Test Launcher
-
-The macOS package includes:
-
-- `Run Mouth of Truth Presentation Test.command`
-
-This runs the same product in presentation-capture mode and writes captures to
-`PresentationTestCaptures/` inside the release folder. It does not require a spoken answer and is
-intended to validate the visual flow for `TRUE`, `FALSE`, and `UNCERTAIN`.
-
-The current capture output is generated in this order:
-
-- `01_start.png`
-- `02_first_run_tutorial.png`
-- `03_temple_approach.png`
-- `04_cards.png`
-- `05_card_focus.png`
-- `06_card_question.png`
-- `07_card_absorption.png`
-- `08_mouth_arrival.png`
-- `09_hand_prompt.png`
-- `10_hand_insertion.png`
-- `11_answering.png`
-- `12_analyzing.png`
-- `13_result_true.png`
-- `14_result_false.png`
-- `15_result_uncertain.png`
-
-The Windows package includes:
-
-- `Run Mouth of Truth Presentation Test.bat`
-
-## 10. Final Release Checklist
+## 9. Final Release Checklist
 
 Before distribution, run the normal launcher and verify:
 
@@ -249,7 +211,7 @@ Before distribution, run the normal launcher and verify:
 - `TRY AGAIN` returns to the card-selection flow
 - the top-left exit button works
 
-## 11. Troubleshooting
+## 10. Troubleshooting
 
 ### The app opens, but analysis does not run
 

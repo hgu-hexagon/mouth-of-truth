@@ -8,9 +8,7 @@
 개발자는 이 문서를 따라 아래 결과물을 만들 수 있어야 한다.
 
 - macOS 실제 실행용 배포 폴더와 ZIP
-- macOS 발표/캡처 테스트용 실행 스크립트
 - Windows 실제 실행용 배포 폴더
-- Windows 발표/캡처 테스트용 실행 스크립트
 - 사용자에게 어떤 파일을 전달하고 실행하라고 안내해야 하는지에 대한 기준
 
 ## 2. 배포 구조
@@ -66,12 +64,10 @@ Unity Hub에 `6000.4.1f1`이 보이지 않으면 Unity Download Archive에서 �
 - Unity 프로젝트는 `unity-app/` 경로에서 열린다.
 - 메인 씬은 `unity-app/Assets/Scenes/Main.unity` 이다.
 - `python -m compileall python-engine/src` 가 통과한다.
-- Unity 메뉴의 `Mouth Of Truth > Validate Software Flow` 가 통과한다.
-- Unity 메뉴의 `Mouth Of Truth > Validate Product Readiness` 가 통과한다.
 - `unity-app/Assets/StreamingAssets/audio/questions/` 안에 `Q0001.wav`부터 현재 질문 ID에 맞는 음성 파일이 있다.
 - `unity-app/Assets/StreamingAssets/art/` 안에 제품용 PNG/JPEG 자산이 있다.
 
-`Validate Product Readiness`와 릴리즈 빌드는 `Assets/Scenes/Main.unity`와 생성 배경 이미지를 다시 저장할 수 있다.
+릴리즈 빌드는 `Assets/Scenes/Main.unity`와 생성 배경 이미지를 다시 저장할 수 있다.
 배포 직전에는 이 변경이 현재 릴리즈 씬 산출물인지 확인한 뒤 함께 커밋한다.
 
 ## 5. Python 런타임 패키징
@@ -121,7 +117,7 @@ $env:MOUTH_OF_TRUTH_CONDA_ENV = "<conda-env-name>"
 저장소 루트에서 아래 명령을 실행한다.
 
 ```bash
-UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
+UNITY_EDITOR_PATH="<unity-editor-executable>" \
 ./tools/build-macos-release.sh
 ```
 
@@ -131,7 +127,6 @@ Unity 설치 경로가 다르면 `UNITY_EDITOR_PATH` 값을 해당 환경에 맞
 
 - `dist/macos/MouthOfTruth/MouthOfTruth.app`
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
-- `dist/macos/MouthOfTruth/Run Mouth of Truth Presentation Test.command`
 - `dist/macos/MouthOfTruth/python-engine/`
 - `dist/macos/MouthOfTruth/python-runtime/`
 - `dist/macos/MouthOfTruth/bridge/`
@@ -150,14 +145,13 @@ Windows PowerShell에서 저장소 루트로 이동한 뒤 아래 명령을 실�
 Unity 설치 경로가 기본값과 다르면 직접 넘긴다.
 
 ```powershell
-.\tools\build-windows-release.ps1 -UnityEditorPath "C:\Path\To\Unity.exe"
+.\tools\build-windows-release.ps1 -UnityEditorPath "<unity-editor-executable>"
 ```
 
 성공하면 아래 결과가 생성된다.
 
 - `dist/windows/MouthOfTruth/MouthOfTruth.exe`
 - `dist/windows/MouthOfTruth/Run Mouth of Truth.bat`
-- `dist/windows/MouthOfTruth/Run Mouth of Truth Presentation Test.bat`
 - `dist/windows/MouthOfTruth/MouthOfTruth_Data/`
 - `dist/windows/MouthOfTruth/python-engine/`
 - `dist/windows/MouthOfTruth/python-runtime/`
@@ -198,40 +192,7 @@ Leap Motion으로 시연하려면 사용자 PC에 Ultraleap tracking runtime이 
 있어야 한다. 장치가 연결되어 있고 runtime이 손 추적 데이터를 제공해야
 제품 안의 Leap 포인터가 동작한다.
 
-## 9. 발표/캡처 테스트 실행
-
-macOS 배포 폴더에는 아래 테스트 실행 파일이 포함된다.
-
-- `Run Mouth of Truth Presentation Test.command`
-
-이 파일은 실제 제품과 같은 화면/사운드 흐름을 자동으로 진행하면서
-배포 폴더의 `PresentationTestCaptures/`에 캡처용 결과를 남긴다. 실제 음성 답변은
-요구하지 않으며, `TRUE`, `FALSE`, `UNCERTAIN` 결과 화면을 검증하는 용도로
-사용한다.
-
-현재 캡처 결과는 아래 순서로 생성된다.
-
-- `01_start.png`
-- `02_first_run_tutorial.png`
-- `03_temple_approach.png`
-- `04_cards.png`
-- `05_card_focus.png`
-- `06_card_question.png`
-- `07_card_absorption.png`
-- `08_mouth_arrival.png`
-- `09_hand_prompt.png`
-- `10_hand_insertion.png`
-- `11_answering.png`
-- `12_analyzing.png`
-- `13_result_true.png`
-- `14_result_false.png`
-- `15_result_uncertain.png`
-
-Windows 배포 폴더에는 아래 테스트 실행 파일이 포함된다.
-
-- `Run Mouth of Truth Presentation Test.bat`
-
-## 10. 배포 전 최종 점검
+## 9. 배포 전 최종 점검
 
 최종 배포 전에 실제 실행용 런처로 아래를 확인한다.
 
@@ -251,7 +212,7 @@ Windows 배포 폴더에는 아래 테스트 실행 파일이 포함된다.
 - `TRY AGAIN` 이 다시 카드 선택 흐름으로 돌아간다.
 - 왼쪽 위 종료 버튼이 동작한다.
 
-## 11. 문제 해결
+## 10. 문제 해결
 
 ### 앱은 열리지만 분석이 동작하지 않는다
 

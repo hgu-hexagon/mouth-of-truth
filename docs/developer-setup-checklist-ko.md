@@ -109,36 +109,7 @@ Python bridge 기본 경로는 얼굴 증거와 음성 증거가 모두 있을 �
 `FALSE`를 반환한다. 둘 중 하나라도 판정 가능한 증거가 없으면 `UNCERTAIN`을
 반환한다.
 
-## 9. Unity 검증
-
-Unity Editor 메뉴에서 아래 항목을 실행한다.
-
-- `Mouth Of Truth > Validate Software Flow`
-- `Mouth Of Truth > Validate Product Readiness`
-
-명령줄에서 실행하려면 Unity 경로를 환경에 맞게 바꿔 아래처럼 실행한다.
-
-```bash
-"/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
-  -batchmode \
-  -nographics \
-  -projectPath unity-app \
-  -quit \
-  -executeMethod MouthOfTruth.Editor.ValidateSoftwareFlowEditor.Run \
-  -logFile unity-app/Logs/validate-software-flow.log
-```
-
-```bash
-"/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
-  -batchmode \
-  -nographics \
-  -projectPath unity-app \
-  -quit \
-  -executeMethod MouthOfTruth.Editor.ValidateProductReadinessEditor.Run \
-  -logFile unity-app/Logs/validate-product-readiness.log
-```
-
-## 10. 개발 중 기본 확인 흐름
+## 9. 제품 흐름 확인
 
 Editor Play Mode 또는 배포 실행 파일에서 아래 흐름을 확인한다.
 
@@ -156,7 +127,7 @@ Editor Play Mode 또는 배포 실행 파일에서 아래 흐름을 확인한다
 12. `TRUE`, `FALSE`, `UNCERTAIN` 결과 확인
 13. `TRY AGAIN`과 왼쪽 위 종료 버튼 확인
 
-## 11. macOS 배포 빌드
+## 10. macOS 배포 빌드
 
 배포 전 Python 런타임을 만든다.
 
@@ -168,24 +139,18 @@ python-engine/scripts/package_python_runtime.sh
 그 다음 저장소 루트에서 아래 명령을 실행한다.
 
 ```bash
-UNITY_EDITOR_PATH="/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity" \
+UNITY_EDITOR_PATH="<unity-editor-executable>" \
 ./tools/build-macos-release.sh
 ```
 
 성공하면 아래 파일이 생성된다.
 
 - `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
-- `dist/macos/MouthOfTruth/Run Mouth of Truth Presentation Test.command`
 - `dist/macos/MouthOfTruth-macos.zip`
 
-일반 시연과 사용자 실행에는 `Run Mouth of Truth.command`를 사용한다.
-자동 화면 캡처와 발표 흐름 점검에는 `Run Mouth of Truth Presentation Test.command`를
-사용한다.
+시연과 사용자 실행에는 `Run Mouth of Truth.command`를 사용한다.
 
-로컬 macOS 빌드 후 저장소 루트에서 `./tools/run-presentation-capture.sh`를 실행하면
-동일한 캡처 흐름이 `presentation-captures/latest/`에 생성된다.
-
-## 12. 자주 발생하는 실수
+## 11. 자주 발생하는 실수
 
 ### Unity를 저장소 루트에서 열었다
 

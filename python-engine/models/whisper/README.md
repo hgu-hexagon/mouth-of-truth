@@ -1,18 +1,21 @@
-# Whisper Model Cache
+# Whisper 캐시
 
-Optional local cache:
+선택 디렉터리:
 
 ```text
 models--openai--whisper-tiny/
 ```
 
-This is a Hugging Face cache for `openai/whisper-tiny`. It is not a model trained
-by this project.
+모델:
 
-The cache is only needed when answer transcription is enabled:
+```text
+openai/whisper-tiny
+```
+
+전사 활성화:
 
 ```bash
 export MOUTH_OF_TRUTH_ENABLE_TRANSCRIPTION=1
 ```
 
-Keep the Hugging Face cache directory structure intact when copying it here.
+Hugging Face 캐시 구조를 그대로 유지합니다.

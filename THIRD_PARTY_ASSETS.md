@@ -1,100 +1,117 @@
-# Third-Party Assets And SDKs
-
-This project uses custom runtime assets together with third-party Unity content
-and the Ultraleap hand-tracking SDK. This file records the final public-release
-lineage and restore locations.
+# 서드파티 자산과 SDK
 
 ## Ultraleap Tracking
 
-- Current package name: `com.ultraleap.tracking`
-- Current project version: `7.3.0`
-- Current embedded path: `unity-app/Packages/com.ultraleap.tracking/`
-- License declared by package: Apache-2.0
+```text
+패키지명: com.ultraleap.tracking
+버전: 7.3.0
+경로: unity-app/Packages/com.ultraleap.tracking/
+라이선스: Apache-2.0
+```
 
-Restore through OpenUPM if the embedded package is missing:
+OpenUPM 설치:
 
-- Scoped registry name: `Ultraleap`
-- Scoped registry URL: `https://package.openupm.com`
-- Scope: `com.ultraleap`
-- Package: `com.ultraleap.tracking`
+```text
+Scoped Registry Name: Ultraleap
+Scoped Registry URL: https://package.openupm.com
+Scope: com.ultraleap
+Package: com.ultraleap.tracking
+```
 
-Official sources:
+공식 경로:
 
-- `https://github.com/ultraleap/UnityPlugin`
-- `https://openupm.com/packages/com.ultraleap.tracking/`
-- `https://docs.ultraleap.com/xr-and-tabletop/xr/unity/`
+```text
+https://github.com/ultraleap/UnityPlugin
+https://openupm.com/packages/com.ultraleap.tracking/
+https://docs.ultraleap.com/xr-and-tabletop/xr/unity/
+```
 
-Leap Motion input also requires the Ultraleap Hand Tracking Software on the demo
-machine. The Unity package alone does not provide the local tracking service.
+Leap Motion 입력을 사용할 장비에는 Ultraleap Hand Tracking Software를 설치합니다.
 
-## Unity Environment Assets
+## Unity Asset Store 자산
 
-Imported source packages:
+Dungeon Modular Pack:
 
-- Persiang Carpets URP
-  `https://assetstore.unity.com/packages/3d/props/persiang-carpets-urp-261455`
-- Dungeon Modular Pack
-  `https://assetstore.unity.com/packages/3d/environments/dungeons/dungeon-modular-pack-295430`
+```text
+https://assetstore.unity.com/packages/3d/environments/dungeons/dungeon-modular-pack-295430
+unity-app/Assets/ThirdParty/Environment/DungeonModularPack/
+```
 
-Expected restore paths:
+Persiang Carpets URP:
 
-- `unity-app/Assets/ThirdParty/Environment/DungeonModularPack/`
-- `unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp/`
+```text
+https://assetstore.unity.com/packages/3d/props/persiang-carpets-urp-261455
+unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp/
+```
 
-`Dungeon Modular Pack` is used by
-`unity-app/Assets/Editor/BuildMainSceneEditor.cs` as scene-generation source
-material. The curated product runtime primarily loads generated images and
-audio from `unity-app/Assets/StreamingAssets/`.
+`BuildMainSceneEditor`는 Dungeon Modular Pack의 DemoScene과 prefab을 원본으로
+사용합니다.
 
-## Runtime Art Assets
+```text
+unity-app/Assets/Editor/BuildMainSceneEditor.cs
+```
 
-Runtime art is loaded from:
+## 런타임 이미지
 
 ```text
 unity-app/Assets/StreamingAssets/art/
 ```
 
-Important product-facing paths:
+주요 파일:
 
-- `backgrounds/title_background_stone_wall.jpeg`
-- `backgrounds/stage_card_selection_generated.png`
-- `backgrounds/stage_mouth_chamber_generated.png`
-- `cards/question_card_back.png`
-- `cards/question_card_front.png`
-- `environment/floor_red_carpet_runner.png`
-- `input/hand_pointer_cursor.png`
-- `input/leap_motion_device.png`
-- `input/ritual_hand_insert.png`
-- `mouth/truth_mouth_face.png`
-- `ui/logo_title_main.png`
-- `verdict/verdict_true.png`
-- `verdict/verdict_false.png`
-- `verdict/verdict_uncertain.png`
+```text
+backgrounds/title_background_stone_wall.jpeg
+backgrounds/stage_card_selection_generated.png
+backgrounds/stage_mouth_chamber_generated.png
+cards/question_card_back.png
+cards/question_card_front.png
+environment/floor_red_carpet_runner.png
+input/hand_pointer_cursor.png
+input/leap_motion_device.png
+input/ritual_hand_insert.png
+mouth/truth_mouth_face.png
+ui/logo_title_main.png
+verdict/verdict_true.png
+verdict/verdict_false.png
+verdict/verdict_uncertain.png
+```
 
-## Runtime Audio Assets
-
-Runtime audio is loaded from:
+## 런타임 음성
 
 ```text
 unity-app/Assets/StreamingAssets/audio/
 ```
 
-Important product-facing paths:
+주요 파일:
 
-- `ambience/title_temple_ambience_loop.wav`
-- `ui/button_confirm.wav`
-- `cards/card_hover.wav`
-- `cards/card_select.wav`
-- `cards/card_reveal.wav`
-- `interaction/hand_insert.wav`
-- `interaction/hand_prompt.wav`
-- `results/result_true.wav`
-- `results/result_false.wav`
-- `results/result_uncertain.wav`
-- `questions/Q0001.wav` through `questions/Q0012.wav`
+```text
+ambience/title_temple_ambience_loop.wav
+ui/button_confirm.wav
+cards/card_hover.wav
+cards/card_select.wav
+cards/card_reveal.wav
+interaction/hand_insert.wav
+interaction/hand_prompt.wav
+results/result_true.wav
+results/result_false.wav
+results/result_uncertain.wav
+questions/Q0001.wav
+...
+questions/Q0012.wav
+```
 
-## Model Assets
+## 모델 자산
 
-Model binaries are intentionally not tracked in Git. See
-`docs/final-release-guide-ko.md` and `python-engine/models/README.md` for the
-required local layout.
+모델 바이너리는 Git에 포함하지 않습니다.
+
+```text
+python-engine/models/face/yolo26x_rafdb_best.pt
+python-engine/models/voice/best_wav2vec2_iemocap/
+python-engine/models/whisper/models--openai--whisper-tiny/
+```
+
+모델 배치 기준:
+
+```text
+python-engine/models/README.md
+```

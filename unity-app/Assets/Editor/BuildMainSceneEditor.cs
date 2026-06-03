@@ -5,6 +5,7 @@ using MouthOfTruth.Game.App;
 using MouthOfTruth.Game.Presentation;
 using MouthOfTruth.Game.Presentation.Runtime;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -28,6 +29,15 @@ namespace MouthOfTruth.Editor
             "Assets/ThirdParty/Environment/DungeonModularPack/Meshes",
             "Assets/ThirdParty/Environment/PersianCarpetUrp/Models",
         };
+        private static readonly string[] REQUIRED_THIRD_PARTY_ASSET_PATHS =
+        {
+            DUNGEON_DEMO_SCENE_PATH,
+            DUNGEON_WALL_MATERIAL_PATH,
+            TORCH_PREFAB_PATH,
+            ARCH_PREFAB_PATH,
+            "Assets/ThirdParty/Environment/DungeonModularPack/Meshes",
+            "Assets/ThirdParty/Environment/PersianCarpetUrp/Models",
+        };
 
         private const float CARD_ANCHOR_SPACING = 3.3f;
         private const float CARD_DEPTH_OFFSET = 7.2f;
@@ -39,6 +49,7 @@ namespace MouthOfTruth.Editor
         public static void Run()
         {
             ConfigureUniversalRenderPipelineEditor.Run();
+            validateRequiredThirdPartyAssets();
             normalizeThirdPartyModelImports();
             Scene sourceScene = EditorSceneManager.OpenScene(DUNGEON_DEMO_SCENE_PATH, OpenSceneMode.Single);
             Transform sourceEnvironmentRoot = findRequiredRoot(sourceScene, "Models");
@@ -79,6 +90,21 @@ namespace MouthOfTruth.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        private static void validateRequiredThirdPartyAssets()
+        {
+            foreach (string requiredAssetPath in REQUIRED_THIRD_PARTY_ASSET_PATHS)
+            {
+                if (AssetDatabase.IsValidFolder(requiredAssetPath) || AssetDatabase.LoadMainAssetAtPath(requiredAssetPath) != null)
+                {
+                    continue;
+                }
+
+                throw new BuildFailedException(
+                    $"Required Unity Asset Store asset is missing: {requiredAssetPath}\n"
+                    + "Restore the third-party environment assets by following THIRD_PARTY_ASSETS.md.");
+            }
         }
 
         private static void normalizeThirdPartyModelImports()

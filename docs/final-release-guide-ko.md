@@ -41,10 +41,22 @@ PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 export MOUTH_OF_TRUTH_CONDA_ENV="<conda-env-name>"
 ```
 
-## 4. 모델 파일 배치
+## 4. 모델 파일 복원
 
-모델 파일은 Git에 포함하지 않습니다. Release asset 또는 별도 모델 저장소로
-제공되는 모델 번들을 아래 구조 그대로 배치합니다.
+모델 파일은 Git에 포함하지 않습니다. `mouth-of-truth-models-required.tar.gz`
+bundle을 받은 뒤 저장소 루트에서 복원합니다.
+
+```bash
+tools/restore-model-assets.sh <path-to>/mouth-of-truth-models-required.tar.gz
+```
+
+Windows PowerShell:
+
+```powershell
+.\tools\restore-model-assets.ps1 -ModelBundlePath <path-to>\mouth-of-truth-models-required.tar.gz
+```
+
+복원 후 구조:
 
 ```text
 python-engine/models/face/yolo26x_rafdb_best.pt
@@ -74,6 +86,25 @@ shasum -a 256 \
 
 macOS와 Windows 릴리스 빌드는 위 필수 모델의 존재 여부와 SHA-256을 자동으로
 검증합니다. 필수 파일이 없거나 checksum이 다르면 빌드가 중단됩니다.
+
+릴리스 담당자가 로컬 모델 파일로 bundle을 만들 때:
+
+```bash
+tools/package-model-assets.sh
+```
+
+생성 위치:
+
+```text
+dist/model-assets/mouth-of-truth-models-required.tar.gz
+dist/model-assets/mouth-of-truth-models-required.tar.gz.sha256
+```
+
+Whisper cache까지 함께 배포할 때:
+
+```bash
+MOUTH_OF_TRUTH_INCLUDE_WHISPER_CACHE=1 tools/package-model-assets.sh
+```
 
 Whisper 전사를 사용할 때만 아래 캐시를 배치합니다.
 
@@ -157,6 +188,7 @@ Git에 포함하지 않는 항목:
 
 - 모델 바이너리
 - Whisper 캐시
+- Unity Asset Store 원본 자산
 - `python-runtime/`
 - `python-runtime-windows/`
 - `dist/`
@@ -164,8 +196,8 @@ Git에 포함하지 않는 항목:
 - Unity `Library/`, `Temp/`, `Obj/`, `Logs/`, `UserSettings/`
 
 GitHub 일반 Git 저장소는 100 MiB를 초과하는 단일 파일 push를 차단합니다.
-모델 파일은 Git LFS, GitHub Release asset, 별도 모델 저장소, 또는 사내 저장소로
-관리합니다.
+모델 bundle은 GitHub Release asset, 별도 모델 저장소, 사내 저장소, 또는 다른
+artifact storage로 관리합니다.
 
 공식 참고:
 
@@ -223,7 +255,8 @@ service를 실행합니다.
 
 ## 9. 서드파티 환경 자산
 
-필요한 Unity Asset Store 자산:
+필요한 Unity Asset Store 자산은 Git에 포함하지 않습니다. 각 개발자는 본인
+라이선스 계정으로 내려받아 지정 경로에 import합니다.
 
 - Dungeon Modular Pack
 - Persiang Carpets URP
@@ -240,6 +273,12 @@ unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp
 
 ```text
 unity-app/Assets/Editor/BuildMainSceneEditor.cs
+```
+
+자세한 포함/복원 기준:
+
+```text
+THIRD_PARTY_ASSETS.md
 ```
 
 런타임 이미지는 아래 경로에서 로드됩니다.

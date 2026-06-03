@@ -45,6 +45,12 @@ unity-app/[Uu]ser[Ss]ettings/
 unity-app/[Mm]emoryCaptures/
 unity-app/[Rr]ecordings/
 
+# Unity Asset Store source assets. Restore these from each licensed Unity account.
+unity-app/Assets/ThirdParty/Environment/DungeonModularPack.meta
+unity-app/Assets/ThirdParty/Environment/DungeonModularPack/
+unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp.meta
+unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp/
+
 # Accidental root-level Unity project artifacts
 /[Ll]ibrary/
 /[Tt]emp/

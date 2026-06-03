@@ -28,15 +28,39 @@ unity-app
 
 ## 필수 로컬 자산
 
-아래 모델 파일은 Git에 포함되지 않습니다. Release asset 또는 별도 모델 저장소로
-제공되는 모델 번들을 로컬에 배치합니다. SHA-256은
-[모델 자산](python-engine/models/README.md)에 적힌 값으로 확인합니다.
+아래 모델 파일은 Git에 포함되지 않습니다. `mouth-of-truth-models-required.tar.gz`
+bundle을 받은 뒤 저장소 루트에서 복원합니다.
+
+```bash
+tools/restore-model-assets.sh <path-to>/mouth-of-truth-models-required.tar.gz
+```
+
+Windows PowerShell:
+
+```powershell
+.\tools\restore-model-assets.ps1 -ModelBundlePath <path-to>\mouth-of-truth-models-required.tar.gz
+```
+
+복원 후 파일 구조:
 
 ```text
 python-engine/models/face/yolo26x_rafdb_best.pt
 python-engine/models/voice/best_wav2vec2_iemocap/config.json
 python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors
 python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
+```
+
+릴리스 담당자가 로컬 모델 파일로 bundle을 만들 때:
+
+```bash
+tools/package-model-assets.sh
+```
+
+생성 위치:
+
+```text
+dist/model-assets/mouth-of-truth-models-required.tar.gz
+dist/model-assets/mouth-of-truth-models-required.tar.gz.sha256
 ```
 
 Whisper 전사를 사용할 때만 아래 캐시를 추가합니다.
@@ -53,7 +77,7 @@ export MOUTH_OF_TRUTH_MODELS_ROOT="/path/to/model-root"
 
 ## 주요 문서
 
-- [최종 배포 가이드](docs/final-release-guide-ko.md)
+- [배포 가이드](docs/final-release-guide-ko.md)
 - [서드파티 자산과 SDK](THIRD_PARTY_ASSETS.md)
 - [모델 자산 배치](python-engine/models/README.md)
 

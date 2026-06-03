@@ -5,6 +5,20 @@
 
 ## 필수 구조
 
+`mouth-of-truth-models-required.tar.gz` bundle을 받은 뒤 저장소 루트에서 복원합니다.
+
+```bash
+tools/restore-model-assets.sh <path-to>/mouth-of-truth-models-required.tar.gz
+```
+
+Windows PowerShell:
+
+```powershell
+.\tools\restore-model-assets.ps1 -ModelBundlePath <path-to>\mouth-of-truth-models-required.tar.gz
+```
+
+복원 후 구조:
+
 ```text
 python-engine/models/face/yolo26x_rafdb_best.pt
 python-engine/models/voice/best_wav2vec2_iemocap/config.json
@@ -57,8 +71,22 @@ whisper/models--openai--whisper-tiny/
 
 ## 대용량 파일 관리
 
-모델 파일은 Git LFS, GitHub Release asset, 별도 모델 저장소, 또는 사내 저장소로
-관리합니다. 일반 GitHub Git push는 100 MiB를 초과하는 단일 파일을 차단합니다.
+모델 bundle은 GitHub Release asset, 모델 저장소, 사내 저장소, 또는 다른 artifact
+storage로 관리합니다. 일반 GitHub Git push는 100 MiB를 초과하는 단일 파일을
+차단합니다.
+
+릴리스 담당자가 로컬 모델 파일로 bundle을 만들 때:
+
+```bash
+tools/package-model-assets.sh
+```
+
+생성 위치:
+
+```text
+dist/model-assets/mouth-of-truth-models-required.tar.gz
+dist/model-assets/mouth-of-truth-models-required.tar.gz.sha256
+```
 
 ## 모델 교체
 

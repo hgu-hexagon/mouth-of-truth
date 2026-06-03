@@ -7,6 +7,15 @@
 버전: 7.3.0
 경로: unity-app/Packages/com.ultraleap.tracking/
 라이선스: Apache-2.0
+Unity manifest: "com.ultraleap.tracking": "file:com.ultraleap.tracking"
+```
+
+현재 저장소에는 Ultraleap package가 embedded package로 포함되어 있습니다.
+패키지를 다시 받아 같은 상태로 복원할 때는 `Unity Release 7.3.0`의
+`com.ultraleap.tracking` UPM package를 아래 경로에 둡니다.
+
+```text
+unity-app/Packages/com.ultraleap.tracking/
 ```
 
 OpenUPM 설치:
@@ -18,9 +27,12 @@ Scope: com.ultraleap
 Package: com.ultraleap.tracking
 ```
 
+OpenUPM 목록에 `7.3.0`이 없으면 GitHub release 방식으로 복원합니다.
+
 공식 경로:
 
 ```text
+https://github.com/ultraleap/UnityPlugin/releases/latest
 https://github.com/ultraleap/UnityPlugin
 https://openupm.com/packages/com.ultraleap.tracking/
 https://docs.ultraleap.com/xr-and-tabletop/xr/unity/

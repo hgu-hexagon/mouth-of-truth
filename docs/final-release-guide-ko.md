@@ -42,13 +42,33 @@ export MOUTH_OF_TRUTH_CONDA_ENV="<conda-env-name>"
 
 ## 4. 모델 파일 배치
 
-아래 파일을 로컬에 배치합니다.
+모델 파일은 Git에 포함하지 않습니다. 모델 번들을 받은 뒤 아래 구조 그대로
+배치합니다.
 
 ```text
 python-engine/models/face/yolo26x_rafdb_best.pt
 python-engine/models/voice/best_wav2vec2_iemocap/config.json
 python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors
 python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
+```
+
+필수 모델 SHA-256:
+
+```text
+48e47f019b8214b4c6869af87a3ab8a23fa34a0e891a6d4caf7fd25f7492e35a  python-engine/models/face/yolo26x_rafdb_best.pt
+e80a86c0d4e859cd46cc852d4f5864f3de78be8e64f47c1f79b31b687099f5be  python-engine/models/voice/best_wav2vec2_iemocap/config.json
+699c55de39fddb538eee49a24afc1008a20bb78918b7a50429b63b59dc62f5c3  python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors
+8cdfd65ff4115423185a1512bdae100e2e0cd744f5b322417429944aaafd0827  python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
+```
+
+검증 명령:
+
+```bash
+shasum -a 256 \
+  python-engine/models/face/yolo26x_rafdb_best.pt \
+  python-engine/models/voice/best_wav2vec2_iemocap/config.json \
+  python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors \
+  python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
 ```
 
 Whisper 전사를 사용할 때만 아래 캐시를 배치합니다.
@@ -76,6 +96,7 @@ whisper/models--openai--whisper-tiny/
 얼굴 모델:
 
 - 데이터셋: RAF-DB
+- 데이터셋 신청: `http://www.whdeng.cn/RAF/model1.html`
 - 학습 방식: Ultralytics YOLO 분류 모델 학습
 - 출력: 얼굴 표정 class별 확률
 - 산출물: `yolo26x_rafdb_best.pt`
@@ -85,6 +106,7 @@ whisper/models--openai--whisper-tiny/
 음성 모델:
 
 - 데이터셋: IEMOCAP
+- 데이터셋 신청: `https://sail.usc.edu/iemocap/`
 - 학습 방식: wav2vec2-base 음성 분류 파인튜닝
 - 레이블: `ang`, `hap`, `exc`, `neu`, `sad`, `fru`
 - 산출물: `best_wav2vec2_iemocap/`
@@ -94,14 +116,37 @@ whisper/models--openai--whisper-tiny/
 Whisper:
 
 - 모델: `openai/whisper-tiny`
+- 다운로드: `https://huggingface.co/openai/whisper-tiny`
 - 용도: 답변 transcript가 비어 있을 때 선택 전사
 - 산출물: Hugging Face 캐시
 - 로더: `python-engine/src/mouth_of_truth/speech/whisper_transcriber.py`
 
-학습 스크립트와 원본 데이터셋은 이 저장소에 포함하지 않습니다. 이 저장소는
-학습된 산출물을 배치해 실행하는 프로젝트입니다.
+## 6. 학습 재현 범위
 
-## 6. 대용량 파일 관리
+이 저장소만으로 가능한 작업:
+
+- 모델 번들을 배치한 뒤 같은 산출물로 프로젝트 실행
+- 얼굴/음성/Whisper loader 동작 확인
+- 판정 정책 수정 및 빌드
+
+이 저장소만으로 불가능한 작업:
+
+- RAF-DB 얼굴 모델을 동일 조건으로 재학습
+- IEMOCAP 음성 모델을 동일 조건으로 재학습
+
+동일 학습 재현에 필요한 추가 항목:
+
+- RAF-DB/IEMOCAP 원본 데이터 접근 권한
+- 데이터 전처리 코드
+- train/validation/test split
+- 학습 명령
+- architecture 설정
+- hyperparameter
+- seed
+- checkpoint 선택 기준
+- 학습 당시 Python, PyTorch, Transformers, Ultralytics 버전
+
+## 7. 대용량 파일 관리
 
 Git에 포함하지 않는 항목:
 
@@ -123,16 +168,31 @@ GitHub 일반 Git 저장소는 100 MiB를 초과하는 단일 파일 push를 차
 https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github
 ```
 
-## 7. Ultraleap 설치
+## 8. Ultraleap 설치
 
 현재 프로젝트 패키지:
 
 ```text
 unity-app/Packages/com.ultraleap.tracking
 com.ultraleap.tracking 7.3.0
+unity-app/Packages/manifest.json: "com.ultraleap.tracking": "file:com.ultraleap.tracking"
 ```
 
-패키지를 다시 설치할 때:
+정상 clone에는 embedded package가 포함되어 있으므로 Unity Package Manager에서
+추가 설치가 필요하지 않습니다.
+
+패키지가 빠진 상태를 복원할 때:
+
+1. `https://github.com/ultraleap/UnityPlugin/releases/latest`에서 Unity Release `7.3.0`을 받습니다.
+2. `com.ultraleap.tracking` UPM package를 `unity-app/Packages/com.ultraleap.tracking`에 배치합니다.
+3. `unity-app/Packages/com.ultraleap.tracking/package.json`의 `name`과 `version`을 확인합니다.
+
+```text
+"name": "com.ultraleap.tracking"
+"version": "7.3.0"
+```
+
+OpenUPM에서 설치할 때:
 
 1. Unity에서 `Edit > Project Settings > Package Manager`를 엽니다.
 2. Scoped Registry를 추가합니다.
@@ -142,10 +202,12 @@ com.ultraleap.tracking 7.3.0
 3. `Window > Package Manager`를 엽니다.
 4. `My Registries`에서 `com.ultraleap.tracking`을 설치합니다.
 5. 프로젝트와 같은 구성을 맞출 때는 `7.3.0`을 사용합니다.
+6. OpenUPM 목록에 `7.3.0`이 없으면 GitHub release 방식으로 복원합니다.
 
 공식 경로:
 
 ```text
+https://github.com/ultraleap/UnityPlugin/releases/latest
 https://github.com/ultraleap/UnityPlugin
 https://openupm.com/packages/com.ultraleap.tracking/
 https://docs.ultraleap.com/xr-and-tabletop/xr/unity/
@@ -154,7 +216,7 @@ https://docs.ultraleap.com/xr-and-tabletop/xr/unity/
 Leap Motion 입력 장비에는 Ultraleap Hand Tracking Software를 설치하고 tracking
 service를 실행합니다.
 
-## 8. 서드파티 환경 자산
+## 9. 서드파티 환경 자산
 
 필요한 Unity Asset Store 자산:
 
@@ -187,7 +249,7 @@ unity-app/Assets/StreamingAssets/art
 unity-app/Assets/StreamingAssets/audio
 ```
 
-## 9. 실행 모드
+## 10. 실행 모드
 
 Python bridge 강제:
 
@@ -216,7 +278,7 @@ export MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1
 설정이 없으면 Unity는 Python 브리지 launcher와 Python module root를 찾고,
 없으면 deterministic 대체 판정을 사용합니다.
 
-## 10. 판정 정책
+## 11. 판정 정책
 
 최종 판정 경로:
 
@@ -255,7 +317,7 @@ unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs
 음성 segment 수가 부족하면 `UNCERTAIN`을 반환하고, 충분하면 질문 ID와 답변
 transcript checksum parity로 `TRUE` / `FALSE`를 반환합니다.
 
-## 11. 질문과 질문 음성
+## 12. 질문과 질문 음성
 
 질문 풀:
 
@@ -283,7 +345,7 @@ unity-app/Assets/StreamingAssets/audio/questions/Q0012.wav
 "enabled": false
 ```
 
-## 12. 릴리스 빌드
+## 13. 릴리스 빌드
 
 macOS:
 
@@ -299,7 +361,7 @@ Windows:
 
 ```powershell
 conda activate mouth-of-truth
-python-engine/scripts/package_python_runtime.ps1
+.\python-engine\scripts\package_python_runtime.ps1
 
 $env:UNITY_EDITOR_PATH="<unity-editor-executable>"
 .\tools\build-windows-release.ps1
@@ -312,7 +374,7 @@ dist/macos/MouthOfTruth/
 dist/windows/MouthOfTruth/
 ```
 
-## 13. 공개 전 확인
+## 14. 공개 전 확인
 
 ```bash
 git status --short
@@ -324,5 +386,14 @@ dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
 금지 패턴 검색:
 
 ```bash
-git grep -n -I -E "$PUBLIC_RELEASE_FORBIDDEN_PATTERN" -- .
+git grep -n -I --fixed-strings "$HOME" -- . ':!unity-app/Packages/com.ultraleap.tracking'
+
+PUBLIC_RELEASE_SECRET_PATTERN='(api[_-]?key|access[_-]?token|auth[_-]?token|secret|password|PRIVATE KEY)'
+git grep -n -I -E "$PUBLIC_RELEASE_SECRET_PATTERN" -- . ':!docs/final-release-guide-ko.md' ':!unity-app/Packages/com.ultraleap.tracking'
+```
+
+Windows PowerShell:
+
+```powershell
+git grep -n -I --fixed-strings $env:USERPROFILE -- . ':!unity-app/Packages/com.ultraleap.tracking'
 ```

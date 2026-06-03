@@ -12,6 +12,23 @@ python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors
 python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
 ```
 
+## 필수 모델 검증
+
+```text
+48e47f019b8214b4c6869af87a3ab8a23fa34a0e891a6d4caf7fd25f7492e35a  python-engine/models/face/yolo26x_rafdb_best.pt
+e80a86c0d4e859cd46cc852d4f5864f3de78be8e64f47c1f79b31b687099f5be  python-engine/models/voice/best_wav2vec2_iemocap/config.json
+699c55de39fddb538eee49a24afc1008a20bb78918b7a50429b63b59dc62f5c3  python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors
+8cdfd65ff4115423185a1512bdae100e2e0cd744f5b322417429944aaafd0827  python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
+```
+
+```bash
+shasum -a 256 \
+  python-engine/models/face/yolo26x_rafdb_best.pt \
+  python-engine/models/voice/best_wav2vec2_iemocap/config.json \
+  python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors \
+  python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
+```
+
 ## 선택 구조
 
 ```text
@@ -42,3 +59,9 @@ whisper/models--openai--whisper-tiny/
 
 모델 파일은 Git LFS, GitHub Release asset, 별도 모델 저장소, 또는 사내 저장소로
 관리합니다. 일반 GitHub Git push는 100 MiB를 초과하는 단일 파일을 차단합니다.
+
+## 학습 재현
+
+이 저장소에는 inference 코드와 모델 배치 구조만 있습니다. 같은 모델을 처음부터
+다시 학습하려면 원본 데이터셋, 전처리 코드, split, 학습 명령,
+hyperparameter, seed, checkpoint 선택 기준이 추가로 필요합니다.

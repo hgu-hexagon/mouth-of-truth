@@ -27,7 +27,9 @@ unity-app
 
 ## 필수 로컬 자산
 
-아래 모델 파일은 Git에 포함되지 않습니다. 프로젝트 실행 전 로컬에 배치합니다.
+아래 모델 파일은 Git에 포함되지 않습니다. 프로젝트 실행 전 모델 번들을 받아
+로컬에 배치합니다. 파일 크기와 SHA-256은
+[모델 자산](python-engine/models/README.md)에 적힌 값으로 확인합니다.
 
 ```text
 python-engine/models/face/yolo26x_rafdb_best.pt
@@ -90,6 +92,13 @@ python -m compileall -q python-engine/src
 dotnet build unity-app/Assembly-CSharp.csproj --no-restore /m:1
 dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
 ```
+
+## 학습 재현
+
+이 저장소는 학습된 모델 산출물을 배치해 실행하는 프로젝트입니다. 동일한 학습을
+처음부터 재현하려면 RAF-DB/IEMOCAP 원본 데이터 접근 권한, 전처리 코드,
+train/validation/test split, hyperparameter, seed, checkpoint 선택 기준이
+추가로 필요합니다.
 
 ## macOS 릴리스 빌드
 

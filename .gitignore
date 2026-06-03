@@ -19,6 +19,7 @@ __pycache__/
 # Local docs kept intentionally uncommitted
 docs/*.md
 !docs/setup-and-release.md
+!docs/model-training-and-datasets.md
 assets/reference/
 
 # Bridge runtime outputs

@@ -3,6 +3,13 @@
 이 디렉터리는 모델 배치 구조만 Git에 유지합니다. 실제 모델 바이너리는 Git에
 포함하지 않습니다.
 
+데이터셋 신청, label mapping, 모델 교체 계약, 재학습 시 산출물 기준은 아래
+문서를 먼저 확인합니다.
+
+```text
+docs/model-training-and-datasets.md
+```
+
 ## 필수 구조
 
 `mouth-of-truth-models-required.tar.gz` bundle을 받은 뒤 저장소 루트에서 복원합니다.

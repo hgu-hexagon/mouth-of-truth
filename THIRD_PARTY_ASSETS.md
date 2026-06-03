@@ -43,9 +43,21 @@ Leap Motion 또는 Ultraleap camera 입력을 사용하려면 실행 PC에 Ultra
 Tracking Software를 설치하고 tracking service를 실행합니다. Unity package만으로는
 camera tracking service가 설치되지 않습니다.
 
+설치 절차:
+
+1. `https://leap2.ultraleap.com/`에 접속합니다.
+2. 보유한 camera를 선택합니다. 예: Leap Motion Controller 2, Leap Motion
+   Controller, Stereo IR 170, 3Di.
+3. 실행 PC의 운영체제를 선택한 뒤 Hand Tracking Software를 내려받아 설치합니다.
+4. camera를 USB로 연결하고 Ultraleap Control Panel 또는 tracking visualizer에서
+   손 tracking이 정상적으로 보이는지 확인합니다.
+5. 이 프로젝트를 실행하기 전 tracking service가 실행 중인지 확인합니다.
+
 공식 경로:
 
 ```text
+https://leap2.ultraleap.com/
+https://support.ultraleap.com/hc/en-us/articles/360004324078-How-do-I-set-up-my-Leap-Motion-Controller-2-Ultraleap-Stereo-IR-170-3Di-or-Leap-Motion-Controller
 https://docs.ultraleap.com/hand-tracking/getting-started
 https://docs.ultraleap.com/hand-tracking/Hyperion/index.html
 ```
@@ -209,6 +221,7 @@ dist/model-assets/mouth-of-truth-models-whisper-cache.tar.gz.sha256
 모델 checksum과 교체 기준은 아래 문서에 고정되어 있습니다.
 
 ```text
+docs/model-training-and-datasets.md
 python-engine/models/README.md
 python-engine/models/face/README.md
 python-engine/models/voice/README.md

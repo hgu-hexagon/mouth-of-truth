@@ -102,6 +102,7 @@ docs/            프로젝트 설정과 릴리스 빌드 문서
 ## 주요 문서
 
 - [프로젝트 설정과 릴리스 빌드](docs/setup-and-release.md)
+- [모델 학습 데이터셋과 재현 기준](docs/model-training-and-datasets.md)
 - [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md)
 - [모델 자산](python-engine/models/README.md)
 

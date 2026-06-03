@@ -128,10 +128,16 @@ whisper/models--openai--whisper-tiny/
 
 ## 5. 모델 자산
 
+데이터셋 신청, label mapping, 학습 artifact 계약은 아래 문서에 정리되어 있습니다.
+
+```text
+docs/model-training-and-datasets.md
+```
+
 얼굴 모델:
 
 - 사용 데이터: RAF-DB
-- 데이터셋 신청: `http://www.whdeng.cn/RAF/model1.html`
+- 데이터셋 신청: `https://www.whdeng.cn/RAF/model1.html`
 - 학습 방식: Ultralytics YOLO 분류 모델 학습
 - 출력: 얼굴 표정 class별 확률
 - 산출물: `yolo26x_rafdb_best.pt`
@@ -244,6 +250,8 @@ OpenUPM에서 설치할 때:
 공식 경로:
 
 ```text
+https://leap2.ultraleap.com/
+https://support.ultraleap.com/hc/en-us/articles/360004324078-How-do-I-set-up-my-Leap-Motion-Controller-2-Ultraleap-Stereo-IR-170-3Di-or-Leap-Motion-Controller
 https://github.com/ultraleap/UnityPlugin/releases/latest
 https://github.com/ultraleap/UnityPlugin
 https://openupm.com/packages/com.ultraleap.tracking/
@@ -251,7 +259,9 @@ https://docs.ultraleap.com/xr-and-tabletop/xr/unity/
 ```
 
 Leap Motion 입력 장비에는 Ultraleap Hand Tracking Software를 설치하고 tracking
-service를 실행합니다.
+service를 실행합니다. `leap2.ultraleap.com`에서 보유한 camera와 운영체제를
+선택한 뒤 Hand Tracking Software를 내려받습니다. 설치 후 Ultraleap Control Panel
+또는 tracking visualizer에서 손 tracking이 보이는지 확인합니다.
 
 ## 9. 서드파티 환경 자산
 

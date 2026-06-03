@@ -323,7 +323,33 @@ export MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1
 설정이 없으면 Unity는 Python 브리지 launcher와 Python module root를 찾고,
 없으면 deterministic 대체 판정을 사용합니다.
 
-## 11. 판정 정책
+## 11. 판정 해석과 한계
+
+`TRUE`, `FALSE`, `UNCERTAIN`은 인터랙티브 설치 경험을 위한 게임 판정입니다.
+얼굴 표정과 음성 신호를 사용하지만, 실제 거짓말 탐지, 신뢰도 평가, 채용/심사,
+의사결정 근거로 사용하지 않습니다.
+
+운영 전 확인 대상:
+
+- 참가자에게 카메라/마이크 수집 목적을 안내하고 동의를 받습니다.
+- 조명, 카메라 각도, 마이크 품질, 주변 소음에 따라 얼굴/음성 신호 품질을 다시
+  확인합니다.
+- 얼굴/음성 모델과 threshold는 현재 설치 경험에 맞춘 정책값입니다. 데이터셋
+  일반화 성능이나 과학적 lie-detection 정확도를 보증하지 않습니다.
+- `MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic`은 Python 브리지가 없을 때 쓰는
+  개발/시연용 fallback입니다. 실제 모델 판정 품질을 대표하지 않습니다.
+
+latency를 줄이기 위한 현재 구현:
+
+- Python persistent worker가 얼굴 모델을 미리 warm up합니다.
+- 얼굴 분석은 대표 프레임 최대 3개를 샘플링하고, 현재 정책은 첫 유효 얼굴
+  인식 1개만으로 session summary를 만듭니다.
+- 음성 분석은 기본적으로 fast acoustic summary를 사용하고, 학습된 wav2vec2
+  모델은 `MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1`일 때만 사용합니다.
+- Unity bridge는 persistent worker 실패 시 one-shot Python process로, 그마저
+  실패하면 deterministic fallback으로 내려갑니다.
+
+## 12. 판정 정책
 
 최종 판정 경로:
 
@@ -362,7 +388,7 @@ unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs
 음성 segment 수가 부족하면 `UNCERTAIN`을 반환하고, 충분하면 질문 ID와 답변
 transcript checksum parity로 `TRUE` / `FALSE`를 반환합니다.
 
-## 12. 질문과 질문 음성
+## 13. 질문과 질문 음성
 
 질문 풀:
 
@@ -390,7 +416,7 @@ unity-app/Assets/StreamingAssets/audio/questions/Q0012.wav
 "enabled": false
 ```
 
-## 13. 릴리스 빌드
+## 14. 릴리스 빌드
 
 릴리스 빌드는 아래 항목을 배포물에 포함하고, 필수 파일과 모델 checksum을
 검증합니다.
@@ -432,15 +458,39 @@ dist/macos/MouthOfTruth/
 dist/windows/MouthOfTruth/
 ```
 
-## 14. 공개 전 확인
+## 15. 공개 전 확인
 
 ```bash
 git status --short
 python -m compileall -q python-engine/src
 PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
-dotnet build unity-app/Assembly-CSharp.csproj --no-restore /m:1
-dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
+dotnet build unity-app/MouthOfTruth.Game.csproj /m:1
+dotnet build unity-app/Assembly-CSharp-Editor.csproj /m:1
+dotnet build unity-app/MouthOfTruth.Editor.Tests.csproj /m:1
 ```
+
+`--no-restore`는 위 빌드나 Unity Editor가 NuGet restore를 한 번 끝낸 뒤 반복
+검증할 때만 사용합니다.
+
+Unity EditMode 테스트:
+
+```bash
+/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity \
+  -batchmode \
+  -projectPath unity-app \
+  -runTests \
+  -testPlatform editmode \
+  -testResults /tmp/mouth-of-truth-editmode-results.xml
+```
+
+자동 테스트 범위:
+
+- Python bridge contract, 판정 정책, 얼굴/음성 점수 규칙
+- Unity 상태 머신, dwell selection, 답변 종료 정책, deterministic fallback
+- Unity runtime/editor C# 컴파일
+
+장비가 필요한 Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 latency는
+릴리스 전 현장 수동 QA로 확인합니다.
 
 금지 패턴 검색:
 

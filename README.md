@@ -10,6 +10,17 @@ Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산�
 
 ![Mouth of Truth 시작 화면](docs/images/mouth-of-truth-start.png)
 
+## 프로젝트 성격과 한계
+
+이 프로젝트의 `TRUE`, `FALSE`, `UNCERTAIN` 판정은 인터랙티브 설치 경험을 위한
+게임 연출입니다. 얼굴 표정과 음성 신호는 참가자 반응을 극적으로 표현하기 위한
+입력이며, 실제 거짓말 탐지, 신뢰도 평가, 채용/심사/의사결정 근거로 사용하지
+않습니다.
+
+카메라와 마이크 입력은 참가자 동의가 있는 설치 환경을 전제로 합니다. 얼굴/음성
+모델과 threshold는 데이터셋, 조명, 카메라 각도, 마이크 품질, 주변 소음에 영향을
+받으므로 운영 전에는 별도 현장 검증이 필요합니다.
+
 ## 주요 화면
 
 | 카드 선택 | 질문 확인 |
@@ -114,13 +125,40 @@ python-engine/src/mouth_of_truth/fusion/verdict_policy.py
 unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs
 ```
 
+## 검증 범위
+
+자동 검증은 하드웨어 없이 확인 가능한 경계를 대상으로 합니다.
+
+- Python JSON bridge contract와 판정 정책
+- 얼굴/음성 점수 규칙의 기본 방향성
+- Unity 상태 머신, dwell selection, 답변 종료 정책, deterministic fallback
+- Unity runtime/editor C# 컴파일
+
+Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 latency는 장비가 연결된
+Unity 실행 환경에서 별도 수동 QA가 필요합니다.
+
 ## 검증
 
 ```bash
 python -m compileall -q python-engine/src
 PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
-dotnet build unity-app/Assembly-CSharp.csproj --no-restore /m:1
-dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
+dotnet build unity-app/MouthOfTruth.Game.csproj /m:1
+dotnet build unity-app/Assembly-CSharp-Editor.csproj /m:1
+dotnet build unity-app/MouthOfTruth.Editor.Tests.csproj /m:1
+```
+
+`--no-restore`는 Unity 또는 `dotnet build`가 한 번 restore를 끝낸 뒤 반복 검증을
+빠르게 돌릴 때만 사용합니다.
+
+Unity EditMode 테스트는 Unity Test Runner에서 실행하거나 batchmode로 실행합니다.
+
+```bash
+/Applications/Unity/Hub/Editor/6000.4.1f1/Unity.app/Contents/MacOS/Unity \
+  -batchmode \
+  -projectPath unity-app \
+  -runTests \
+  -testPlatform editmode \
+  -testResults /tmp/mouth-of-truth-editmode-results.xml
 ```
 
 릴리스 빌드는 필수 Python 런타임 파일과 모델 SHA-256을 자동 검증합니다. 필수

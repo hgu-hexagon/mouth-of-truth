@@ -1,0 +1,23 @@
+{
+    "name": "MouthOfTruth.Editor.Tests",
+    "rootNamespace": "MouthOfTruth.Editor.Tests",
+    "references": [
+        "MouthOfTruth.Game"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "noEngineReferences": false
+}

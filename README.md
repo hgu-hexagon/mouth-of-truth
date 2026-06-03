@@ -27,8 +27,8 @@ unity-app
 
 ## 필수 로컬 자산
 
-아래 모델 파일은 Git에 포함되지 않습니다. 프로젝트 실행 전 모델 번들을 받아
-로컬에 배치합니다. 파일 크기와 SHA-256은
+아래 모델 파일은 Git에 포함되지 않습니다. Release asset 또는 별도 모델 저장소로
+제공되는 모델 번들을 로컬에 배치합니다. SHA-256은
 [모델 자산](python-engine/models/README.md)에 적힌 값으로 확인합니다.
 
 ```text
@@ -93,12 +93,10 @@ dotnet build unity-app/Assembly-CSharp.csproj --no-restore /m:1
 dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
 ```
 
-## 학습 재현
+## 모델 교체
 
-이 저장소는 학습된 모델 산출물을 배치해 실행하는 프로젝트입니다. 동일한 학습을
-처음부터 재현하려면 RAF-DB/IEMOCAP 원본 데이터 접근 권한, 전처리 코드,
-train/validation/test split, hyperparameter, seed, checkpoint 선택 기준이
-추가로 필요합니다.
+배포본은 학습된 모델 artifact를 사용합니다. 다른 모델을 사용할 때는 같은 경로와
+출력 포맷을 맞추고, 얼굴/음성 점수 규칙이 기대하는 label 체계를 유지합니다.
 
 ## macOS 릴리스 빌드
 

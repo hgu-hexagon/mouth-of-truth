@@ -60,8 +60,7 @@ whisper/models--openai--whisper-tiny/
 모델 파일은 Git LFS, GitHub Release asset, 별도 모델 저장소, 또는 사내 저장소로
 관리합니다. 일반 GitHub Git push는 100 MiB를 초과하는 단일 파일을 차단합니다.
 
-## 학습 재현
+## 모델 교체
 
-이 저장소에는 inference 코드와 모델 배치 구조만 있습니다. 같은 모델을 처음부터
-다시 학습하려면 원본 데이터셋, 전처리 코드, split, 학습 명령,
-hyperparameter, seed, checkpoint 선택 기준이 추가로 필요합니다.
+배포본은 학습된 모델 artifact를 사용합니다. 다른 모델을 사용할 때는 같은 경로와
+출력 포맷을 맞추고, 얼굴/음성 점수 규칙이 기대하는 label 체계를 유지합니다.

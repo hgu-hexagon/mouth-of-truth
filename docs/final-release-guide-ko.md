@@ -42,8 +42,8 @@ export MOUTH_OF_TRUTH_CONDA_ENV="<conda-env-name>"
 
 ## 4. 모델 파일 배치
 
-모델 파일은 Git에 포함하지 않습니다. 모델 번들을 받은 뒤 아래 구조 그대로
-배치합니다.
+모델 파일은 Git에 포함하지 않습니다. Release asset 또는 별도 모델 저장소로
+제공되는 모델 번들을 아래 구조 그대로 배치합니다.
 
 ```text
 python-engine/models/face/yolo26x_rafdb_best.pt
@@ -91,11 +91,11 @@ voice/best_wav2vec2_iemocap/
 whisper/models--openai--whisper-tiny/
 ```
 
-## 5. 모델 산출물
+## 5. 모델 자산
 
 얼굴 모델:
 
-- 데이터셋: RAF-DB
+- 사용 데이터: RAF-DB
 - 데이터셋 신청: `http://www.whdeng.cn/RAF/model1.html`
 - 학습 방식: Ultralytics YOLO 분류 모델 학습
 - 출력: 얼굴 표정 class별 확률
@@ -105,7 +105,7 @@ whisper/models--openai--whisper-tiny/
 
 음성 모델:
 
-- 데이터셋: IEMOCAP
+- 사용 데이터: IEMOCAP
 - 데이터셋 신청: `https://sail.usc.edu/iemocap/`
 - 학습 방식: wav2vec2-base 음성 분류 파인튜닝
 - 레이블: `ang`, `hap`, `exc`, `neu`, `sad`, `fru`
@@ -121,36 +121,37 @@ Whisper:
 - 산출물: Hugging Face 캐시
 - 로더: `python-engine/src/mouth_of_truth/speech/whisper_transcriber.py`
 
-## 6. 학습 재현 범위
+## 6. 모델 교체
 
-이 저장소만으로 가능한 작업:
+배포본은 학습된 모델 artifact를 기준으로 실행됩니다. 원본 데이터셋은 모델 출처
+확인과 새 모델 학습에만 필요하며, 프로젝트 실행에는 필요하지 않습니다.
 
-- 모델 번들을 배치한 뒤 같은 산출물로 프로젝트 실행
-- 얼굴/음성/Whisper loader 동작 확인
-- 판정 정책 수정 및 빌드
+얼굴 모델을 교체할 때:
 
-이 저장소만으로 불가능한 작업:
+- `python-engine/models/face/yolo26x_rafdb_best.pt` 위치에 Ultralytics YOLO
+  classification checkpoint를 둡니다.
+- `python-engine/src/mouth_of_truth/face/face_score_logic.py`가 기대하는 label과
+  score mapping을 맞춥니다.
 
-- RAF-DB 얼굴 모델을 동일 조건으로 재학습
-- IEMOCAP 음성 모델을 동일 조건으로 재학습
+음성 모델을 교체할 때:
 
-동일 학습 재현에 필요한 추가 항목:
+- `python-engine/models/voice/best_wav2vec2_iemocap/` 위치에 Hugging Face
+  `AutoModelForAudioClassification` 호환 모델 디렉터리를 둡니다.
+- `config.json`, `model.safetensors`, `preprocessor_config.json`을 포함합니다.
+- label은 `ang`, `hap`, `exc`, `neu`, `sad`, `fru` 체계를 유지하거나
+  `python-engine/src/mouth_of_truth/voice/voice_score_logic.py`를 함께 수정합니다.
 
-- RAF-DB/IEMOCAP 원본 데이터 접근 권한
-- 데이터 전처리 코드
-- train/validation/test split
-- 학습 명령
-- architecture 설정
-- hyperparameter
-- seed
-- checkpoint 선택 기준
-- 학습 당시 Python, PyTorch, Transformers, Ultralytics 버전
+Whisper 모델을 교체할 때:
+
+- `python-engine/src/mouth_of_truth/speech/whisper_transcriber.py`의
+  `WHISPER_MODEL_NAME`을 바꿉니다.
+- 오프라인 배포본에는 변경한 모델의 Hugging Face cache를 함께 포함합니다.
 
 ## 7. 대용량 파일 관리
 
 Git에 포함하지 않는 항목:
 
-- 학습된 모델 바이너리
+- 모델 바이너리
 - Whisper 캐시
 - `python-runtime/`
 - `python-runtime-windows/`

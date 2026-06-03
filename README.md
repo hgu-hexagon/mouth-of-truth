@@ -16,7 +16,7 @@ Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산�
 | --- | --- |
 | ![카드 선택 화면](docs/images/mouth-of-truth-card-selection.png) | ![질문 카드 화면](docs/images/mouth-of-truth-question-card.png) |
 | 손 삽입 | 판정 결과 |
-| ![손 삽입 화면](docs/images/mouth-of-truth-hand-insertion.png) | ![UNCERTAIN 판정 결과 화면](docs/images/mouth-of-truth-result-uncertain.png) |
+| ![손 삽입 화면](docs/images/mouth-of-truth-hand-insertion.png) | ![TRUE 판정 결과 화면](docs/images/mouth-of-truth-result-true.png) |
 
 ## 플레이 흐름
 

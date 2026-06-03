@@ -1,0 +1,10 @@
+<Project>
+  <!-- Keep generated MSBuild verification warning-clean without editing vendor package sources. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Ultraleap.Tracking.Core'">
+    <NoWarn>$(NoWarn);0649</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Ultraleap.Tracking.Core.Editor'">
+    <NoWarn>$(NoWarn);0618</NoWarn>
+  </PropertyGroup>
+</Project>

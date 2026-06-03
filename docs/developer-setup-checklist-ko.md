@@ -3,7 +3,7 @@
 ## 1. 목적
 
 이 문서는 GitHub에서 `mouth-of-truth` 저장소를 처음 내려받은 개발자가
-프로젝트를 실행하고 기본 검증을 마치는 방법을 설명한다.
+프로젝트를 실행하고 기본 제품 흐름을 확인하는 방법을 설명한다.
 
 이 문서를 완료하면 아래 작업을 할 수 있어야 한다.
 
@@ -11,9 +11,7 @@
 - Python 개발 환경을 만든다.
 - Unity 프로젝트를 올바른 경로에서 연다.
 - 로컬 모델 자산을 배치한다.
-- 소프트웨어 흐름 검증과 제품 준비 검증을 실행한다.
 - macOS 배포 빌드를 실행한다.
-- 실제 실행용 런처와 발표/캡처 테스트용 런처를 구분한다.
 
 ## 2. 사전 설치 항목
 
@@ -33,7 +31,7 @@ Windows 배포 빌드까지 수행하려면 Windows 환경에 아래 항목도 �
 - `MSVC x64/x86 build tools`
 - `Windows 11 SDK`
 
-Leap Motion으로 실제 시연을 검증하려면 아래도 필요하다.
+Leap Motion으로 실제 실행하려면 아래도 필요하다.
 
 - Ultraleap tracking runtime
 - Leap Motion 또는 Ultraleap 호환 손 추적 장치
@@ -87,7 +85,7 @@ python -m compileall python-engine/src
   - `python-engine/models/whisper/`
 
 기본 제품 경로는 결과 속도를 위해 빠른 얼굴/음성 증거 계산을 먼저 사용한다.
-Whisper 전사와 무거운 wav2vec2 추론은 선택 검증 경로로 남아 있다.
+Whisper 전사와 무거운 wav2vec2 추론은 선택적인 로컬 진단 경로로 남아 있다.
 
 ## 7. Unity 프로젝트 열기
 
@@ -174,7 +172,7 @@ Unity Download Archive에서 `6000.4.1f1`을 직접 설치한다.
 현재 제품 정책은 얼굴과 음성 증거가 모두 있어야 `TRUE` 또는 `FALSE`를 낸다.
 카메라 권한, 마이크 권한, 얼굴 위치, 음성 입력을 확인한다.
 
-## 13. 관련 문서
+## 12. 관련 문서
 
 - [build-and-distribution-guide-ko.md](build-and-distribution-guide-ko.md)
 - [developer-setup-checklist-en.md](developer-setup-checklist-en.md)

@@ -42,7 +42,7 @@ The current product flow includes:
 
 - Pointer input is provided by a composite hand-input adapter:
   - Leap Motion / Ultraleap input when tracking data is available
-  - mouse fallback for local development and software-only validation
+  - mouse fallback for local development and software-only operation
 - Card and button activation use dwell selection with a reacquire guard so newly
   detected hands do not immediately trigger a selection.
 - During the hand prompt voice, the pointer remains settled at the bottom center.

@@ -3,7 +3,7 @@
 ## 1. Purpose
 
 This document explains how a new developer can clone the `mouth-of-truth`
-repository, run the project, and complete the baseline validations.
+repository, run the project, and verify the baseline product flow.
 
 After following this guide, a developer should be able to:
 
@@ -11,9 +11,7 @@ After following this guide, a developer should be able to:
 - create the Python development environment
 - open the Unity project from the correct path
 - place the local model assets
-- run the software-flow and product-readiness validations
 - build the macOS release package
-- distinguish the normal launcher from the presentation/capture test launcher
 
 ## 2. Prerequisites
 
@@ -33,7 +31,7 @@ For Windows release builds, install these on Windows as well:
 - `MSVC x64/x86 build tools`
 - `Windows 11 SDK`
 
-For real Leap Motion validation, install:
+For real Leap Motion use, install:
 
 - Ultraleap tracking runtime
 - a Leap Motion or Ultraleap-compatible hand-tracking device
@@ -89,7 +87,7 @@ Git, so request them from the project maintainer and place them at:
 
 The default product path prioritizes fast face/voice evidence extraction.
 Whisper transcription and the heavier wav2vec2 inference path remain available
-for optional validation modes.
+for optional local diagnostics.
 
 ## 7. Open the Unity Project
 
@@ -175,7 +173,7 @@ The current product policy requires both face and voice evidence before
 returning `TRUE` or `FALSE`. Check camera permission, microphone permission,
 face placement, and audible speech.
 
-## 13. Related Documents
+## 12. Related Documents
 
 - [build-and-distribution-guide-en.md](build-and-distribution-guide-en.md)
 - [developer-setup-checklist-ko.md](developer-setup-checklist-ko.md)

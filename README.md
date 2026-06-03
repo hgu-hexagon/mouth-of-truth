@@ -1,73 +1,75 @@
 # Mouth of Truth
 
-Unity-first product project for an interactive Mouth of Truth experience.
+`Mouth of Truth`는 Unity UI와 Leap Motion/Ultraleap 손 추적을 사용하는
+인터랙티브 진실 판정 체험 프로젝트입니다. Unity는 화면 흐름, 입력, 녹음,
+얼굴 프레임 캡처를 담당하고, Python 엔진은 얼굴/음성 분석 결과를 결합해
+`TRUE`, `FALSE`, `UNCERTAIN` 판정을 반환합니다.
 
-The current build is organized around a single product shell: Unity owns the
-visible game flow and launches the packaged Python analysis bridge when the
-release launcher is used. Python owns the answer analysis logic, model loading,
-and verdict generation.
+## 공개 레포 기준
 
-## Repository Structure
+이 저장소는 최종 공개 배포용 소스 레포를 기준으로 정리되어 있습니다.
+
+- Unity 프로젝트, 게임 흐름, 런타임 이미지/음성 자산, Python 분석 소스는 포함됩니다.
+- 학습된 모델 바이너리, Whisper 캐시, 패키징된 Python 런타임, 빌드 결과물,
+  로컬 검증 산출물은 Git에 포함하지 않습니다.
+- GitHub 일반 Git push는 100 MiB를 초과하는 단일 파일을 차단하므로, 대용량
+  모델 산출물은 별도 저장소, 릴리스 자산, 사내 스토리지, 또는 Git LFS 정책으로
+  관리해야 합니다.
+- 개발 중 임시로 작성한 체크리스트/검증 문서는 추적 대상에서 제외했습니다.
+
+## 주요 문서
+
+- [최종 배포 가이드](docs/final-release-guide-ko.md)
+- [서드파티 자산과 SDK](THIRD_PARTY_ASSETS.md)
+- [모델 자산 배치](python-engine/models/README.md)
+
+## 프로젝트 구조
 
 - `unity-app/`
-  Main Unity project, game flow, presentation layer, input adapters, and release build automation.
+  Unity 프로젝트, 게임 프레젠테이션, 입력 어댑터, 빌드 자동화
 - `python-engine/`
-  Python analysis bridge, model resolver, face/voice analysis, and verdict policy.
-- `assets/`
-  Lightweight reference-asset documentation.
+  Python 분석 브리지, 모델 경로 해석, 얼굴/음성 분석, 판정 정책
 - `bridge/`
-  Runtime JSON exchange directory used by release launchers.
+  Unity와 Python 브리지 사이의 런타임 JSON 교환 디렉터리
 - `tools/`
-  Release build helper scripts.
+  macOS/Windows 릴리스 빌드 보조 스크립트
 
-## Current Product Flow
+## 필수 복원 자산
 
-The current product flow includes:
+다음 파일은 Git에 포함되지 않으므로, 그대로 개발하거나 릴리스 빌드를 만들려면
+로컬에 직접 배치해야 합니다.
 
-- title screen with `START GAME` and top-left exit control
-- first-run Leap Motion instruction sequence without the old numbered step text
-- temple approach sequence into the card-selection space
-- three hidden question cards drawn from a non-repeating JSON pool
-- pointer hover and dwell selection for cards and buttons
-- card flip, question reveal, and pre-recorded question narration
-- simultaneous card absorption into the Mouth of Truth and camera zoom
-- hand prompt voice, hand-in-mouth detection, and bottom-up hand insertion animation
-- microphone answer capture with webcam face-frame capture
-- answer collection visuals using vertically sweeping fixed-base eye-beam feedback
-- analysis presentation with zoom, shake, and aura effects
-- result presentation for `TRUE`, `FALSE`, and `UNCERTAIN`
-- `TRY AGAIN` flow that returns to the card-selection experience
+- `python-engine/models/face/yolo26x_rafdb_best.pt`
+- `python-engine/models/voice/best_wav2vec2_iemocap/`
+- `python-engine/models/whisper/models--openai--whisper-tiny/`  
+  Whisper 전사를 사용할 때만 필요합니다.
 
-## Input and Analysis Notes
+자세한 배치와 모델 lineage는 [최종 배포 가이드](docs/final-release-guide-ko.md)를
+확인하세요.
 
-- Pointer input is provided by a composite hand-input adapter:
-  - Leap Motion / Ultraleap input when tracking data is available
-  - mouse fallback for local development and software-only operation
-- Card and button activation use dwell selection with a reacquire guard so newly
-  detected hands do not immediately trigger a selection.
-- During the hand prompt voice, the pointer remains settled at the bottom center.
-  The prompt panel fades only when real hand movement is detected for insertion.
-- Answer capture uses Unity microphone input. If microphone initialization fails
-  in development, a keyboard transcript adapter can keep the software flow testable.
-- The normal Python bridge requires both usable face evidence and usable voice
-  evidence before returning `TRUE` or `FALSE`; missing evidence returns `UNCERTAIN`.
-- Face evidence is the primary signal and voice evidence is a supporting signal.
+## 판정 정책 요약
 
-## Release Outputs
+Python 브리지 기준:
 
-The macOS release build creates:
+- 얼굴 evidence와 음성 evidence가 모두 있어야 `TRUE` 또는 `FALSE`를 반환합니다.
+- 둘 중 하나라도 부족하면 `UNCERTAIN`을 반환합니다.
+- 현재 결합 가중치는 얼굴 80%, 음성 20%입니다.
+- 최종 fused score가 `33.0` 미만이면 `TRUE`, `33.0` 이상이면 `FALSE`입니다.
 
-- `dist/macos/MouthOfTruth/MouthOfTruth.app`
-- `dist/macos/MouthOfTruth/Run Mouth of Truth.command`
-- `dist/macos/MouthOfTruth-macos.zip`
+수정 위치:
 
-The user-facing launcher is `Run Mouth of Truth.command`.
+- 결합 가중치: `python-engine/src/mouth_of_truth/fusion/multimodal_fusion.py`
+- TRUE/FALSE 기준점: `python-engine/src/mouth_of_truth/fusion/verdict_policy.py`
+- UNCERTAIN 조건: `python-engine/src/mouth_of_truth/fusion/judgment_policy.py`
+- Unity fallback 판정: `unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs`
 
-## Developer Documentation
+## 빠른 검증
 
-Committed setup and release guides are available here:
+```bash
+python -m compileall -q python-engine/src
+dotnet build unity-app/Assembly-CSharp.csproj --no-restore /m:1
+dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
+```
 
-- [docs/developer-setup-checklist-ko.md](docs/developer-setup-checklist-ko.md)
-- [docs/developer-setup-checklist-en.md](docs/developer-setup-checklist-en.md)
-- [docs/build-and-distribution-guide-ko.md](docs/build-and-distribution-guide-ko.md)
-- [docs/build-and-distribution-guide-en.md](docs/build-and-distribution-guide-en.md)
+현재 MSBuild 검증은 제공 패키지인 Ultraleap 어셈블리의 알려진 vendor warning만
+별도로 억제해 우리 코드 기준 warning-clean 상태를 유지합니다.

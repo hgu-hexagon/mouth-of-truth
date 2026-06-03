@@ -1,12 +1,17 @@
 # Face Model Assets
 
-This directory stores the local face-emotion model used for inference.
+Required local file:
 
-## Required file
+```text
+yolo26x_rafdb_best.pt
+```
 
-- `yolo26x_rafdb_best.pt`
+Lineage:
 
-## Notes
+- dataset: RAF-DB
+- model family: Ultralytics YOLO classification
+- runtime loader: `python-engine/src/mouth_of_truth/face/infer_face.py`
+- score rules: `python-engine/src/mouth_of_truth/face/face_score_logic.py`
 
-- This file is intentionally not tracked in Git because model assets are environment-local.
-- The current project runtime expects this exact filename unless the resolver code changes.
+The trained `.pt` file is not tracked in Git. Copy it into this directory before
+running the Python bridge with real face analysis.

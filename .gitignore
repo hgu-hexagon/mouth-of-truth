@@ -18,10 +18,8 @@ __pycache__/
 
 # Local docs kept intentionally uncommitted
 docs/*.md
-!docs/developer-setup-checklist-ko.md
-!docs/developer-setup-checklist-en.md
-!docs/build-and-distribution-guide-ko.md
-!docs/build-and-distribution-guide-en.md
+!docs/final-release-guide-ko.md
+assets/reference/
 
 # Bridge runtime outputs
 bridge/*.json

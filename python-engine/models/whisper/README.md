@@ -1,13 +1,18 @@
 # Whisper Model Cache
 
-This directory stores the local Hugging Face cache for the Whisper transcription model
-used by the current project.
+Optional local cache:
 
-## Expected local layout
+```text
+models--openai--whisper-tiny/
+```
 
-- `python-engine/models/whisper/models--openai--whisper-tiny/`
+This is a Hugging Face cache for `openai/whisper-tiny`. It is not a model trained
+by this project.
 
-## Notes
+The cache is only needed when answer transcription is enabled:
 
-- Keep the Hugging Face cache structure intact after copying it into this directory.
-- These files are intentionally not tracked in Git because they can be large.
+```bash
+export MOUTH_OF_TRUTH_ENABLE_TRANSCRIPTION=1
+```
+
+Keep the Hugging Face cache directory structure intact when copying it here.

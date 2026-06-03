@@ -1,41 +1,60 @@
-# Third-Party Assets
+# Third-Party Assets And SDKs
 
-This project uses third-party runtime assets and SDKs alongside custom project
-assets. The files listed here are the active product-facing paths, not early
-prototype placeholders.
+This project uses custom runtime assets together with third-party Unity content
+and the Ultraleap hand-tracking SDK. This file records the final public-release
+lineage and restore locations.
 
-## Imported Unity Asset Store Content
+## Ultraleap Tracking
 
-The following Asset Store packages are imported into the Unity project and are
-used as source material for the generated release scene.
+- Current package name: `com.ultraleap.tracking`
+- Current project version: `7.3.0`
+- Current embedded path: `unity-app/Packages/com.ultraleap.tracking/`
+- License declared by package: Apache-2.0
 
-- [Persiang Carpets URP](https://assetstore.unity.com/packages/3d/props/persiang-carpets-urp-261455)
-- [Dungeon Modular Pack](https://assetstore.unity.com/packages/3d/environments/dungeons/dungeon-modular-pack-295430)
+Restore through OpenUPM if the embedded package is missing:
 
-Current repository usage:
+- Scoped registry name: `Ultraleap`
+- Scoped registry URL: `https://package.openupm.com`
+- Scope: `com.ultraleap`
+- Package: `com.ultraleap.tracking`
 
-- `Dungeon Modular Pack` provides the source dungeon environment, stage prefabs,
-  and materials consumed by `unity-app/Assets/Editor/BuildMainSceneEditor.cs`.
-- `Persiang Carpets URP` remains imported as third-party environment content.
-  The shipped presentation currently uses the curated runtime carpet image at
-  `unity-app/Assets/StreamingAssets/art/environment/floor_red_carpet_runner.png`.
+Official sources:
 
-## Hand Tracking SDK
+- `https://github.com/ultraleap/UnityPlugin`
+- `https://openupm.com/packages/com.ultraleap.tracking/`
+- `https://docs.ultraleap.com/xr-and-tabletop/xr/unity/`
 
-- Ultraleap tracking package:
-  - `unity-app/Packages/com.ultraleap.tracking/`
-- Runtime requirement:
-  - demo machines using Leap Motion input must have the Ultraleap tracking runtime installed and running.
+Leap Motion input also requires the Ultraleap Hand Tracking Software on the demo
+machine. The Unity package alone does not provide the local tracking service.
 
-The project code treats Leap Motion as one input adapter behind the common
-hand-input contract. Mouse fallback remains available for software-only
-development and validation.
+## Unity Environment Assets
+
+Imported source packages:
+
+- Persiang Carpets URP
+  `https://assetstore.unity.com/packages/3d/props/persiang-carpets-urp-261455`
+- Dungeon Modular Pack
+  `https://assetstore.unity.com/packages/3d/environments/dungeons/dungeon-modular-pack-295430`
+
+Expected restore paths:
+
+- `unity-app/Assets/ThirdParty/Environment/DungeonModularPack/`
+- `unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp/`
+
+`Dungeon Modular Pack` is used by
+`unity-app/Assets/Editor/BuildMainSceneEditor.cs` as scene-generation source
+material. The curated product runtime primarily loads generated images and
+audio from `unity-app/Assets/StreamingAssets/`.
 
 ## Runtime Art Assets
 
-Primary runtime art is loaded from `unity-app/Assets/StreamingAssets/art/`.
+Runtime art is loaded from:
 
-Important paths:
+```text
+unity-app/Assets/StreamingAssets/art/
+```
+
+Important product-facing paths:
 
 - `backgrounds/title_background_stone_wall.jpeg`
 - `backgrounds/stage_card_selection_generated.png`
@@ -44,12 +63,9 @@ Important paths:
 - `cards/question_card_front.png`
 - `environment/floor_red_carpet_runner.png`
 - `input/hand_pointer_cursor.png`
+- `input/leap_motion_device.png`
 - `input/ritual_hand_insert.png`
 - `mouth/truth_mouth_face.png`
-- `ui/button_start_game.png`
-- `ui/button_try_again.png`
-- `ui/button_end_game.png`
-- `ui/button_exit_icon.png`
 - `ui/logo_title_main.png`
 - `verdict/verdict_true.png`
 - `verdict/verdict_false.png`
@@ -57,10 +73,13 @@ Important paths:
 
 ## Runtime Audio Assets
 
-Runtime audio is loaded from `unity-app/Assets/StreamingAssets/audio/`.
-The product path uses WAV files for low-friction runtime loading.
+Runtime audio is loaded from:
 
-Important paths:
+```text
+unity-app/Assets/StreamingAssets/audio/
+```
+
+Important product-facing paths:
 
 - `ambience/title_temple_ambience_loop.wav`
 - `ui/button_confirm.wav`
@@ -74,17 +93,8 @@ Important paths:
 - `results/result_uncertain.wav`
 - `questions/Q0001.wav` through `questions/Q0012.wav`
 
-Question narration uses WAV files in the release path so the runtime audio
-loader can decode them directly.
+## Model Assets
 
-## Model and Dataset Lineage
-
-The local model files are not committed to Git. The current model lineage is:
-
-- face expression recognition: RAF-DB dataset, YOLO classification model
-- voice emotion recognition: IEMOCAP dataset, wav2vec2-base fine-tuned model
-- speech transcription support: Whisper-family model cache
-
-The release path prioritizes fast face/voice evidence extraction. The heavier
-trained voice model and Whisper transcription path remain available for
-validation or extended analysis modes.
+Model binaries are intentionally not tracked in Git. See
+`docs/final-release-guide-ko.md` and `python-engine/models/README.md` for the
+required local layout.

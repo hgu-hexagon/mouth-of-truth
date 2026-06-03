@@ -1,24 +1,44 @@
 # Model Assets
 
-This directory contains local inference models used by the current `mouth-of-truth` project.
+This directory keeps the required model layout in Git, but not the large model
+binaries themselves.
 
-## Important
+## Why The Models Are Not Tracked
 
-- These model files are intentionally **not tracked in Git**.
-- The voice model contains large files that can exceed common Git hosting limits.
-- Runtime code is expected to resolve models from this local project directory first:
-  - `python-engine/models/face/`
-  - `python-engine/models/voice/`
-  - `python-engine/models/whisper/`
+The current local model set includes files that are too large for a normal
+GitHub source repository. GitHub blocks ordinary Git pushes containing files
+larger than 100 MiB, and these model/cache files also make the repository
+unnecessarily heavy for source review.
 
-## Required local layout
+Keep the actual binaries in one of these places instead:
 
-- `python-engine/models/face/yolo26x_rafdb_best.pt`
-- `python-engine/models/voice/best_wav2vec2_iemocap/`
-- `python-engine/models/whisper/models--openai--whisper-tiny/`
+- internal artifact storage
+- GitHub Release assets
+- Git LFS, if the project chooses to adopt it
+- a manually shared model bundle
 
-## Notes
+## Required Layout
 
-- If you replace the models, keep the same directory structure unless you also update
-  the runtime model resolver.
-- If needed, you can override the root with `MOUTH_OF_TRUTH_MODELS_ROOT`.
+```text
+python-engine/models/face/yolo26x_rafdb_best.pt
+python-engine/models/voice/best_wav2vec2_iemocap/config.json
+python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors
+python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
+```
+
+Optional Whisper cache:
+
+```text
+python-engine/models/whisper/models--openai--whisper-tiny/
+```
+
+## Override
+
+The runtime searches this directory by default. To use another model root:
+
+```bash
+export MOUTH_OF_TRUTH_MODELS_ROOT="/path/to/model-root"
+```
+
+The configured root must contain the same `face/`, `voice/`, and optional
+`whisper/` structure.

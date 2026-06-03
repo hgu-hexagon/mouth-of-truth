@@ -231,9 +231,7 @@ namespace MouthOfTruth.Game.App
                 await mGameView.PlayFirstRunTutorialAsync();
             }
 
-            await mGameView.PlayTempleApproachToCardSelectionAsync();
-            mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
-            await mGameView.PlayCardSelectionEntranceAsync();
+            await playCardSelectionPresentationAsync();
             mGameStateMachine.MarkCardPresentationCompleted();
             mIsTransitionBusy = false;
         }
@@ -244,12 +242,17 @@ namespace MouthOfTruth.Game.App
             mGameStateMachine.TryAgain();
             resetAnswerTracking();
             resetInteractionSelectionState();
-            await mGameView.PlayTempleApproachToCardSelectionAsync();
-            mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
-            await mGameView.PlayCardSelectionEntranceAsync();
+            await playCardSelectionPresentationAsync();
             beginBottomCenterPointerSettle();
             mGameStateMachine.MarkCardPresentationCompleted();
             mIsTransitionBusy = false;
+        }
+
+        private async Task playCardSelectionPresentationAsync()
+        {
+            await mGameView.PlayTempleApproachToCardSelectionAsync();
+            mGameView.ShowCardSelection(mGameStateMachine.CreateSnapshot().CurrentRoundSelection);
+            await mGameView.PlayCardSelectionEntranceAsync();
         }
 
         private void updateCardSelection(Vector2? pointerScreenPositionOrNull)

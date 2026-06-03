@@ -1,25 +1,16 @@
 # Mouth of Truth
 
-`Mouth of Truth`는 질문 카드 선택, 손 입력, 음성 답변, 얼굴 캡처를 하나의
-의식처럼 이어지는 흐름으로 묶은 인터랙티브 설치형 게임입니다. 참가자는 진실의 입
-앞에서 질문을 고르고 답변하며, 앱은 얼굴 표정과 음성 감정 신호를 결합해 `TRUE`,
-`FALSE`, `UNCERTAIN` 중 하나를 보여줍니다.
+`Mouth of Truth`는 질문 카드 선택, 손 입력, 음성 답변, 얼굴 캡처를 하나의 의식처럼 이어지는 흐름으로 묶은 인터랙티브 설치형 게임입니다. 참가자는 진실의 입 앞에서 질문을 고르고 답변하며, 앱은 얼굴 표정과 음성 감정 신호를 결합해 `TRUE`, `FALSE`, `UNCERTAIN` 중 하나를 보여줍니다.
 
-Unity는 게임 화면, Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처를 담당합니다.
-Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산합니다.
+Unity는 게임 화면, Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처를 담당합니다. Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산합니다.
 
 ![Mouth of Truth 시작 화면](docs/images/mouth-of-truth-start.png)
 
 ## 프로젝트 성격과 한계
 
-이 프로젝트의 `TRUE`, `FALSE`, `UNCERTAIN` 판정은 인터랙티브 설치 경험을 위한
-게임 연출입니다. 얼굴 표정과 음성 신호는 참가자 반응을 극적으로 표현하기 위한
-입력이며, 실제 거짓말 탐지, 신뢰도 평가, 채용/심사/의사결정 근거로 사용하지
-않습니다.
+이 프로젝트의 `TRUE`, `FALSE`, `UNCERTAIN` 판정은 인터랙티브 설치 경험을 위한 게임 연출입니다. 얼굴 표정과 음성 신호는 참가자 반응을 극적으로 표현하기 위한 입력이며, 실제 거짓말 탐지, 신뢰도 평가, 채용/심사/의사결정 근거로 사용하지 않습니다.
 
-카메라와 마이크는 참가자에게 수집 목적을 알리고 동의를 받은 설치 환경에서만
-사용합니다. 얼굴/음성 모델과 기준값은 데이터셋, 조명, 카메라 각도, 마이크 품질,
-주변 소음에 영향을 받으므로 운영 전 현장 검증이 필요합니다.
+카메라와 마이크는 참가자에게 수집 목적을 알리고 동의를 받은 설치 환경에서만 사용합니다. 얼굴/음성 모델과 기준값은 데이터셋, 조명, 카메라 각도, 마이크 품질, 주변 소음에 영향을 받으므로 운영 전 현장 검증이 필요합니다.
 
 ## 주요 화면
 
@@ -51,8 +42,7 @@ Leap Motion 또는 Ultraleap 호환 장치
 Ultraleap Hand Tracking Software
 ```
 
-저장소를 받은 뒤 Unity Hub에서 `unity-app` 폴더를 엽니다. 저장소 루트가 아니라
-Unity 프로젝트 폴더를 열어야 합니다.
+저장소를 받은 뒤 Unity Hub에서 `unity-app` 폴더를 엽니다. 저장소 루트가 아니라 Unity 프로젝트 폴더를 열어야 합니다.
 
 ```bash
 git clone <repository-url>
@@ -66,8 +56,7 @@ PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 
 ## 별도 복원 파일
 
-아래 항목은 라이선스와 용량 때문에 Git에 포함하지 않습니다. 프로젝트 실행 또는
-릴리스 빌드 전에 지정 위치에 복원합니다.
+아래 항목은 라이선스와 용량 때문에 Git에 포함하지 않습니다. 프로젝트 실행 또는 릴리스 빌드 전에 지정 위치에 복원합니다.
 
 | 항목 | 위치 | 안내 |
 | --- | --- | --- |
@@ -135,8 +124,7 @@ unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs
 - Unity 상태 머신, 손 머무름 선택, 답변 종료 정책, 결정적 대체 판정
 - Unity 런타임/에디터 C# 컴파일
 
-Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 지연 시간은 장비가 연결된
-Unity 실행 환경에서 별도로 확인해야 합니다.
+Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 지연 시간은 장비가 연결된 Unity 실행 환경에서 별도로 확인해야 합니다.
 
 ## 검증
 
@@ -148,8 +136,7 @@ dotnet build unity-app/Assembly-CSharp-Editor.csproj /m:1
 dotnet build unity-app/MouthOfTruth.Editor.Tests.csproj /m:1
 ```
 
-`--no-restore`는 Unity 또는 `dotnet build`가 한 번 restore를 끝낸 뒤 반복 검증을
-빠르게 돌릴 때만 사용합니다.
+`--no-restore`는 Unity 또는 `dotnet build`가 한 번 restore를 끝낸 뒤 반복 검증을 빠르게 돌릴 때만 사용합니다.
 
 Unity EditMode 테스트는 Unity Test Runner에서 실행하거나 batchmode로 실행합니다.
 
@@ -162,5 +149,4 @@ Unity EditMode 테스트는 Unity Test Runner에서 실행하거나 batchmode로
   -testResults /tmp/mouth-of-truth-editmode-results.xml
 ```
 
-릴리스 빌드는 필수 Python 실행 파일과 모델 SHA-256을 자동으로 확인합니다. 필수
-자산이 없거나 검사값이 맞지 않으면 빌드가 중단됩니다.
+릴리스 빌드는 필수 Python 실행 파일과 모델 SHA-256을 자동으로 확인합니다. 필수 자산이 없거나 검사값이 맞지 않으면 빌드가 중단됩니다.

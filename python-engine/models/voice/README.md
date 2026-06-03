@@ -44,6 +44,4 @@ python-engine/src/mouth_of_truth/voice/voice_score_logic.py
 export MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1
 ```
 
-모델을 교체할 때는 Hugging Face `AutoModelForAudioClassification` 호환 모델을
-같은 디렉터리에 배치하고, 레이블 체계를 유지하거나 `voice_score_logic.py`를 함께
-수정합니다.
+모델을 교체할 때는 Hugging Face `AutoModelForAudioClassification` 호환 모델을 같은 디렉터리에 배치하고, 레이블 체계를 유지하거나 `voice_score_logic.py`를 함께 수정합니다.

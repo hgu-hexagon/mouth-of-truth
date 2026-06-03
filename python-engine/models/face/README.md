@@ -28,5 +28,4 @@ python-engine/src/mouth_of_truth/face/infer_face.py
 python-engine/src/mouth_of_truth/face/face_score_logic.py
 ```
 
-모델을 교체할 때는 Ultralytics YOLO 분류 체크포인트를 같은 파일명으로 배치하고,
-`face_score_logic.py`가 기대하는 레이블과 점수 매핑을 맞춥니다.
+모델을 교체할 때는 Ultralytics YOLO 분류 체크포인트를 같은 파일명으로 배치하고, `face_score_logic.py`가 기대하는 레이블과 점수 매핑을 맞춥니다.

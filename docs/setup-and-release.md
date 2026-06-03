@@ -34,8 +34,7 @@ python -m compileall -q python-engine/src
 PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 ```
 
-기존 환경 이름이 `mouth-truth`인 경우에도 패키징 스크립트가 인식합니다.
-다른 환경 이름을 사용하려면:
+기존 환경 이름이 `mouth-truth`인 경우에도 패키징 스크립트가 인식합니다. 다른 환경 이름을 사용하려면:
 
 ```bash
 export MOUTH_OF_TRUTH_CONDA_ENV="<conda-env-name>"
@@ -43,8 +42,7 @@ export MOUTH_OF_TRUTH_CONDA_ENV="<conda-env-name>"
 
 ## 4. 모델 파일 복원
 
-모델 파일은 Git에 포함하지 않습니다. `mouth-of-truth-models-required.tar.gz`
-묶음 파일을 받은 뒤 저장소 루트에서 복원합니다.
+모델 파일은 Git에 포함하지 않습니다. `mouth-of-truth-models-required.tar.gz` 묶음 파일을 받은 뒤 저장소 루트에서 복원합니다.
 
 ```bash
 tools/restore-model-assets.sh <path-to>/mouth-of-truth-models-required.tar.gz
@@ -84,8 +82,7 @@ shasum -a 256 \
   python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
 ```
 
-macOS와 Windows 릴리스 빌드는 위 필수 모델의 존재 여부와 SHA-256을 자동으로
-확인합니다. 필수 파일이 없거나 검사값이 다르면 빌드가 중단됩니다.
+macOS와 Windows 릴리스 빌드는 위 필수 모델의 존재 여부와 SHA-256을 자동으로 확인합니다. 필수 파일이 없거나 검사값이 다르면 빌드가 중단됩니다.
 
 로컬 모델 파일로 묶음 파일을 만들 때:
 
@@ -164,28 +161,22 @@ Whisper:
 
 ## 6. 모델 교체
 
-배포본은 학습된 모델 산출물을 기준으로 실행됩니다. 원본 데이터셋은 모델 출처
-확인과 새 모델 학습에만 필요하며, 프로젝트 실행에는 필요하지 않습니다.
+배포본은 학습된 모델 산출물을 기준으로 실행됩니다. 원본 데이터셋은 모델 출처 확인과 새 모델 학습에만 필요하며, 프로젝트 실행에는 필요하지 않습니다.
 
 얼굴 모델을 교체할 때:
 
-- `python-engine/models/face/yolo26x_rafdb_best.pt` 위치에 Ultralytics YOLO
-  분류 체크포인트를 둡니다.
-- `python-engine/src/mouth_of_truth/face/face_score_logic.py`가 기대하는 레이블과
-  점수 매핑을 맞춥니다.
+- `python-engine/models/face/yolo26x_rafdb_best.pt` 위치에 Ultralytics YOLO 분류 체크포인트를 둡니다.
+- `python-engine/src/mouth_of_truth/face/face_score_logic.py`가 기대하는 레이블과 점수 매핑을 맞춥니다.
 
 음성 모델을 교체할 때:
 
-- `python-engine/models/voice/best_wav2vec2_iemocap/` 위치에 Hugging Face
-  `AutoModelForAudioClassification` 호환 모델 디렉터리를 둡니다.
+- `python-engine/models/voice/best_wav2vec2_iemocap/` 위치에 Hugging Face `AutoModelForAudioClassification` 호환 모델 디렉터리를 둡니다.
 - `config.json`, `model.safetensors`, `preprocessor_config.json`을 포함합니다.
-- 레이블은 `ang`, `hap`, `exc`, `neu`, `sad`, `fru` 체계를 유지하거나
-  `python-engine/src/mouth_of_truth/voice/voice_score_logic.py`를 함께 수정합니다.
+- 레이블은 `ang`, `hap`, `exc`, `neu`, `sad`, `fru` 체계를 유지하거나 `python-engine/src/mouth_of_truth/voice/voice_score_logic.py`를 함께 수정합니다.
 
 Whisper 모델을 교체할 때:
 
-- `python-engine/src/mouth_of_truth/speech/whisper_transcriber.py`의
-  `WHISPER_MODEL_NAME`을 바꿉니다.
+- `python-engine/src/mouth_of_truth/speech/whisper_transcriber.py`의 `WHISPER_MODEL_NAME`을 바꿉니다.
 - 오프라인 배포본에는 변경한 모델의 Hugging Face 캐시를 함께 포함합니다.
 
 ## 7. 대용량 파일 관리
@@ -201,9 +192,7 @@ Git에 포함하지 않는 항목:
 - `bridge/*.json`
 - Unity `Library/`, `Temp/`, `Obj/`, `Logs/`, `UserSettings/`
 
-GitHub 일반 Git 저장소는 100 MiB를 초과하는 단일 파일 push를 차단합니다.
-모델 묶음 파일은 GitHub Release asset, 별도 모델 저장소, 사내 저장소, 또는 다른
-외부 저장소로 관리합니다.
+GitHub 일반 Git 저장소는 100 MiB를 초과하는 단일 파일 push를 차단합니다. 모델 묶음 파일은 GitHub Release asset, 별도 모델 저장소, 사내 저장소, 또는 다른 외부 저장소로 관리합니다.
 
 공식 참고:
 
@@ -221,8 +210,7 @@ com.ultraleap.tracking 7.3.0
 unity-app/Packages/manifest.json: "com.ultraleap.tracking": "file:com.ultraleap.tracking"
 ```
 
-저장소를 정상적으로 받았다면 Unity 패키지가 프로젝트 안에 포함되어 있으므로
-Unity Package Manager에서 추가 설치가 필요하지 않습니다.
+저장소를 정상적으로 받았다면 Unity 패키지가 프로젝트 안에 포함되어 있으므로 Unity Package Manager에서 추가 설치가 필요하지 않습니다.
 
 패키지가 빠진 상태를 복원할 때:
 
@@ -258,15 +246,11 @@ https://openupm.com/packages/com.ultraleap.tracking/
 https://docs.ultraleap.com/xr-and-tabletop/xr/unity/
 ```
 
-Leap Motion 입력 장비에는 Ultraleap Hand Tracking Software를 설치하고 트래킹
-서비스를 실행합니다. `leap2.ultraleap.com`에서 보유한 카메라와 운영체제를
-선택한 뒤 Hand Tracking Software를 내려받습니다. 설치 후 Ultraleap Control Panel
-또는 시각화 도구에서 손 트래킹이 보이는지 확인합니다.
+Leap Motion 입력 장비에는 Ultraleap Hand Tracking Software를 설치하고 트래킹 서비스를 실행합니다. `leap2.ultraleap.com`에서 보유한 카메라와 운영체제를 선택한 뒤 Hand Tracking Software를 내려받습니다. 설치 후 Ultraleap Control Panel 또는 시각화 도구에서 손 트래킹이 보이는지 확인합니다.
 
 ## 9. 서드파티 환경 자산
 
-필요한 Unity Asset Store 자산은 Git에 포함하지 않습니다. 각 개발자는 본인
-라이선스 계정으로 내려받아 지정 경로에 가져옵니다.
+필요한 Unity Asset Store 자산은 Git에 포함하지 않습니다. 각 개발자는 본인 라이선스 계정으로 내려받아 지정 경로에 가져옵니다.
 
 - Dungeon Modular Pack
 - Persiang Carpets URP
@@ -278,8 +262,7 @@ unity-app/Assets/ThirdParty/Environment/DungeonModularPack
 unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp
 ```
 
-`BuildMainSceneEditor`는 Dungeon Modular Pack의 DemoScene과 prefab을 원본으로
-사용합니다.
+`BuildMainSceneEditor`는 Dungeon Modular Pack의 DemoScene과 prefab을 원본으로 사용합니다.
 
 ```text
 unity-app/Assets/Editor/BuildMainSceneEditor.cs
@@ -323,41 +306,31 @@ Whisper 전사 활성화:
 export MOUTH_OF_TRUTH_ENABLE_TRANSCRIPTION=1
 ```
 
-음성 분석은 기본적으로 응답 속도를 우선하는 빠른 음향 요약을 사용합니다. 학습된
-wav2vec2 음성 모델을 사용할 때:
+음성 분석은 기본적으로 응답 속도를 우선하는 빠른 음향 요약을 사용합니다. 학습된 wav2vec2 음성 모델을 사용할 때:
 
 ```bash
 export MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1
 ```
 
-설정이 없으면 Unity는 Python 브리지 실행 파일과 Python module root를 찾고, 찾지
-못하면 결정적 대체 판정을 사용합니다.
+설정이 없으면 Unity는 Python 브리지 실행 파일과 Python module root를 찾고, 찾지 못하면 결정적 대체 판정을 사용합니다.
 
 ## 11. 판정 해석과 한계
 
-`TRUE`, `FALSE`, `UNCERTAIN`은 인터랙티브 설치 경험을 위한 게임 판정입니다.
-얼굴 표정과 음성 신호를 사용하지만, 실제 거짓말 탐지, 신뢰도 평가, 채용/심사,
-의사결정 근거로 사용하지 않습니다.
+`TRUE`, `FALSE`, `UNCERTAIN`은 인터랙티브 설치 경험을 위한 게임 판정입니다. 얼굴 표정과 음성 신호를 사용하지만, 실제 거짓말 탐지, 신뢰도 평가, 채용/심사, 의사결정 근거로 사용하지 않습니다.
 
 운영 전 확인 대상:
 
 - 참가자에게 카메라/마이크 수집 목적을 안내하고 동의를 받습니다.
-- 조명, 카메라 각도, 마이크 품질, 주변 소음에 따라 얼굴/음성 신호 품질을 다시
-  확인합니다.
-- 얼굴/음성 모델과 기준값은 현재 설치 경험에 맞춘 정책값입니다. 데이터셋
-  일반화 성능이나 과학적 lie-detection 정확도를 보증하지 않습니다.
-- `MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic`은 Python 브리지가 없을 때 쓰는
-  개발/시연용 대체 경로입니다. 실제 모델 판정 품질을 대표하지 않습니다.
+- 조명, 카메라 각도, 마이크 품질, 주변 소음에 따라 얼굴/음성 신호 품질을 다시 확인합니다.
+- 얼굴/음성 모델과 기준값은 현재 설치 경험에 맞춘 정책값입니다. 데이터셋 일반화 성능이나 과학적 lie-detection 정확도를 보증하지 않습니다.
+- `MOUTH_OF_TRUTH_ANALYSIS_MODE=deterministic`은 Python 브리지가 없을 때 쓰는 개발/시연용 대체 경로입니다. 실제 모델 판정 품질을 대표하지 않습니다.
 
 지연 시간을 줄이기 위한 현재 구현:
 
 - Python persistent worker가 얼굴 모델을 미리 로드합니다.
-- 얼굴 분석은 대표 프레임 최대 3개를 샘플링하고, 현재 정책은 첫 유효 얼굴
-  인식 1개만으로 세션 요약을 만듭니다.
-- 음성 분석은 기본적으로 빠른 음향 요약을 사용하고, 학습된 wav2vec2
-  모델은 `MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1`일 때만 사용합니다.
-- Unity 브리지는 persistent worker 실패 시 일회성 Python 프로세스를 사용하고,
-  그마저 실패하면 결정적 대체 판정으로 내려갑니다.
+- 얼굴 분석은 대표 프레임 최대 3개를 샘플링하고, 현재 정책은 첫 유효 얼굴 인식 1개만으로 세션 요약을 만듭니다.
+- 음성 분석은 기본적으로 빠른 음향 요약을 사용하고, 학습된 wav2vec2 모델은 `MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1`일 때만 사용합니다.
+- Unity 브리지는 persistent worker 실패 시 일회성 Python 프로세스를 사용하고, 그마저 실패하면 결정적 대체 판정으로 내려갑니다.
 
 ## 12. 판정 정책
 
@@ -394,9 +367,7 @@ Unity 대체 판정:
 unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs
 ```
 
-대체 판정은 Python 브리지가 없을 때 사용하는 보조 경로입니다. 얼굴 프레임 수와
-음성 segment 수가 부족하면 `UNCERTAIN`을 반환하고, 충분하면 질문 ID와 답변
-전사 텍스트에서 계산한 검사값으로 `TRUE` / `FALSE`를 반환합니다.
+대체 판정은 Python 브리지가 없을 때 사용하는 보조 경로입니다. 얼굴 프레임 수와 음성 segment 수가 부족하면 `UNCERTAIN`을 반환하고, 충분하면 질문 ID와 답변 전사 텍스트에서 계산한 검사값으로 `TRUE` / `FALSE`를 반환합니다.
 
 ## 13. 질문과 질문 음성
 
@@ -428,8 +399,7 @@ unity-app/Assets/StreamingAssets/audio/questions/Q0012.wav
 
 ## 14. 릴리스 빌드
 
-릴리스 빌드는 아래 항목을 배포물에 포함하고, 필수 파일과 모델 검사값을
-검증합니다.
+릴리스 빌드는 아래 항목을 배포물에 포함하고, 필수 파일과 모델 검사값을 검증합니다.
 
 ```text
 python-engine/src/
@@ -479,8 +449,7 @@ dotnet build unity-app/Assembly-CSharp-Editor.csproj /m:1
 dotnet build unity-app/MouthOfTruth.Editor.Tests.csproj /m:1
 ```
 
-`--no-restore`는 위 빌드나 Unity Editor가 NuGet restore를 한 번 끝낸 뒤 반복
-검증할 때만 사용합니다.
+`--no-restore`는 위 빌드나 Unity Editor가 NuGet restore를 한 번 끝낸 뒤 반복 검증할 때만 사용합니다.
 
 Unity EditMode 테스트:
 
@@ -499,8 +468,7 @@ Unity EditMode 테스트:
 - Unity 상태 머신, 손 머무름 선택, 답변 종료 정책, 결정적 대체 판정
 - Unity 런타임/에디터 C# 컴파일
 
-장비가 필요한 Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 지연 시간은
-릴리스 전 현장 수동 QA로 확인합니다.
+장비가 필요한 Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 지연 시간은 릴리스 전 현장 수동 QA로 확인합니다.
 
 금지 패턴 검색:
 

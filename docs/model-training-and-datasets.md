@@ -1,18 +1,12 @@
 # 모델 학습 데이터셋과 재현 기준
 
-이 문서는 `Mouth of Truth`의 얼굴/음성 분석 모델을 이해하거나 교체하려는 사람이
-같은 데이터셋 계열로 후속 작업을 이어갈 수 있도록 정리한 기준입니다.
+이 문서는 `Mouth of Truth`의 얼굴/음성 분석 모델을 이해하거나 교체하려는 사람이 같은 데이터셋 계열로 후속 작업을 이어갈 수 있도록 정리한 기준입니다.
 
-현재 저장소는 모델 학습용 저장소가 아니라 실행과 배포를 위한 저장소입니다. 원본
-데이터셋, 학습용 중간 파일, 학습 로그, 학습 스크립트는 라이선스와 용량 때문에
-포함하지 않습니다. 대신 실행 시 필요한 모델 산출물 위치, 레이블 체계, 점수 규칙,
-검증 방법을 명시합니다.
+현재 저장소는 모델 학습용 저장소가 아니라 실행과 배포를 위한 저장소입니다. 원본 데이터셋, 학습용 중간 파일, 학습 로그, 학습 스크립트는 라이선스와 용량 때문에 포함하지 않습니다. 대신 실행 시 필요한 모델 산출물 위치, 레이블 체계, 점수 규칙, 검증 방법을 명시합니다.
 
 ## 재현성 범위
 
-이 저장소가 고정하는 것은 현재 모델을 실행하고 교체하기 위한 규약입니다.
-구체적으로 데이터셋 계열, 레이블 체계, 산출물 경로, SHA-256 검사값,
-Python/Unity 브리지 형식, 판정 정책을 문서화합니다.
+이 저장소가 고정하는 것은 현재 모델을 실행하고 교체하기 위한 규약입니다. 구체적으로 데이터셋 계열, 레이블 체계, 산출물 경로, SHA-256 검사값, Python/Unity 브리지 형식, 판정 정책을 문서화합니다.
 
 아래 항목은 현재 저장소만으로는 원본 학습을 그대로 재현한다고 주장하지 않습니다.
 
@@ -22,9 +16,7 @@ Python/Unity 브리지 형식, 판정 정책을 문서화합니다.
 - 학습 로그, 평가 지표, confusion matrix
 - 학습 당시 장비와 end-to-end 지연 시간 기록
 
-새 모델을 같은 데이터셋 계열로 다시 학습하거나 교체할 때 남겨야 할 기준은
-`training/README.md`에 정리합니다. 이 기준은 후속 학습을 위한 기록 형식이며,
-현재 포함된 체크포인트의 원본 학습 이력을 대체하지 않습니다.
+새 모델을 같은 데이터셋 계열로 다시 학습하거나 교체할 때 남겨야 할 기준은 `training/README.md`에 정리합니다. 이 기준은 후속 학습을 위한 기록 형식이며, 현재 포함된 체크포인트의 원본 학습 이력을 대체하지 않습니다.
 
 ## 요약
 
@@ -53,13 +45,9 @@ https://www.whdeng.cn/RAF/model1.html
 사용 목적:
 
 - 얼굴 표정 분류 모델 학습
-- 현재 프로젝트의 얼굴 점수 규칙 입력인 `happiness`, `neutral`, `sadness`,
-  `surprise`, `fear`, `disgust`, `anger` 계열 확률 생성
+- 현재 프로젝트의 얼굴 점수 규칙 입력인 `happiness`, `neutral`, `sadness`, `surprise`, `fear`, `disgust`, `anger` 계열 확률 생성
 
-공식 RAF-DB 페이지는 약 3만 장 규모의 실제 얼굴 표정 이미지, 7개 기본 감정
-단일 레이블 하위 집합, 복합 감정 하위 집합, landmark, bounding box, 인구통계
-주석을 설명합니다. 데이터셋은 공개 Git 저장소에 재배포하지 않고, 각
-연구자/개발자가 공식 신청 절차와 사용 조건을 따릅니다.
+공식 RAF-DB 페이지는 약 3만 장 규모의 실제 얼굴 표정 이미지, 7개 기본 감정 단일 레이블 하위 집합, 복합 감정 하위 집합, landmark, bounding box, 인구통계 주석을 설명합니다. 데이터셋은 공개 Git 저장소에 재배포하지 않고, 각 연구자/개발자가 공식 신청 절차와 사용 조건을 따릅니다.
 
 후속 학습자가 확인할 것:
 
@@ -79,13 +67,9 @@ https://sail.usc.edu/iemocap/
 사용 목적:
 
 - 음성 감정 분류 모델 학습
-- 현재 프로젝트의 음성 점수 규칙 입력인 `ang`, `hap`, `exc`, `neu`, `sad`,
-  `fru` 확률 생성
+- 현재 프로젝트의 음성 점수 규칙 입력인 `ang`, `hap`, `exc`, `neu`, `sad`, `fru` 확률 생성
 
-USC SAIL의 IEMOCAP 페이지는 약 12시간 분량의 연기 기반 multimodal/multispeaker
-데이터베이스를 설명합니다. 이 데이터셋은 오디오, 비디오, 얼굴 motion capture,
-전사, 범주형 감정 주석, 차원형 감정 주석을 포함하는 연구용 데이터셋입니다.
-데이터셋 원본과 파생 학습 데이터는 저장소에 넣지 않습니다.
+USC SAIL의 IEMOCAP 페이지는 약 12시간 분량의 연기 기반 multimodal/multispeaker 데이터베이스를 설명합니다. 이 데이터셋은 오디오, 비디오, 얼굴 motion capture, 전사, 범주형 감정 주석, 차원형 감정 주석을 포함하는 연구용 데이터셋입니다. 데이터셋 원본과 파생 학습 데이터는 저장소에 넣지 않습니다.
 
 후속 학습자가 확인할 것:
 
@@ -108,8 +92,7 @@ https://huggingface.co/openai/whisper-tiny
 - `MOUTH_OF_TRUTH_ENABLE_TRANSCRIPTION=1`일 때 답변 오디오 전사 보조 생성
 - 기본 판정에는 전사 텍스트가 없어도 얼굴/음성 증거가 충분하면 판정 가능
 
-Whisper 캐시는 선택 항목입니다. 오프라인 배포에서 전사를 켤 때만 캐시를 함께
-포함합니다.
+Whisper 캐시는 선택 항목입니다. 오프라인 배포에서 전사를 켤 때만 캐시를 함께 포함합니다.
 
 ## 모델 실행 규약
 
@@ -158,8 +141,7 @@ anger
 2. `python-engine/src/mouth_of_truth/face/infer_face.py`에서 로드되는지 확인합니다.
 3. `model.names`가 위 레이블 키와 일치하는지 확인합니다.
 4. 레이블 이름이 다르면 `face_score_logic.py`의 매핑도 함께 수정합니다.
-5. `tools/package-model-assets.sh`와 `ReleaseRuntimeValidator.cs`의 검사값을 새
-   모델 기준으로 갱신합니다.
+5. `tools/package-model-assets.sh`와 `ReleaseRuntimeValidator.cs`의 검사값을 새 모델 기준으로 갱신합니다.
 
 ### 음성 모델 규약
 
@@ -212,16 +194,13 @@ python-engine/src/mouth_of_truth/voice/voice_score_logic.py
 1. 새 모델 디렉터리를 `python-engine/models/voice/best_wav2vec2_iemocap/`에 둡니다.
 2. `config.json`, `model.safetensors`, `preprocessor_config.json`을 포함합니다.
 3. 출력 레이블 순서가 `VOICE_LABELS`와 같은지 확인합니다.
-4. 레이블 순서나 이름이 다르면 `VOICE_LABELS`와 `voice_score_logic.py`를
-   함께 수정합니다.
+4. 레이블 순서나 이름이 다르면 `VOICE_LABELS`와 `voice_score_logic.py`를 함께 수정합니다.
 5. `MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1`로 학습 모델 경로를 실제 실행합니다.
-6. `tools/package-model-assets.sh`와 `ReleaseRuntimeValidator.cs`의 검사값을 새
-   모델 기준으로 갱신합니다.
+6. `tools/package-model-assets.sh`와 `ReleaseRuntimeValidator.cs`의 검사값을 새 모델 기준으로 갱신합니다.
 
 ## 학습 재현 가이드
 
-이 저장소에는 학습 스크립트가 포함되어 있지 않습니다. 후속 프로젝트에서 학습
-코드를 추가할 때는 아래 구조와 기록 기준을 권장합니다.
+이 저장소에는 학습 스크립트가 포함되어 있지 않습니다. 후속 프로젝트에서 학습 코드를 추가할 때는 아래 구조와 기록 기준을 권장합니다.
 
 ```text
 training/
@@ -236,8 +215,7 @@ training/
     evaluate_iemocap.py
 ```
 
-단, 원본 데이터셋, 전처리된 이미지/오디오, 학습 체크포인트, 학습 로그는 Git에
-넣지 않습니다. 별도 저장소, GitHub Release asset, 내부 저장소 등을 사용합니다.
+단, 원본 데이터셋, 전처리된 이미지/오디오, 학습 체크포인트, 학습 로그는 Git에 넣지 않습니다. 별도 저장소, GitHub Release asset, 내부 저장소 등을 사용합니다.
 
 현재 저장소에 포함된 기준 메모:
 
@@ -261,8 +239,7 @@ training/README.md
 
 ## 현재 판정 정책과 모델 성능 해석
 
-현재 `TRUE` / `FALSE`는 설치형 게임 연출을 위한 규칙 기반 결합 결과입니다.
-학술적 또는 법적 의미의 거짓말 탐지 정확도를 주장하지 않습니다.
+현재 `TRUE` / `FALSE`는 설치형 게임 연출을 위한 규칙 기반 결합 결과입니다. 학술적 또는 법적 의미의 거짓말 탐지 정확도를 주장하지 않습니다.
 
 최종 결합 경로:
 

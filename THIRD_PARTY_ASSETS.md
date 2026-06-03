@@ -39,18 +39,14 @@ license: Apache-2.0
 
 ### 실행 PC에 별도 설치하는 항목
 
-Leap Motion 또는 Ultraleap 카메라 입력을 사용하려면 실행 PC에 Ultraleap Hand
-Tracking Software를 설치하고 트래킹 서비스를 실행해야 합니다. Unity 패키지만으로는
-카메라 트래킹 서비스가 설치되지 않습니다.
+Leap Motion 또는 Ultraleap 카메라 입력을 사용하려면 실행 PC에 Ultraleap Hand Tracking Software를 설치하고 트래킹 서비스를 실행해야 합니다. Unity 패키지만으로는 카메라 트래킹 서비스가 설치되지 않습니다.
 
 설치 절차:
 
 1. `https://leap2.ultraleap.com/`에 접속합니다.
-2. 보유한 카메라를 선택합니다. 예: Leap Motion Controller 2, Leap Motion
-   Controller, Stereo IR 170, 3Di.
+2. 보유한 카메라를 선택합니다. 예: Leap Motion Controller 2, Leap Motion Controller, Stereo IR 170, 3Di.
 3. 실행 PC의 운영체제를 선택한 뒤 Hand Tracking Software를 내려받아 설치합니다.
-4. 카메라를 USB로 연결하고 Ultraleap Control Panel 또는 시각화 도구에서 손
-   트래킹이 정상적으로 보이는지 확인합니다.
+4. 카메라를 USB로 연결하고 Ultraleap Control Panel 또는 시각화 도구에서 손 트래킹이 정상적으로 보이는지 확인합니다.
 5. 이 프로젝트를 실행하기 전 트래킹 서비스가 실행 중인지 확인합니다.
 
 공식 경로:
@@ -64,8 +60,7 @@ https://docs.ultraleap.com/hand-tracking/Hyperion/index.html
 
 ### Unity 패키지를 다시 받아야 하는 경우
 
-저장소를 정상적으로 받았다면 `unity-app/Packages/com.ultraleap.tracking/`이
-포함됩니다. 해당 폴더가 빠진 경우에만 다시 받습니다.
+저장소를 정상적으로 받았다면 `unity-app/Packages/com.ultraleap.tracking/`이 포함됩니다. 해당 폴더가 빠진 경우에만 다시 받습니다.
 
 GitHub 릴리스:
 
@@ -93,8 +88,7 @@ OpenUPM 목록에 `7.3.0`이 없으면 GitHub 릴리스 패키지를 사용합�
 
 ## Unity Asset Store 환경 자산
 
-아래 원본 자산은 Git에 포함하지 않습니다. Unity Asset Store 자산은 빌드 결과물에
-포함해 사용할 수 있지만, 원본 파일을 공개 Git 저장소에 그대로 재배포하지 않습니다.
+아래 원본 자산은 Git에 포함하지 않습니다. Unity Asset Store 자산은 빌드 결과물에 포함해 사용할 수 있지만, 원본 파일을 공개 Git 저장소에 그대로 재배포하지 않습니다.
 
 공식 참고:
 
@@ -158,8 +152,7 @@ unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp/Textures/
 4. `Mouth Of Truth > Build Main Scene`을 실행합니다.
 5. `Assets/Scenes/Main.unity`가 정상 저장되는지 확인합니다.
 
-`BuildMainSceneEditor`는 Dungeon Modular Pack의 demo scene과 prefab을 원본으로
-사용합니다.
+`BuildMainSceneEditor`는 Dungeon Modular Pack의 demo scene과 prefab을 원본으로 사용합니다.
 
 ```text
 unity-app/Assets/Editor/BuildMainSceneEditor.cs
@@ -167,8 +160,7 @@ unity-app/Assets/Editor/BuildMainSceneEditor.cs
 
 ## 모델 자산
 
-모델 바이너리는 Git에 포함하지 않습니다. 로컬 개발 또는 릴리스 빌드 전에 필수
-모델 묶음 파일을 `python-engine/models/`에 복원합니다.
+모델 바이너리는 Git에 포함하지 않습니다. 로컬 개발 또는 릴리스 빌드 전에 필수 모델 묶음 파일을 `python-engine/models/`에 복원합니다.
 
 필수 모델:
 

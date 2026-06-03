@@ -2107,12 +2107,6 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             updateAction?.Invoke(1.0f);
         }
 
-        private static float easeInOutStatic(float progress)
-        {
-            float clampedProgress = Mathf.Clamp01(progress);
-            return clampedProgress * clampedProgress * (3.0f - (2.0f * clampedProgress));
-        }
-
         private float easeOut(float progress)
         {
             float inverse = 1.0f - progress;
@@ -2125,7 +2119,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return clampedProgress * clampedProgress * clampedProgress;
         }
 
-        private float easeInOut(float progress)
+        private static float easeInOut(float progress)
         {
             float clampedProgress = Mathf.Clamp01(progress);
             return clampedProgress * clampedProgress * (3.0f - (2.0f * clampedProgress));

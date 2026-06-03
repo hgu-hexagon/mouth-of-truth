@@ -91,15 +91,15 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             if (clampedProgress < 0.28f)
             {
-                return Vector2.Lerp(centerPosition, leftPosition, easeInOutStatic(clampedProgress / 0.28f));
+                return Vector2.Lerp(centerPosition, leftPosition, easeInOut(clampedProgress / 0.28f));
             }
 
             if (clampedProgress < 0.65f)
             {
-                return Vector2.Lerp(leftPosition, rightPosition, easeInOutStatic((clampedProgress - 0.28f) / 0.37f));
+                return Vector2.Lerp(leftPosition, rightPosition, easeInOut((clampedProgress - 0.28f) / 0.37f));
             }
 
-            return Vector2.Lerp(rightPosition, centerPosition, easeInOutStatic((clampedProgress - 0.65f) / 0.35f));
+            return Vector2.Lerp(rightPosition, centerPosition, easeInOut((clampedProgress - 0.65f) / 0.35f));
         }
 
         private static float getFirstRunTutorialDurationSeconds()

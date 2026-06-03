@@ -29,7 +29,7 @@ namespace MouthOfTruth.Editor
 
             if (mainCamera == null)
             {
-                throw new FileNotFoundException("Main scene does not contain a camera for presentation capture.");
+                throw new FileNotFoundException("Main scene does not contain a camera for background generation.");
             }
 
             if (cardPresentationAnchorSet == null || cardPresentationAnchorSet.HasRequiredAnchors() == false)

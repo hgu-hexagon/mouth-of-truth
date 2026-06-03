@@ -8,6 +8,16 @@
 Unity는 게임 화면, Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처를 담당합니다.
 Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산합니다.
 
+![Mouth of Truth 시작 화면](docs/images/mouth-of-truth-start.png)
+
+## 주요 화면
+
+| 카드 선택 | 질문 확인 |
+| --- | --- |
+| ![카드 선택 화면](docs/images/mouth-of-truth-card-selection.png) | ![질문 카드 화면](docs/images/mouth-of-truth-question-card.png) |
+| 손 삽입 | 판정 결과 |
+| ![손 삽입 화면](docs/images/mouth-of-truth-hand-insertion.png) | ![UNCERTAIN 판정 결과 화면](docs/images/mouth-of-truth-result-uncertain.png) |
+
 ## 플레이 흐름
 
 1. 참가자가 손을 올려 시작합니다.

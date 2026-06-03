@@ -11,6 +11,7 @@ Unity는 화면 흐름, Leap Motion/Ultraleap 입력, 마이크 녹음, 웹캠 �
 conda env create -f python-engine/environment.yml
 conda activate mouth-of-truth
 python -m compileall -q python-engine/src
+PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 ```
 
 Unity Hub에서 아래 폴더를 엽니다.
@@ -85,18 +86,29 @@ python-engine/src/mouth_of_truth/fusion/verdict_policy.py
 unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs
 ```
 
-## 빌드 확인
+## 검증
 
 ```bash
 python -m compileall -q python-engine/src
+PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 dotnet build unity-app/Assembly-CSharp.csproj --no-restore /m:1
 dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
 ```
+
+릴리스 빌드는 필수 Python 런타임 파일과 모델 SHA-256을 자동 검증합니다. 필수
+자산이 없거나 checksum이 맞지 않으면 빌드가 중단됩니다.
 
 ## 모델 교체
 
 배포본은 학습된 모델 artifact를 사용합니다. 다른 모델을 사용할 때는 같은 경로와
 출력 포맷을 맞추고, 얼굴/음성 점수 규칙이 기대하는 label 체계를 유지합니다.
+
+음성 분석은 기본적으로 실시간 응답성을 우선하는 fast acoustic summary를 사용합니다.
+학습된 wav2vec2 음성 모델을 사용하려면 아래 값을 설정합니다.
+
+```bash
+export MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1
+```
 
 ## macOS 릴리스 빌드
 

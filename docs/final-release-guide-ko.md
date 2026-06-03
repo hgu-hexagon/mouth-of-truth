@@ -1,4 +1,4 @@
-# Mouth of Truth 최종 배포 가이드
+# Mouth of Truth 배포 가이드
 
 ## 1. 필수 환경
 
@@ -31,6 +31,7 @@ unity-app
 conda env create -f python-engine/environment.yml
 conda activate mouth-of-truth
 python -m compileall -q python-engine/src
+PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 ```
 
 기존 환경 이름이 `mouth-truth`인 경우에도 패키징 스크립트가 인식합니다.
@@ -70,6 +71,9 @@ shasum -a 256 \
   python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors \
   python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
 ```
+
+macOS와 Windows 릴리스 빌드는 위 필수 모델의 존재 여부와 SHA-256을 자동으로
+검증합니다. 필수 파일이 없거나 checksum이 다르면 빌드가 중단됩니다.
 
 Whisper 전사를 사용할 때만 아래 캐시를 배치합니다.
 
@@ -270,7 +274,8 @@ Whisper 전사 활성화:
 export MOUTH_OF_TRUTH_ENABLE_TRANSCRIPTION=1
 ```
 
-학습된 wav2vec2 음성 모델 활성화:
+음성 분석은 기본적으로 실시간 응답성을 우선하는 fast acoustic summary를
+사용합니다. 학습된 wav2vec2 음성 모델을 사용할 때:
 
 ```bash
 export MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1
@@ -348,6 +353,19 @@ unity-app/Assets/StreamingAssets/audio/questions/Q0012.wav
 
 ## 13. 릴리스 빌드
 
+릴리스 빌드는 아래 항목을 배포물에 포함하고, 필수 파일과 모델 checksum을
+검증합니다.
+
+```text
+python-engine/src/
+python-engine/scripts/
+python-engine/models/
+python-engine/requirements.txt
+python-engine/environment.yml
+python-runtime/ 또는 python-runtime-windows/
+bridge/
+```
+
 macOS:
 
 ```bash
@@ -380,6 +398,7 @@ dist/windows/MouthOfTruth/
 ```bash
 git status --short
 python -m compileall -q python-engine/src
+PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 dotnet build unity-app/Assembly-CSharp.csproj --no-restore /m:1
 dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
 ```

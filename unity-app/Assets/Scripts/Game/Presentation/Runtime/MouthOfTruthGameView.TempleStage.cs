@@ -219,7 +219,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private void syncTempleStageMouthOverlay(float alpha)
         {
-            if (mMouthImage == null || tryGetTempleApproachMouthCanvasLayout(out Vector2 center, out Vector2 size) == false)
+            Vector2 center;
+            Vector2 size;
+            if (mMouthImage == null || tryGetTempleApproachMouthCanvasLayout(out center, out size) == false)
             {
                 return;
             }
@@ -264,7 +266,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             mTempleApproachCameraRectTransform.localScale = Vector3.one * scale;
             mTempleApproachCameraRectTransform.anchoredPosition = Vector2.zero;
-            bool hasMouthLayout = tryGetTempleApproachMouthCanvasLayout(out Vector2 mouthCenter, out _);
+            Vector2 mouthCenter;
+            Vector2 ignoredMouthSize;
+            bool hasMouthLayout = tryGetTempleApproachMouthCanvasLayout(out mouthCenter, out ignoredMouthSize);
 
             mTempleApproachCameraRectTransform.localScale = previousScale;
             mTempleApproachCameraRectTransform.anchoredPosition = previousPosition;

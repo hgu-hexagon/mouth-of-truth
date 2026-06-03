@@ -53,7 +53,12 @@ namespace MouthOfTruth.Game.App
             }
         }
 
-        private async void Start()
+        private void Start()
+        {
+            _ = startAsync();
+        }
+
+        private async Task startAsync()
         {
             try
             {
@@ -97,9 +102,9 @@ namespace MouthOfTruth.Game.App
                 return;
             }
 
-            Vector2? pointerScreenPosition = tryGetPointerScreenPosition();
-            Vector2? presentedPointerScreenPosition = getPresentedPointerScreenPosition(pointerScreenPosition);
-            updatePointerPresentation(presentedPointerScreenPosition);
+            Vector2? pointerScreenPositionOrNull = tryGetPointerScreenPositionOrNull();
+            Vector2? presentedPointerScreenPositionOrNull = getPresentedPointerScreenPositionOrNull(pointerScreenPositionOrNull);
+            updatePointerPresentation(presentedPointerScreenPositionOrNull);
 
             if (mGameView.ConsumeExitRequested())
             {
@@ -108,20 +113,20 @@ namespace MouthOfTruth.Game.App
             }
 
             bool canAcceptPointerActivation = mPointerPresentationOverrideRemainingSeconds <= 0.0f
-                && updatePointerActivationGuard(presentedPointerScreenPosition);
-            Vector2? activatablePointerScreenPosition = canAcceptPointerActivation ? presentedPointerScreenPosition : null;
+                && updatePointerActivationGuard(presentedPointerScreenPositionOrNull);
+            Vector2? activatablePointerScreenPositionOrNull = canAcceptPointerActivation ? presentedPointerScreenPositionOrNull : null;
 
             if (mIsTransitionBusy || mIsPresentationCaptureRunning)
             {
                 if (mGameView.IsFirstRunTutorialVisible)
                 {
-                    updateUiActionSelection(activatablePointerScreenPosition);
+                    updateUiActionSelection(activatablePointerScreenPositionOrNull);
                 }
 
                 return;
             }
 
-            if (updateUiActionSelection(activatablePointerScreenPosition))
+            if (updateUiActionSelection(activatablePointerScreenPositionOrNull))
             {
                 return;
             }
@@ -150,20 +155,23 @@ namespace MouthOfTruth.Game.App
             switch (mGameStateMachine.CurrentState)
             {
                 case EGameFlowState.AwaitingCardSelection:
-                    updateCardSelection(activatablePointerScreenPosition);
+                    updateCardSelection(activatablePointerScreenPositionOrNull);
                     break;
 
                 case EGameFlowState.AwaitingHandInsertion:
-                    updateHandPromptDismissal(presentedPointerScreenPosition);
-                    updateHandInsertion(activatablePointerScreenPosition);
+                    updateHandPromptDismissal(presentedPointerScreenPositionOrNull);
+                    updateHandInsertion(activatablePointerScreenPositionOrNull);
                     break;
 
                 case EGameFlowState.AnswerPaused:
-                    updateHandInsertion(activatablePointerScreenPosition);
+                    updateHandInsertion(activatablePointerScreenPositionOrNull);
                     break;
 
                 case EGameFlowState.Answering:
-                    updateAnswering(pointerScreenPosition);
+                    updateAnswering(pointerScreenPositionOrNull);
+                    break;
+
+                default:
                     break;
             }
         }
@@ -260,30 +268,30 @@ namespace MouthOfTruth.Game.App
             mIsTransitionBusy = false;
         }
 
-        private void updateCardSelection(Vector2? pointerScreenPosition)
+        private void updateCardSelection(Vector2? pointerScreenPositionOrNull)
         {
-            EQuestionCardSlot? hoveredQuestionCardSlot = mGameView.GetHoveredQuestionCardSlot(pointerScreenPosition);
-            EQuestionCardSlot? confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(hoveredQuestionCardSlot, Time.deltaTime);
+            EQuestionCardSlot? hoveredQuestionCardSlotOrNull = mGameView.GetHoveredQuestionCardSlotOrNull(pointerScreenPositionOrNull);
+            EQuestionCardSlot? confirmedQuestionCardSlotOrNull = mGameStateMachine.UpdateCardSelectionOrNull(hoveredQuestionCardSlotOrNull, Time.deltaTime);
             GameSessionSnapshot snapshot = mGameStateMachine.CreateSnapshot();
 
-            float hoverProgress = hoveredQuestionCardSlot == null
+            float hoverProgress = hoveredQuestionCardSlotOrNull == null
                 || snapshot.CurrentState != EGameFlowState.AwaitingCardSelection
                 ? 0.0f
                 : Mathf.Clamp01(snapshot.HoveredCardDwellSeconds / CARD_SELECTION_DWELL_SECONDS);
 
-            mGameView.UpdateCardHoverVisual(hoveredQuestionCardSlot, hoverProgress);
+            mGameView.UpdateCardHoverVisual(hoveredQuestionCardSlotOrNull, hoverProgress);
 
-            if (confirmedQuestionCardSlot.HasValue == false)
+            if (confirmedQuestionCardSlotOrNull.HasValue == false)
             {
                 return;
             }
 
-            _ = revealQuestionAsync(confirmedQuestionCardSlot.Value, mGameStateMachine.CreateSnapshot().SelectedQuestionDefinition);
+            _ = revealQuestionAsync(confirmedQuestionCardSlotOrNull.Value, mGameStateMachine.CreateSnapshot().SelectedQuestionDefinition);
         }
 
-        private void updateHandInsertion(Vector2? pointerScreenPosition)
+        private void updateHandInsertion(Vector2? pointerScreenPositionOrNull)
         {
-            EHandAnchorState handAnchorState = mGameView.GetHandAnchorState(pointerScreenPosition);
+            EHandAnchorState handAnchorState = mGameView.GetHandAnchorState(pointerScreenPositionOrNull);
 
             bool canStartInsertion = mLastObservedHandAnchorState == EHandAnchorState.OutsideMouth
                 && handAnchorState != EHandAnchorState.OutsideMouth;
@@ -298,9 +306,9 @@ namespace MouthOfTruth.Game.App
             _ = insertHandAsync();
         }
 
-        private void updateAnswering(Vector2? pointerScreenPosition)
+        private void updateAnswering(Vector2? pointerScreenPositionOrNull)
         {
-            EHandAnchorState handAnchorState = mGameView.GetHandAnchorState(pointerScreenPosition);
+            EHandAnchorState handAnchorState = mGameView.GetHandAnchorState(pointerScreenPositionOrNull);
             mLastObservedHandAnchorState = handAnchorState == EHandAnchorState.OutsideMouth
                 ? EHandAnchorState.AtFrontAnchor
                 : handAnchorState;
@@ -318,24 +326,24 @@ namespace MouthOfTruth.Game.App
             }
         }
 
-        private bool updateUiActionSelection(Vector2? pointerScreenPosition)
+        private bool updateUiActionSelection(Vector2? pointerScreenPositionOrNull)
         {
-            EUiActionTarget? hoveredUiActionTarget = mGameView.GetHoveredUiActionTarget(pointerScreenPosition);
-            hoveredUiActionTarget = isUiActionAllowedForCurrentState(hoveredUiActionTarget) ? hoveredUiActionTarget : null;
-            EUiActionTarget? confirmedUiActionTarget = mUiActionDwellSelectionTracker
-                .UpdateHoveredTarget(hoveredUiActionTarget, Time.deltaTime);
-            float hoverProgress = hoveredUiActionTarget == null
+            EUiActionTarget? hoveredUiActionTargetOrNull = mGameView.GetHoveredUiActionTargetOrNull(pointerScreenPositionOrNull);
+            hoveredUiActionTargetOrNull = isUiActionAllowedForCurrentState(hoveredUiActionTargetOrNull) ? hoveredUiActionTargetOrNull : null;
+            EUiActionTarget? confirmedUiActionTargetOrNull = mUiActionDwellSelectionTracker
+                .UpdateHoveredTargetOrNull(hoveredUiActionTargetOrNull, Time.deltaTime);
+            float hoverProgress = hoveredUiActionTargetOrNull == null
                 ? 0.0f
                 : Mathf.Clamp01(mUiActionDwellSelectionTracker.HoveredDurationSeconds / UI_ACTION_DWELL_SECONDS);
 
-            mGameView.UpdateActionButtonHoverVisual(hoveredUiActionTarget, hoverProgress);
+            mGameView.UpdateActionButtonHoverVisual(hoveredUiActionTargetOrNull, hoverProgress);
 
-            if (confirmedUiActionTarget == null)
+            if (confirmedUiActionTargetOrNull == null)
             {
                 return false;
             }
 
-            switch (confirmedUiActionTarget.Value)
+            switch (confirmedUiActionTargetOrNull.Value)
             {
                 case EUiActionTarget.StartGame:
                     _ = startGameAsync();
@@ -361,14 +369,14 @@ namespace MouthOfTruth.Game.App
             }
         }
 
-        private bool isUiActionAllowedForCurrentState(EUiActionTarget? uiActionTarget)
+        private bool isUiActionAllowedForCurrentState(EUiActionTarget? uiActionTargetOrNull)
         {
-            if (uiActionTarget == null)
+            if (uiActionTargetOrNull == null)
             {
                 return false;
             }
 
-            return uiActionTarget.Value switch
+            return uiActionTargetOrNull.Value switch
             {
                 EUiActionTarget.ExitGame => true,
                 EUiActionTarget.StartGame => mGameStateMachine.CurrentState == EGameFlowState.StartScreen,

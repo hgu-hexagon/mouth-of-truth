@@ -6,7 +6,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 {
     public static class RuntimeSpriteLoader
     {
-        public static Task<Sprite> LoadSpriteAsync(string filePath)
+        private const int DEFAULT_SOLID_SPRITE_SIZE = 8;
+
+        public static Task<Sprite> LoadSpriteOrNullAsync(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -34,7 +36,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return Task.FromResult(sprite);
         }
 
-        public static Sprite CreateSolidSprite(Color color, int size = 8)
+        public static Sprite CreateSolidSprite(Color color)
+        {
+            return CreateSolidSprite(color, DEFAULT_SOLID_SPRITE_SIZE);
+        }
+
+        public static Sprite CreateSolidSprite(Color color, int size)
         {
             Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
             Color[] pixels = new Color[size * size];

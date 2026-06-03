@@ -12,9 +12,9 @@ namespace MouthOfTruth.Game.Session
         private readonly AnswerCollectionPolicy mAnswerCollectionPolicy;
 
         private QuestionRoundSelection mCurrentRoundSelection;
-        private EQuestionCardSlot? mSelectedQuestionCardSlot;
+        private EQuestionCardSlot? mSelectedQuestionCardSlotOrNull;
         private QuestionDefinition mSelectedQuestionDefinition;
-        private EVerdictKind? mCurrentVerdictKind;
+        private EVerdictKind? mCurrentVerdictKindOrNull;
         private string mCurrentAnswerTranscript = string.Empty;
         private float mElapsedAnswerSeconds;
         private float mElapsedSilenceSeconds;
@@ -53,9 +53,9 @@ namespace MouthOfTruth.Game.Session
         public void StartGame()
         {
             mCurrentRoundSelection = mQuestionDeckService.DrawNextRound();
-            mSelectedQuestionCardSlot = null;
+            mSelectedQuestionCardSlotOrNull = null;
             mSelectedQuestionDefinition = null;
-            mCurrentVerdictKind = null;
+            mCurrentVerdictKindOrNull = null;
             mCurrentAnswerTranscript = string.Empty;
             mElapsedAnswerSeconds = 0.0f;
             mElapsedSilenceSeconds = 0.0f;
@@ -68,22 +68,22 @@ namespace MouthOfTruth.Game.Session
             CurrentState = EGameFlowState.AwaitingCardSelection;
         }
 
-        public EQuestionCardSlot? UpdateCardSelection(EQuestionCardSlot? hoveredQuestionCardSlot, float deltaTimeSeconds)
+        public EQuestionCardSlot? UpdateCardSelectionOrNull(EQuestionCardSlot? hoveredQuestionCardSlotOrNull, float deltaTimeSeconds)
         {
             ensureCurrentState(EGameFlowState.AwaitingCardSelection);
 
-            EQuestionCardSlot? confirmedQuestionCardSlot = mCardDwellSelectionTracker
-                .UpdateHoveredCard(hoveredQuestionCardSlot, deltaTimeSeconds);
+            EQuestionCardSlot? confirmedQuestionCardSlotOrNull = mCardDwellSelectionTracker
+                .UpdateHoveredCardOrNull(hoveredQuestionCardSlotOrNull, deltaTimeSeconds);
 
-            if (confirmedQuestionCardSlot == null)
+            if (confirmedQuestionCardSlotOrNull == null)
             {
                 return null;
             }
 
-            mSelectedQuestionCardSlot = confirmedQuestionCardSlot;
-            mSelectedQuestionDefinition = mCurrentRoundSelection.GetQuestionBySlot(confirmedQuestionCardSlot.Value);
+            mSelectedQuestionCardSlotOrNull = confirmedQuestionCardSlotOrNull;
+            mSelectedQuestionDefinition = mCurrentRoundSelection.GetQuestionBySlot(confirmedQuestionCardSlotOrNull.Value);
             CurrentState = EGameFlowState.RevealingQuestionCard;
-            return confirmedQuestionCardSlot;
+            return confirmedQuestionCardSlotOrNull;
         }
 
         public void MarkQuestionRevealCompleted()
@@ -170,7 +170,7 @@ namespace MouthOfTruth.Game.Session
                 throw new ArgumentNullException(nameof(answerAnalysisResult));
             }
 
-            mCurrentVerdictKind = answerAnalysisResult.VerdictKind;
+            mCurrentVerdictKindOrNull = answerAnalysisResult.VerdictKind;
             CurrentState = EGameFlowState.ShowingResult;
         }
 
@@ -188,7 +188,7 @@ namespace MouthOfTruth.Game.Session
 
         public GameSessionSnapshot CreateSnapshot()
         {
-            return new GameSessionSnapshot(CurrentState, mCurrentRoundSelection, mSelectedQuestionCardSlot, mSelectedQuestionDefinition, mCurrentVerdictKind, mCurrentAnswerTranscript, mCardDwellSelectionTracker.HoveredDurationSeconds, mElapsedAnswerSeconds, mElapsedSilenceSeconds);
+            return new GameSessionSnapshot(CurrentState, mCurrentRoundSelection, mSelectedQuestionCardSlotOrNull, mSelectedQuestionDefinition, mCurrentVerdictKindOrNull, mCurrentAnswerTranscript, mCardDwellSelectionTracker.HoveredDurationSeconds, mElapsedAnswerSeconds, mElapsedSilenceSeconds);
         }
 
         private void ensureCurrentState(EGameFlowState expectedGameFlowState)
@@ -203,9 +203,9 @@ namespace MouthOfTruth.Game.Session
         {
             mCardDwellSelectionTracker.Reset();
             mCurrentRoundSelection = null;
-            mSelectedQuestionCardSlot = null;
+            mSelectedQuestionCardSlotOrNull = null;
             mSelectedQuestionDefinition = null;
-            mCurrentVerdictKind = null;
+            mCurrentVerdictKindOrNull = null;
             mCurrentAnswerTranscript = string.Empty;
             mElapsedAnswerSeconds = 0.0f;
             mElapsedSilenceSeconds = 0.0f;

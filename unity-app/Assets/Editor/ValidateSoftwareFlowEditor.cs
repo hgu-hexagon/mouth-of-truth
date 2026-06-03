@@ -96,7 +96,7 @@ namespace MouthOfTruth.Editor
         private static void validateQuestionDeckDoesNotFollowInputOrder()
         {
             IReadOnlyList<QuestionDefinition> questionDefinitions = buildSyntheticQuestionDefinitions(10);
-            QuestionDeckService questionDeckService = new QuestionDeckService(questionDefinitions, randomSeed: 1234);
+            QuestionDeckService questionDeckService = new QuestionDeckService(questionDefinitions, randomSeedOrNull: 1234);
             List<string> firstRoundQuestionIDs = questionDeckService
                 .DrawNextRound()
                 .QuestionsBySlot
@@ -128,9 +128,9 @@ namespace MouthOfTruth.Editor
             gameStateMachine.MarkCardPresentationCompleted();
             assertState(gameStateMachine, EGameFlowState.AwaitingCardSelection, "awaiting card selection");
 
-            EQuestionCardSlot? earlySelection = gameStateMachine.UpdateCardSelection(EQuestionCardSlot.CenterCard, 0.35f);
+            EQuestionCardSlot? earlySelectionOrNull = gameStateMachine.UpdateCardSelectionOrNull(EQuestionCardSlot.CenterCard, 0.35f);
 
-            if (earlySelection != null)
+            if (earlySelectionOrNull != null)
             {
                 throw new InvalidOperationException("Card selection confirmed before dwell time was complete.");
             }
@@ -138,9 +138,9 @@ namespace MouthOfTruth.Editor
             GameSessionSnapshot hoverSnapshot = gameStateMachine.CreateSnapshot();
             assertCondition(hoverSnapshot.HoveredCardDwellSeconds > 0.0f && hoverSnapshot.HoveredCardDwellSeconds < 0.7f, "Card hover dwell did not accumulate correctly.");
 
-            EQuestionCardSlot? confirmedSelection = gameStateMachine.UpdateCardSelection(EQuestionCardSlot.CenterCard, 0.35f);
+            EQuestionCardSlot? confirmedSelectionOrNull = gameStateMachine.UpdateCardSelectionOrNull(EQuestionCardSlot.CenterCard, 0.35f);
 
-            if (confirmedSelection != EQuestionCardSlot.CenterCard)
+            if (confirmedSelectionOrNull != EQuestionCardSlot.CenterCard)
             {
                 throw new InvalidOperationException("Card selection did not confirm the centered card.");
             }
@@ -203,7 +203,7 @@ namespace MouthOfTruth.Editor
 
             gameStateMachine.CompleteAnalysis(new AnswerAnalysisResult(EVerdictKind.True, "spoken answer", Array.Empty<string>()));
             assertState(gameStateMachine, EGameFlowState.ShowingResult, "result presentation");
-            assertCondition(gameStateMachine.CreateSnapshot().CurrentVerdictKind == EVerdictKind.True, "Verdict kind was not stored in the result snapshot.");
+            assertCondition(gameStateMachine.CreateSnapshot().CurrentVerdictKindOrNull == EVerdictKind.True, "Verdict kind was not stored in the result snapshot.");
 
             gameStateMachine.ReturnToStart();
             assertState(gameStateMachine, EGameFlowState.StartScreen, "return to start");
@@ -215,7 +215,7 @@ namespace MouthOfTruth.Editor
 
             gameStateMachine.StartGame();
             gameStateMachine.MarkCardPresentationCompleted();
-            gameStateMachine.UpdateCardSelection(EQuestionCardSlot.LeftCard, 0.7f);
+            gameStateMachine.UpdateCardSelectionOrNull(EQuestionCardSlot.LeftCard, 0.7f);
             gameStateMachine.MarkQuestionRevealCompleted();
             gameStateMachine.MarkQuestionNarrationCompleted();
             gameStateMachine.NotifyHandReachedFrontAnchor();
@@ -241,31 +241,31 @@ namespace MouthOfTruth.Editor
         private static void validateSelectionDwellTiming()
         {
             CardDwellSelectionTracker cardDwellSelectionTracker = new CardDwellSelectionTracker(2.1f);
-            EQuestionCardSlot? earlyCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(EQuestionCardSlot.CenterCard, 1.4f);
+            EQuestionCardSlot? earlyCardSelectionOrNull = cardDwellSelectionTracker.UpdateHoveredCardOrNull(EQuestionCardSlot.CenterCard, 1.4f);
 
-            if (earlyCardSelection != null)
+            if (earlyCardSelectionOrNull != null)
             {
                 throw new InvalidOperationException("Card dwell confirmed before the extended hold time.");
             }
 
-            EQuestionCardSlot? confirmedCardSelection = cardDwellSelectionTracker.UpdateHoveredCard(EQuestionCardSlot.CenterCard, 0.7f);
+            EQuestionCardSlot? confirmedCardSelectionOrNull = cardDwellSelectionTracker.UpdateHoveredCardOrNull(EQuestionCardSlot.CenterCard, 0.7f);
 
-            if (confirmedCardSelection != EQuestionCardSlot.CenterCard)
+            if (confirmedCardSelectionOrNull != EQuestionCardSlot.CenterCard)
             {
                 throw new InvalidOperationException("Card dwell did not confirm after the extended hold time.");
             }
 
             UiActionDwellSelectionTracker uiActionDwellSelectionTracker = new UiActionDwellSelectionTracker(1.05f);
-            EUiActionTarget? earlyUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(EUiActionTarget.StartGame, 0.7f);
+            EUiActionTarget? earlyUiActionOrNull = uiActionDwellSelectionTracker.UpdateHoveredTargetOrNull(EUiActionTarget.StartGame, 0.7f);
 
-            if (earlyUiAction != null)
+            if (earlyUiActionOrNull != null)
             {
                 throw new InvalidOperationException("UI action dwell confirmed before the extended hold time.");
             }
 
-            EUiActionTarget? confirmedUiAction = uiActionDwellSelectionTracker.UpdateHoveredTarget(EUiActionTarget.StartGame, 0.35f);
+            EUiActionTarget? confirmedUiActionOrNull = uiActionDwellSelectionTracker.UpdateHoveredTargetOrNull(EUiActionTarget.StartGame, 0.35f);
 
-            if (confirmedUiAction != EUiActionTarget.StartGame)
+            if (confirmedUiActionOrNull != EUiActionTarget.StartGame)
             {
                 throw new InvalidOperationException("UI action dwell did not confirm after the extended hold time.");
             }
@@ -275,14 +275,16 @@ namespace MouthOfTruth.Editor
         {
             CompositeHandInteractionInputAdapter blockedCompositeAdapter = new CompositeHandInteractionInputAdapter(new BlockingFallbackInputAdapter(), new StaticPointerInputAdapter());
 
-            if (blockedCompositeAdapter.TryGetPointerScreenPosition(out _))
+            Vector2 blockedScreenPosition;
+            if (blockedCompositeAdapter.TryGetPointerScreenPosition(out blockedScreenPosition))
             {
                 throw new InvalidOperationException("Fallback pointer input was not blocked by the primary adapter.");
             }
 
             CompositeHandInteractionInputAdapter openCompositeAdapter = new CompositeHandInteractionInputAdapter(new OpenFallbackInputAdapter(), new StaticPointerInputAdapter());
 
-            if (openCompositeAdapter.TryGetPointerScreenPosition(out Vector2 screenPosition) == false)
+            Vector2 screenPosition;
+            if (openCompositeAdapter.TryGetPointerScreenPosition(out screenPosition) == false)
             {
                 throw new InvalidOperationException("Fallback pointer input did not activate when the primary adapter allowed it.");
             }
@@ -394,10 +396,10 @@ namespace MouthOfTruth.Editor
 
         private static void validateLeapIntentTargeting()
         {
-            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(220.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.LeftCard, "Left-side Leap intent did not resolve to the left card.");
-            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(600.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.CenterCard, "Center Leap intent did not resolve to the center card.");
-            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(980.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.RightCard, "Right-side Leap intent did not resolve to the right card.");
-            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlot(new Vector2(600.0f, 120.0f), 1200.0f, 900.0f) == null, "Low off-stage Leap intent unexpectedly resolved to a card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlotOrNull(new Vector2(220.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.LeftCard, "Left-side Leap intent did not resolve to the left card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlotOrNull(new Vector2(600.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.CenterCard, "Center Leap intent did not resolve to the center card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlotOrNull(new Vector2(980.0f, 540.0f), 1200.0f, 900.0f) == EQuestionCardSlot.RightCard, "Right-side Leap intent did not resolve to the right card.");
+            assertCondition(MouthOfTruthGameView.EvaluateQuestionCardIntentSlotOrNull(new Vector2(600.0f, 120.0f), 1200.0f, 900.0f) == null, "Low off-stage Leap intent unexpectedly resolved to a card.");
 
             Vector2 handFrontPosition = new Vector2(0.0f, 0.0f);
             Vector2 handInnerPosition = new Vector2(0.0f, 180.0f);

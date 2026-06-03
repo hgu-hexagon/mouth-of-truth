@@ -8,16 +8,16 @@ namespace MouthOfTruth.Game.Presentation.Runtime
     {
         private async Task loadAudioClipsAsync()
         {
-            mTitleAmbienceClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.TitleAmbiencePath);
-            mButtonConfirmClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ButtonConfirmPath);
-            mCardHoverClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardHoverPath);
-            mCardSelectClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardSelectPath);
-            mCardRevealClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.CardRevealPath);
-            mHandInsertClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandInsertPath);
-            mHandPromptClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.HandPromptPath);
-            mResultTrueClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultTruePath);
-            mResultFalseClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultFalsePath);
-            mResultUncertainClip = await RuntimeAudioClipLoader.LoadClipAsync(MouthOfTruthAssetCatalog.ResultUncertainPath);
+            mTitleAmbienceClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.TitleAmbiencePath);
+            mButtonConfirmClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.ButtonConfirmPath);
+            mCardHoverClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.CardHoverPath);
+            mCardSelectClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.CardSelectPath);
+            mCardRevealClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.CardRevealPath);
+            mHandInsertClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.HandInsertPath);
+            mHandPromptClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.HandPromptPath);
+            mResultTrueClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.ResultTruePath);
+            mResultFalseClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.ResultFalsePath);
+            mResultUncertainClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(MouthOfTruthAssetCatalog.ResultUncertainPath);
         }
 
         private void buildAudioSources()

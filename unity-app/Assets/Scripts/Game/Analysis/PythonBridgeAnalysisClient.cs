@@ -443,16 +443,18 @@ namespace MouthOfTruth.Game.Analysis
         }
 
         [Serializable]
-        private class BridgeWorkerCommandFileData
+        private sealed class BridgeWorkerCommandFileData
         {
+            // JsonUtility maps fields by the Python worker protocol keys.
             public string Command = string.Empty;
             public string RequestFilePath = string.Empty;
             public string ResultFilePath = string.Empty;
         }
 
         [Serializable]
-        private class BridgeWorkerResponseFileData
+        private sealed class BridgeWorkerResponseFileData
         {
+            // JsonUtility maps fields by the Python worker protocol keys.
             public string Status = string.Empty;
             public string ErrorMessage = string.Empty;
         }

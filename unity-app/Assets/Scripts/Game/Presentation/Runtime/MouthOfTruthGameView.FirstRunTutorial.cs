@@ -10,9 +10,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         [Serializable]
         private sealed class TutorialSequenceMetadata
         {
-            public float fr;
-            public float ip;
-            public float op;
+            // JsonUtility maps fields by the Lottie sequence metadata keys.
+            public float fr = 0.0f;
+            public float ip = 0.0f;
+            public float op = 0.0f;
         }
 
         public async Task PlayFirstRunTutorialAsync()
@@ -110,8 +111,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     return FIRST_RUN_TUTORIAL_FALLBACK_DURATION_SECONDS;
                 }
 
-                string json = File.ReadAllText(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath);
-                TutorialSequenceMetadata metadata = JsonUtility.FromJson<TutorialSequenceMetadata>(json);
+                string jsonText = File.ReadAllText(MouthOfTruthAssetCatalog.FirstRunTutorialSequencePath);
+                TutorialSequenceMetadata metadata = JsonUtility.FromJson<TutorialSequenceMetadata>(jsonText);
 
                 if (metadata == null || metadata.fr <= 0.0f || metadata.op <= metadata.ip)
                 {

@@ -52,18 +52,20 @@ namespace MouthOfTruth.Game.Data
         }
 
         [Serializable]
-        private class QuestionPoolJsonDocument
+        private sealed class QuestionPoolJsonDocument
         {
+            // JsonUtility maps fields by the external question-pool JSON keys.
             public List<QuestionDefinitionJsonRecord> questions = new List<QuestionDefinitionJsonRecord>();
         }
 
         [Serializable]
-        private class QuestionDefinitionJsonRecord
+        private sealed class QuestionDefinitionJsonRecord
         {
+            // JsonUtility maps fields by the external question-pool JSON keys.
             public string id = string.Empty;
             public string text = string.Empty;
             public string category = string.Empty;
-            public int difficulty;
+            public int difficulty = 0;
             public bool enabled = true;
         }
     }

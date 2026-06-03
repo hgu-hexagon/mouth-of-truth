@@ -8,7 +8,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 {
     public partial class MouthOfTruthGameView
     {
-        public async Task PlayQuestionRevealAsync(EQuestionCardSlot selectedQuestionCardSlot, QuestionDefinition questionDefinition, Func<Task> questionNarrationTaskFactory = null)
+        public async Task PlayQuestionRevealAsync(EQuestionCardSlot selectedQuestionCardSlot, QuestionDefinition questionDefinition, Func<Task> questionNarrationTaskFactoryOrNull = null)
         {
             resetHandPromptPanelAlpha();
             mIsCardAbsorptionPresentationActive = false;
@@ -20,7 +20,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mSceneOverlayImage, true);
             setMouthEffectImagesActive(false, false);
             setOverlayAlpha(0.12f);
-            mLastAudibleHoveredCardSlot = null;
+            mLastAudibleHoveredCardSlotOrNull = null;
             mLastCardHoverCueTimeSeconds = Time.unscaledTime;
             playInterfaceCueClean(mCardSelectClip, 0.58f);
             await animateOverTimeAsync(CARD_SELECTION_CUE_SETTLE_SECONDS, _ => { });
@@ -75,9 +75,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                 });
 
             Task questionNarrationTask = Task.CompletedTask;
-            if (questionNarrationTaskFactory != null)
+            if (questionNarrationTaskFactoryOrNull != null)
             {
-                questionNarrationTask = questionNarrationTaskFactory.Invoke();
+                questionNarrationTask = questionNarrationTaskFactoryOrNull.Invoke();
             }
 
             float cardFrontReadHoldDurationSeconds = getCardFrontReadHoldDurationSeconds(questionDefinition.Text);

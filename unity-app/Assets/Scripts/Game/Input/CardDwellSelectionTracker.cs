@@ -7,7 +7,7 @@ namespace MouthOfTruth.Game.Input
     {
         private readonly float mRequiredDwellSeconds;
 
-        private EQuestionCardSlot? mHoveredQuestionCardSlot;
+        private EQuestionCardSlot? mHoveredQuestionCardSlotOrNull;
         private float mHoveredDurationSeconds;
 
         public CardDwellSelectionTracker(float requiredDwellSeconds = 0.7f)
@@ -22,22 +22,22 @@ namespace MouthOfTruth.Game.Input
 
         public float HoveredDurationSeconds => mHoveredDurationSeconds;
 
-        public EQuestionCardSlot? UpdateHoveredCard(EQuestionCardSlot? hoveredQuestionCardSlot, float deltaTimeSeconds)
+        public EQuestionCardSlot? UpdateHoveredCardOrNull(EQuestionCardSlot? hoveredQuestionCardSlotOrNull, float deltaTimeSeconds)
         {
             if (deltaTimeSeconds < 0.0f)
             {
                 throw new ArgumentOutOfRangeException(nameof(deltaTimeSeconds));
             }
 
-            if (hoveredQuestionCardSlot == null)
+            if (hoveredQuestionCardSlotOrNull == null)
             {
                 Reset();
                 return null;
             }
 
-            if (mHoveredQuestionCardSlot != hoveredQuestionCardSlot)
+            if (mHoveredQuestionCardSlotOrNull != hoveredQuestionCardSlotOrNull)
             {
-                mHoveredQuestionCardSlot = hoveredQuestionCardSlot;
+                mHoveredQuestionCardSlotOrNull = hoveredQuestionCardSlotOrNull;
                 mHoveredDurationSeconds = 0.0f;
             }
 
@@ -48,14 +48,14 @@ namespace MouthOfTruth.Game.Input
                 return null;
             }
 
-            EQuestionCardSlot confirmedQuestionCardSlot = hoveredQuestionCardSlot.Value;
+            EQuestionCardSlot confirmedQuestionCardSlot = hoveredQuestionCardSlotOrNull.Value;
             Reset();
             return confirmedQuestionCardSlot;
         }
 
         public void Reset()
         {
-            mHoveredQuestionCardSlot = null;
+            mHoveredQuestionCardSlotOrNull = null;
             mHoveredDurationSeconds = 0.0f;
         }
     }

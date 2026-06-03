@@ -41,7 +41,7 @@ namespace MouthOfTruth.Game.Narration
                 return;
             }
 
-            AudioClip audioClip = await RuntimeAudioClipLoader.LoadClipAsync(audioFilePath);
+            AudioClip audioClip = await RuntimeAudioClipLoader.LoadClipOrNullAsync(audioFilePath);
 
             if (audioClip == null)
             {

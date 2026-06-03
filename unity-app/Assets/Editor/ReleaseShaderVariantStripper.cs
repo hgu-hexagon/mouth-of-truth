@@ -9,7 +9,7 @@ namespace MouthOfTruth.Editor
 {
     public sealed class ReleaseShaderVariantStripper : IPreprocessShaders
     {
-        public int callbackOrder => 0;
+        int IOrderedCallback.callbackOrder => 0;
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> shaderCompilerData)
         {

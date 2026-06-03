@@ -17,8 +17,8 @@ namespace MouthOfTruth.Game.App
         private bool mWasPointerAvailableLastFrame;
         private float mPointerReacquireGuardRemainingSeconds;
         private float mPointerPresentationOverrideRemainingSeconds;
-        private Vector2? mPresentedPointerScreenPosition;
-        private Vector2? mHandPromptDismissalBaselineScreenPosition;
+        private Vector2? mPresentedPointerScreenPositionOrNull;
+        private Vector2? mHandPromptDismissalBaselineScreenPositionOrNull;
         private Vector2 mPointerPresentationRebaseInputScreenPosition;
         private Vector2 mPointerPresentationRebaseOutputScreenPosition;
         private EHandAnchorState mLastObservedHandAnchorState = EHandAnchorState.OutsideMouth;
@@ -26,7 +26,7 @@ namespace MouthOfTruth.Game.App
         private bool mIsPointerPresentationRebaseActive;
         private bool mShouldRebasePointerAfterPresentationOverride;
 
-        private Vector2? tryGetPointerScreenPosition()
+        private Vector2? tryGetPointerScreenPositionOrNull()
         {
             if (mHandInteractionInputAdapter == null)
             {
@@ -42,7 +42,7 @@ namespace MouthOfTruth.Game.App
             return null;
         }
 
-        private void updatePointerPresentation(Vector2? pointerScreenPosition)
+        private void updatePointerPresentation(Vector2? pointerScreenPositionOrNull)
         {
             if (mIsPresentationCaptureRunning)
             {
@@ -52,16 +52,16 @@ namespace MouthOfTruth.Game.App
 
             bool isCinematicTransition = mIsTransitionBusy
                 && (mGameStateMachine.CurrentState == EGameFlowState.InsertingHand || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult);
-            bool shouldShowPointer = pointerScreenPosition.HasValue
+            bool shouldShowPointer = pointerScreenPositionOrNull.HasValue
                 && isCinematicTransition == false
                 && (mGameStateMachine.CurrentState == EGameFlowState.StartScreen || mGameView.IsFirstRunTutorialVisible || mGameStateMachine.CurrentState == EGameFlowState.AwaitingCardSelection || mGameStateMachine.CurrentState == EGameFlowState.ShowingResult || mGameStateMachine.CurrentState == EGameFlowState.AwaitingHandInsertion || mGameStateMachine.CurrentState == EGameFlowState.AnswerPaused || mGameStateMachine.CurrentState == EGameFlowState.Answering);
 
-            mGameView.UpdatePointerVisual(shouldShowPointer, pointerScreenPosition);
+            mGameView.UpdatePointerVisual(shouldShowPointer, pointerScreenPositionOrNull);
         }
 
-        private bool updatePointerActivationGuard(Vector2? pointerScreenPosition)
+        private bool updatePointerActivationGuard(Vector2? pointerScreenPositionOrNull)
         {
-            if (pointerScreenPosition.HasValue == false)
+            if (pointerScreenPositionOrNull.HasValue == false)
             {
                 mWasPointerAvailableLastFrame = false;
                 mPointerReacquireGuardRemainingSeconds = 0.0f;
@@ -113,11 +113,11 @@ namespace MouthOfTruth.Game.App
             Cursor.lockState = CursorLockMode.None;
         }
 
-        private void updateHandPromptDismissal(Vector2? pointerScreenPosition)
+        private void updateHandPromptDismissal(Vector2? pointerScreenPositionOrNull)
         {
-            if (mPointerPresentationOverrideRemainingSeconds > 0.0f || pointerScreenPosition.HasValue == false)
+            if (mPointerPresentationOverrideRemainingSeconds > 0.0f || pointerScreenPositionOrNull.HasValue == false)
             {
-                mHandPromptDismissalBaselineScreenPosition = null;
+                mHandPromptDismissalBaselineScreenPositionOrNull = null;
                 return;
             }
 
@@ -126,14 +126,14 @@ namespace MouthOfTruth.Game.App
                 return;
             }
 
-            if (mHandPromptDismissalBaselineScreenPosition.HasValue == false)
+            if (mHandPromptDismissalBaselineScreenPositionOrNull.HasValue == false)
             {
-                mHandPromptDismissalBaselineScreenPosition = pointerScreenPosition.Value;
+                mHandPromptDismissalBaselineScreenPositionOrNull = pointerScreenPositionOrNull.Value;
                 return;
             }
 
             float dismissalMovementThresholdPixels = Mathf.Max(HAND_PROMPT_DISMISS_MOVEMENT_MIN_PIXELS, Screen.height * HAND_PROMPT_DISMISS_MOVEMENT_SCREEN_HEIGHT_FACTOR);
-            float pointerMovementPixels = Vector2.Distance(mHandPromptDismissalBaselineScreenPosition.Value, pointerScreenPosition.Value);
+            float pointerMovementPixels = Vector2.Distance(mHandPromptDismissalBaselineScreenPositionOrNull.Value, pointerScreenPositionOrNull.Value);
 
             if (pointerMovementPixels < dismissalMovementThresholdPixels)
             {
@@ -146,7 +146,7 @@ namespace MouthOfTruth.Game.App
 
         private void resetHandPromptDismissalTracking()
         {
-            mHandPromptDismissalBaselineScreenPosition = null;
+            mHandPromptDismissalBaselineScreenPositionOrNull = null;
             mHasDismissedHandPromptByMovement = false;
         }
 
@@ -157,19 +157,19 @@ namespace MouthOfTruth.Game.App
             mWasPointerAvailableLastFrame = false;
             mPointerReacquireGuardRemainingSeconds = 0.0f;
             mPointerPresentationOverrideRemainingSeconds = 0.0f;
-            mPresentedPointerScreenPosition = null;
+            mPresentedPointerScreenPositionOrNull = null;
             resetPointerPresentationRebase();
             resetHandPromptDismissalTracking();
             mGameStateMachine?.ResetCardSelectionHover();
             mGameView.UpdateActionButtonHoverVisual(null, 0.0f);
         }
 
-        private Vector2? getPresentedPointerScreenPosition(Vector2? pointerScreenPosition)
+        private Vector2? getPresentedPointerScreenPositionOrNull(Vector2? pointerScreenPositionOrNull)
         {
             if (mPointerPresentationOverrideRemainingSeconds > 0.0f)
             {
                 mPointerPresentationOverrideRemainingSeconds = Mathf.Max(0.0f, mPointerPresentationOverrideRemainingSeconds - Time.deltaTime);
-                mPresentedPointerScreenPosition = getBottomCenterPointerScreenPosition();
+                mPresentedPointerScreenPositionOrNull = getBottomCenterPointerScreenPosition();
                 warpSystemPointerToBottomCenter();
 
                 if (mPointerPresentationOverrideRemainingSeconds <= 0.0f)
@@ -178,12 +178,12 @@ namespace MouthOfTruth.Game.App
                     mIsPointerPresentationRebaseActive = false;
                 }
 
-                return mPresentedPointerScreenPosition;
+                return mPresentedPointerScreenPositionOrNull;
             }
 
-            if (pointerScreenPosition.HasValue == false)
+            if (pointerScreenPositionOrNull.HasValue == false)
             {
-                mPresentedPointerScreenPosition = null;
+                mPresentedPointerScreenPositionOrNull = null;
                 if (mIsPointerPresentationRebaseActive)
                 {
                     mIsPointerPresentationRebaseActive = false;
@@ -195,17 +195,17 @@ namespace MouthOfTruth.Game.App
 
             if (mShouldRebasePointerAfterPresentationOverride)
             {
-                beginPointerPresentationRebase(pointerScreenPosition.Value, getBottomCenterPointerScreenPosition());
+                beginPointerPresentationRebase(pointerScreenPositionOrNull.Value, getBottomCenterPointerScreenPosition());
             }
 
-            mPresentedPointerScreenPosition = mIsPointerPresentationRebaseActive ? getRebasedPointerScreenPosition(pointerScreenPosition.Value) : pointerScreenPosition.Value;
-            return mPresentedPointerScreenPosition;
+            mPresentedPointerScreenPositionOrNull = mIsPointerPresentationRebaseActive ? getRebasedPointerScreenPosition(pointerScreenPositionOrNull.Value) : pointerScreenPositionOrNull.Value;
+            return mPresentedPointerScreenPositionOrNull;
         }
 
         private void beginBottomCenterPointerSettle(float durationSeconds = POST_CARD_SELECTION_POINTER_SETTLE_SECONDS)
         {
             mPointerPresentationOverrideRemainingSeconds = Mathf.Max(0.0f, durationSeconds);
-            mPresentedPointerScreenPosition = getBottomCenterPointerScreenPosition();
+            mPresentedPointerScreenPositionOrNull = getBottomCenterPointerScreenPosition();
             mShouldRebasePointerAfterPresentationOverride = mPointerPresentationOverrideRemainingSeconds > 0.0f;
             mIsPointerPresentationRebaseActive = false;
             warpSystemPointerToBottomCenter();

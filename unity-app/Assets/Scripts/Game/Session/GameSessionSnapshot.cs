@@ -5,13 +5,13 @@ namespace MouthOfTruth.Game.Session
 {
     public class GameSessionSnapshot
     {
-        public GameSessionSnapshot(EGameFlowState currentState, QuestionRoundSelection currentRoundSelection, EQuestionCardSlot? selectedQuestionCardSlot, QuestionDefinition selectedQuestionDefinition, EVerdictKind? currentVerdictKind, string currentAnswerTranscript, float hoveredCardDwellSeconds, float elapsedAnswerSeconds, float elapsedSilenceSeconds)
+        public GameSessionSnapshot(EGameFlowState currentState, QuestionRoundSelection currentRoundSelection, EQuestionCardSlot? selectedQuestionCardSlotOrNull, QuestionDefinition selectedQuestionDefinition, EVerdictKind? currentVerdictKindOrNull, string currentAnswerTranscript, float hoveredCardDwellSeconds, float elapsedAnswerSeconds, float elapsedSilenceSeconds)
         {
             CurrentState = currentState;
             CurrentRoundSelection = currentRoundSelection;
-            SelectedQuestionCardSlot = selectedQuestionCardSlot;
+            SelectedQuestionCardSlotOrNull = selectedQuestionCardSlotOrNull;
             SelectedQuestionDefinition = selectedQuestionDefinition;
-            CurrentVerdictKind = currentVerdictKind;
+            CurrentVerdictKindOrNull = currentVerdictKindOrNull;
             CurrentAnswerTranscript = currentAnswerTranscript;
             HoveredCardDwellSeconds = hoveredCardDwellSeconds;
             ElapsedAnswerSeconds = elapsedAnswerSeconds;
@@ -22,11 +22,11 @@ namespace MouthOfTruth.Game.Session
 
         public QuestionRoundSelection CurrentRoundSelection { get; }
 
-        public EQuestionCardSlot? SelectedQuestionCardSlot { get; }
+        public EQuestionCardSlot? SelectedQuestionCardSlotOrNull { get; }
 
         public QuestionDefinition SelectedQuestionDefinition { get; }
 
-        public EVerdictKind? CurrentVerdictKind { get; }
+        public EVerdictKind? CurrentVerdictKindOrNull { get; }
 
         public string CurrentAnswerTranscript { get; }
 

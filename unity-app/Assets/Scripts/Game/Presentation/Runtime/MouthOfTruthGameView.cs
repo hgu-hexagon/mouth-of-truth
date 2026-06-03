@@ -186,12 +186,12 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private AudioClip mResultUncertainClip;
         private Font mUiFont;
         private Font mKoreanFallbackFont;
-        private EQuestionCardSlot? mLastAudibleHoveredCardSlot;
+        private EQuestionCardSlot? mLastAudibleHoveredCardSlotOrNull;
         private Camera mWorldCamera;
         private CardPresentationAnchorSet mCardPresentationAnchorSet;
         private MouthAnchorSet mMouthAnchorSet;
         private bool mUseWorldEnvironmentLayout;
-        private EUiActionTarget? mLastHoveredUiActionTarget;
+        private EUiActionTarget? mLastHoveredUiActionTargetOrNull;
         private bool mIsAnsweringPresentationActive;
         private bool mIsAnalyzingPresentationActive;
         private bool mIsHandPromptPanelDismissalActive;
@@ -350,8 +350,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setText(mPromptText, string.Empty);
             setText(mStatusText, string.Empty);
             setText(mAnswerTimerText, string.Empty);
-            mLastAudibleHoveredCardSlot = null;
-            mLastHoveredUiActionTarget = null;
+            mLastAudibleHoveredCardSlotOrNull = null;
+            mLastHoveredUiActionTargetOrNull = null;
             mLastCardHoverCueTimeSeconds = -999.0f;
             refreshWorldPresentationLayout();
             ensureAmbiencePlayback();
@@ -413,8 +413,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setText(mPromptText, "원하는 카드를 손으로 선택하세요.");
             setText(mStatusText, string.Empty);
             setText(mAnswerTimerText, string.Empty);
-            mLastAudibleHoveredCardSlot = null;
-            mLastHoveredUiActionTarget = null;
+            mLastAudibleHoveredCardSlotOrNull = null;
+            mLastHoveredUiActionTargetOrNull = null;
             mLastCardHoverCueTimeSeconds = -999.0f;
         }
 
@@ -463,24 +463,24 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             setObjectActive(mPromptText, true);
         }
 
-        public void UpdateCardHoverVisual(EQuestionCardSlot? hoveredQuestionCardSlot, float hoverProgress)
+        public void UpdateCardHoverVisual(EQuestionCardSlot? hoveredQuestionCardSlotOrNull, float hoverProgress)
         {
-            if (hoveredQuestionCardSlot != mLastAudibleHoveredCardSlot)
+            if (hoveredQuestionCardSlotOrNull != mLastAudibleHoveredCardSlotOrNull)
             {
                 bool hasEnoughCardHoverAudioGap = Time.unscaledTime - mLastCardHoverCueTimeSeconds >= CARD_HOVER_AUDIO_COOLDOWN_SECONDS;
 
-                if (hoveredQuestionCardSlot.HasValue && hasEnoughCardHoverAudioGap)
+                if (hoveredQuestionCardSlotOrNull.HasValue && hasEnoughCardHoverAudioGap)
                 {
                     mLastCardHoverCueTimeSeconds = Time.unscaledTime;
                     playInterfaceCue(mCardHoverClip, 0.32f);
                 }
 
-                mLastAudibleHoveredCardSlot = hoveredQuestionCardSlot;
+                mLastAudibleHoveredCardSlotOrNull = hoveredQuestionCardSlotOrNull;
             }
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
             {
-                bool isHovered = hoveredQuestionCardSlot == pair.Key;
+                bool isHovered = hoveredQuestionCardSlotOrNull == pair.Key;
                 pair.Value.SetVisualState(false, false, isHovered ? hoverProgress : 0.0f);
             }
         }
@@ -499,7 +499,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         public Vector2 GetQuestionCardScreenCenter(EQuestionCardSlot questionCardSlot)
         {
-            if (mCardViews.TryGetValue(questionCardSlot, out QuestionCardView questionCardView) == false)
+            QuestionCardView questionCardView;
+            if (mCardViews.TryGetValue(questionCardSlot, out questionCardView) == false)
             {
                 return new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
             }
@@ -863,128 +864,128 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private async Task loadSpritesAsync()
         {
-            mCardBackSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.QuestionCardBackPath);
+            mCardBackSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.QuestionCardBackPath);
             if (mCardBackSprite == null)
             {
                 mCardBackSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.43f, 0.63f, 0.95f, 1.0f));
             }
 
-            mCardFrontSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.QuestionCardFrontPath);
+            mCardFrontSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.QuestionCardFrontPath);
             if (mCardFrontSprite == null)
             {
                 mCardFrontSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.96f, 0.93f, 0.88f, 1.0f));
             }
 
-            mButtonFrameSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.PrimaryButtonFramePath);
+            mButtonFrameSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.PrimaryButtonFramePath);
             if (mButtonFrameSprite == null)
             {
                 mButtonFrameSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.38f, 0.21f, 0.11f, 1.0f));
             }
 
-            mStartButtonSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.StartButtonPath);
+            mStartButtonSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.StartButtonPath);
             if (mStartButtonSprite == null)
             {
                 mStartButtonSprite = mButtonFrameSprite;
             }
 
-            mTryAgainButtonSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TryAgainButtonPath);
+            mTryAgainButtonSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.TryAgainButtonPath);
             if (mTryAgainButtonSprite == null)
             {
                 mTryAgainButtonSprite = mButtonFrameSprite;
             }
 
-            mEndGameButtonSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.EndGameButtonPath);
+            mEndGameButtonSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.EndGameButtonPath);
             if (mEndGameButtonSprite == null)
             {
                 mEndGameButtonSprite = mButtonFrameSprite;
             }
 
-            mExitIconButtonSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.ExitIconButtonPath);
+            mExitIconButtonSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.ExitIconButtonPath);
             if (mExitIconButtonSprite == null)
             {
                 mExitIconButtonSprite = mButtonFrameSprite;
             }
 
             mPointerCursorSprite = createPointerCursorSprite();
-            mRitualHandSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.RitualHandInsertPath);
+            mRitualHandSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.RitualHandInsertPath);
             if (mRitualHandSprite == null)
             {
                 mRitualHandSprite = mPointerCursorSprite;
             }
 
-            mLeapMotionDeviceSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.LeapMotionDevicePath);
+            mLeapMotionDeviceSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.LeapMotionDevicePath);
             if (mLeapMotionDeviceSprite == null)
             {
                 mLeapMotionDeviceSprite = RuntimeSpriteLoader.CreateSolidSprite(Color.clear);
             }
 
-            mVerdictTrueSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TrueVerdictPath);
+            mVerdictTrueSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.TrueVerdictPath);
             if (mVerdictTrueSprite == null)
             {
                 mVerdictTrueSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.45f, 0.80f, 0.54f, 1.0f));
             }
 
-            mVerdictFalseSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.FalseVerdictPath);
+            mVerdictFalseSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.FalseVerdictPath);
             if (mVerdictFalseSprite == null)
             {
                 mVerdictFalseSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.84f, 0.38f, 0.43f, 1.0f));
             }
 
-            mVerdictUncertainSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.UncertainVerdictPath);
+            mVerdictUncertainSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.UncertainVerdictPath);
             if (mVerdictUncertainSprite == null)
             {
                 mVerdictUncertainSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.80f, 0.69f, 0.36f, 1.0f));
             }
 
-            mTitleVignetteSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TitleVignettePath);
+            mTitleVignetteSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.TitleVignettePath);
             if (mTitleVignetteSprite == null)
             {
                 mTitleVignetteSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.0f, 0.0f, 0.0f, 0.30f));
             }
 
-            mQuestionPanelSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.QuestionPanelFramePath);
+            mQuestionPanelSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.QuestionPanelFramePath);
             if (mQuestionPanelSprite == null)
             {
                 mQuestionPanelSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.15f, 0.10f, 0.07f, 0.90f));
             }
 
-            mStatusPanelSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.StatusPanelFramePath);
+            mStatusPanelSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.StatusPanelFramePath);
             if (mStatusPanelSprite == null)
             {
                 mStatusPanelSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.08f, 0.05f, 0.03f, 0.76f));
             }
 
-            mResultPanelSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.ResultPanelFramePath);
+            mResultPanelSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.ResultPanelFramePath);
             if (mResultPanelSprite == null)
             {
                 mResultPanelSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.17f, 0.10f, 0.08f, 0.90f));
             }
 
-            mCardGlowSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.CardSelectionGlowPath);
+            mCardGlowSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.CardSelectionGlowPath);
             if (mCardGlowSprite == null)
             {
                 mCardGlowSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.90f, 0.72f, 0.25f, 0.35f));
             }
 
-            mDwellFillSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.CardSelectionProgressFillPath);
+            mDwellFillSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.CardSelectionProgressFillPath);
             if (mDwellFillSprite == null)
             {
                 mDwellFillSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.95f, 0.82f, 0.33f, 0.95f));
             }
 
-            mTitleBackgroundSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TitleBackgroundPath);
+            mTitleBackgroundSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.TitleBackgroundPath);
             if (mTitleBackgroundSprite == null)
             {
                 mTitleBackgroundSprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.12f, 0.09f, 0.07f, 1.0f));
             }
 
-            mCardSelectionBackgroundSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.CardSelectionBackgroundPath);
+            mCardSelectionBackgroundSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.CardSelectionBackgroundPath);
             if (mCardSelectionBackgroundSprite == null)
             {
                 mCardSelectionBackgroundSprite = mTitleBackgroundSprite;
             }
 
-            mMouthChamberBackgroundSprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.MouthChamberBackgroundPath);
+            mMouthChamberBackgroundSprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.MouthChamberBackgroundPath);
             if (mMouthChamberBackgroundSprite == null)
             {
                 mMouthChamberBackgroundSprite = mCardSelectionBackgroundSprite == null
@@ -992,19 +993,19 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     : mCardSelectionBackgroundSprite;
             }
 
-            mCarpetImage.sprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.FloorRunnerPath);
+            mCarpetImage.sprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.FloorRunnerPath);
             if (mCarpetImage.sprite == null)
             {
                 mCarpetImage.sprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.44f, 0.03f, 0.05f, 1.0f));
             }
 
-            mLogoImage.sprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TitleLogoPath);
+            mLogoImage.sprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.TitleLogoPath);
             if (mLogoImage.sprite == null)
             {
                 mLogoImage.sprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.82f, 0.71f, 0.52f, 1.0f));
             }
 
-            mMouthImage.sprite = await RuntimeSpriteLoader.LoadSpriteAsync(MouthOfTruthAssetCatalog.TruthMouthFacePath);
+            mMouthImage.sprite = await RuntimeSpriteLoader.LoadSpriteOrNullAsync(MouthOfTruthAssetCatalog.TruthMouthFacePath);
             if (mMouthImage.sprite == null)
             {
                 mMouthImage.sprite = RuntimeSpriteLoader.CreateSolidSprite(new Color(0.85f, 0.83f, 0.78f, 1.0f));
@@ -1175,19 +1176,23 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             }
 
             Transform anchorTransform = mCardPresentationAnchorSet.GetAnchor(questionCardSlot);
-            return tryProjectWorldAnchor(anchorTransform, fallbackPosition, out Vector2 anchoredPosition)
+            Vector2 anchoredPosition;
+            return tryProjectWorldAnchor(anchorTransform, fallbackPosition, out anchoredPosition)
                 ? anchoredPosition
                 : fallbackPosition;
         }
 
         private Vector2 getMouthAnchorPosition()
         {
-            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out _))
+            Vector2 mouthCenter;
+            Vector2 ignoredMouthSize;
+            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out mouthCenter, out ignoredMouthSize))
             {
                 return mouthCenter;
             }
 
-            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.TruthMouth : null, FALLBACK_MOUTH_POSITION, out Vector2 anchoredPosition)
+            Vector2 anchoredPosition;
+            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.TruthMouth : null, FALLBACK_MOUTH_POSITION, out anchoredPosition)
                 ? anchoredPosition
                 : FALLBACK_MOUTH_POSITION;
         }
@@ -1206,24 +1211,30 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
         private Vector2 getHandFrontPosition()
         {
-            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
+            Vector2 mouthCenter;
+            Vector2 mouthSize;
+            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out mouthCenter, out mouthSize))
             {
                 return mouthCenter + new Vector2(mouthSize.x * TEMPLE_HAND_FRONT_OFFSET_FACTOR.x, mouthSize.y * TEMPLE_HAND_FRONT_OFFSET_FACTOR.y);
             }
 
-            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.MouthFrontAnchor : null, FALLBACK_HAND_FRONT_POSITION, out Vector2 anchoredPosition)
+            Vector2 anchoredPosition;
+            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.MouthFrontAnchor : null, FALLBACK_HAND_FRONT_POSITION, out anchoredPosition)
                 ? anchoredPosition
                 : FALLBACK_HAND_FRONT_POSITION;
         }
 
         private Vector2 getHandInnerPosition()
         {
-            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out Vector2 mouthCenter, out Vector2 mouthSize))
+            Vector2 mouthCenter;
+            Vector2 mouthSize;
+            if (isTempleApproachSceneActive() && tryGetActiveStageMouthLayout(out mouthCenter, out mouthSize))
             {
                 return mouthCenter + new Vector2(mouthSize.x * TEMPLE_HAND_INNER_OFFSET_FACTOR.x, mouthSize.y * TEMPLE_HAND_INNER_OFFSET_FACTOR.y);
             }
 
-            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.MouthInnerAnchor : null, FALLBACK_HAND_INNER_POSITION, out Vector2 anchoredPosition)
+            Vector2 anchoredPosition;
+            return tryProjectWorldAnchor(mMouthAnchorSet != null ? mMouthAnchorSet.MouthInnerAnchor : null, FALLBACK_HAND_INNER_POSITION, out anchoredPosition)
                 ? anchoredPosition
                 : FALLBACK_HAND_INNER_POSITION;
         }

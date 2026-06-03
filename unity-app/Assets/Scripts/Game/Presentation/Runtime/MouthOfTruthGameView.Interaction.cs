@@ -14,9 +14,9 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             _ = elapsedSilenceSeconds;
         }
 
-        public EQuestionCardSlot? GetHoveredQuestionCardSlot(Vector2? pointerScreenPosition)
+        public EQuestionCardSlot? GetHoveredQuestionCardSlotOrNull(Vector2? pointerScreenPositionOrNull)
         {
-            if (pointerScreenPosition.HasValue)
+            if (pointerScreenPositionOrNull.HasValue)
             {
                 foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
                 {
@@ -25,13 +25,13 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         continue;
                     }
 
-                    if (isScreenPointOverRectTransform(pair.Value.RectTransform, pointerScreenPosition.Value))
+                    if (isScreenPointOverRectTransform(pair.Value.RectTransform, pointerScreenPositionOrNull.Value))
                     {
                         return pair.Key;
                     }
                 }
 
-                return EvaluateQuestionCardIntentSlot(pointerScreenPosition.Value, Screen.width, Screen.height);
+                return EvaluateQuestionCardIntentSlotOrNull(pointerScreenPositionOrNull.Value, Screen.width, Screen.height);
             }
 
             foreach (KeyValuePair<EQuestionCardSlot, QuestionCardView> pair in mCardViews)
@@ -45,14 +45,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return null;
         }
 
-        public EUiActionTarget? GetHoveredUiActionTarget(Vector2? pointerScreenPosition)
+        public EUiActionTarget? GetHoveredUiActionTargetOrNull(Vector2? pointerScreenPositionOrNull)
         {
-            if (pointerScreenPosition.HasValue == false)
+            if (pointerScreenPositionOrNull.HasValue == false)
             {
                 return null;
             }
 
-            Vector2 screenPosition = pointerScreenPosition.Value;
+            Vector2 screenPosition = pointerScreenPositionOrNull.Value;
 
             if (isScreenPointOverButton(mStartButton, screenPosition, BUTTON_INTENT_EXPANSION_PIXELS))
             {
@@ -77,27 +77,28 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return null;
         }
 
-        public void UpdateActionButtonHoverVisual(EUiActionTarget? hoveredUiActionTarget, float hoverProgress)
+        public void UpdateActionButtonHoverVisual(EUiActionTarget? hoveredUiActionTargetOrNull, float hoverProgress)
         {
-            if (hoveredUiActionTarget != mLastHoveredUiActionTarget)
+            if (hoveredUiActionTargetOrNull != mLastHoveredUiActionTargetOrNull)
             {
-                mLastHoveredUiActionTarget = hoveredUiActionTarget;
+                mLastHoveredUiActionTargetOrNull = hoveredUiActionTargetOrNull;
             }
 
-            updateButtonVisual(mStartButton, hoveredUiActionTarget == EUiActionTarget.StartGame, hoverProgress);
-            updateButtonVisual(mTryAgainButton, hoveredUiActionTarget == EUiActionTarget.TryAgain, hoverProgress);
-            updateButtonVisual(mExitButton, hoveredUiActionTarget == EUiActionTarget.ExitGame, hoverProgress);
-            updateButtonVisual(mBackToTitleButton, hoveredUiActionTarget == EUiActionTarget.BackToTitle, hoverProgress);
+            updateButtonVisual(mStartButton, hoveredUiActionTargetOrNull == EUiActionTarget.StartGame, hoverProgress);
+            updateButtonVisual(mTryAgainButton, hoveredUiActionTargetOrNull == EUiActionTarget.TryAgain, hoverProgress);
+            updateButtonVisual(mExitButton, hoveredUiActionTargetOrNull == EUiActionTarget.ExitGame, hoverProgress);
+            updateButtonVisual(mBackToTitleButton, hoveredUiActionTargetOrNull == EUiActionTarget.BackToTitle, hoverProgress);
         }
 
-        public EHandAnchorState GetHandAnchorState(Vector2? pointerScreenPosition)
+        public EHandAnchorState GetHandAnchorState(Vector2? pointerScreenPositionOrNull)
         {
-            if (pointerScreenPosition.HasValue == false)
+            if (pointerScreenPositionOrNull.HasValue == false)
             {
                 return EHandAnchorState.OutsideMouth;
             }
 
-            if (tryConvertScreenPointToCanvasPosition(pointerScreenPosition.Value, out Vector2 pointerCanvasPosition) == false)
+            Vector2 pointerCanvasPosition;
+            if (tryConvertScreenPointToCanvasPosition(pointerScreenPositionOrNull.Value, out pointerCanvasPosition) == false)
             {
                 return EHandAnchorState.OutsideMouth;
             }
@@ -121,7 +122,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return EvaluateMouthIntentAnchorState(pointerCanvasPosition, handFrontPosition, handInnerPosition, mouthDiameterPixels);
         }
 
-        public static EQuestionCardSlot? EvaluateQuestionCardIntentSlot(Vector2 screenPosition, float screenWidth, float screenHeight)
+        public static EQuestionCardSlot? EvaluateQuestionCardIntentSlotOrNull(Vector2 screenPosition, float screenWidth, float screenHeight)
         {
             if (screenWidth <= 0.0f || screenHeight <= 0.0f)
             {
@@ -202,20 +203,21 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             return new Vector2(0.0f, Mathf.Max(1.0f, mouthDiameterPixels) * HAND_DETECTION_VERTICAL_OFFSET_FACTOR);
         }
 
-        public void UpdatePointerVisual(bool isVisible, Vector2? pointerScreenPosition)
+        public void UpdatePointerVisual(bool isVisible, Vector2? pointerScreenPositionOrNull)
         {
             if (mPointerImage == null)
             {
                 return;
             }
 
-            if (isVisible == false || pointerScreenPosition.HasValue == false)
+            if (isVisible == false || pointerScreenPositionOrNull.HasValue == false)
             {
                 setObjectActive(mPointerImage, false);
                 return;
             }
 
-            if (tryConvertScreenPointToCanvasPosition(pointerScreenPosition.Value, out Vector2 anchoredPosition) == false)
+            Vector2 anchoredPosition;
+            if (tryConvertScreenPointToCanvasPosition(pointerScreenPositionOrNull.Value, out anchoredPosition) == false)
             {
                 setObjectActive(mPointerImage, false);
                 return;

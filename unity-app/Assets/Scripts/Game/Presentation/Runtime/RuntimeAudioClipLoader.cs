@@ -11,7 +11,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         private const int PCM_AUDIO_FORMAT = 1;
         private const int EXTENSIBLE_AUDIO_FORMAT = 0xFFFE;
 
-        public static Task<AudioClip> LoadClipAsync(string filePath)
+        public static Task<AudioClip> LoadClipOrNullAsync(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath) || File.Exists(filePath) == false)
             {

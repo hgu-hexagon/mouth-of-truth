@@ -43,7 +43,7 @@ namespace MouthOfTruth.Editor
             Scene sourceScene = EditorSceneManager.OpenScene(DUNGEON_DEMO_SCENE_PATH, OpenSceneMode.Single);
             Transform sourceEnvironmentRoot = findRequiredRoot(sourceScene, "Models");
             Bounds sourceEnvironmentBounds = calculateCombinedBounds(sourceEnvironmentRoot);
-            Camera sourceSceneCamera = findSourceSceneCamera(sourceScene);
+            Camera sourceSceneCamera = findSourceSceneCameraOrNull(sourceScene);
             SourceSceneCameraLayout sourceSceneCameraLayout = captureSourceSceneCameraLayout(sourceSceneCamera);
             Vector3 sourceSceneForward = getProjectedHorizontalForward(sourceSceneCamera, sourceEnvironmentBounds.center);
             List<GameObject> sourceSceneRootClones = cloneSourceSceneRoots(sourceScene);
@@ -108,7 +108,7 @@ namespace MouthOfTruth.Editor
             }
         }
 
-        private static Camera findSourceSceneCamera(Scene sourceScene)
+        private static Camera findSourceSceneCameraOrNull(Scene sourceScene)
         {
             foreach (GameObject rootGameObject in sourceScene.GetRootGameObjects())
             {
@@ -376,7 +376,7 @@ namespace MouthOfTruth.Editor
 
         private static void createStageRunner(Transform parentTransform, Bounds environmentBounds, CorridorAxes corridorAxes, float floorY, Vector3 stageBasePosition)
         {
-            Material runnerMaterial = getOrCreateRunnerMaterial();
+            Material runnerMaterial = getOrCreateRunnerMaterialOrNull();
 
             if (runnerMaterial == null)
             {
@@ -401,12 +401,12 @@ namespace MouthOfTruth.Editor
             runnerObject.GetComponent<Renderer>().sharedMaterial = runnerMaterial;
         }
 
-        private static Material getOrCreateRunnerMaterial()
+        private static Material getOrCreateRunnerMaterialOrNull()
         {
             ensureFolderHierarchy(GENERATED_MATERIAL_DIRECTORY_PATH);
             Material material = AssetDatabase.LoadAssetAtPath<Material>(RED_RUNNER_MATERIAL_PATH);
             Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(RED_RUNNER_TEXTURE_PATH);
-            Shader shader = findFirstAvailableShader(
+            Shader shader = findFirstAvailableShaderOrNull(
                 new[]
                 {
                     "Universal Render Pipeline/Lit",
@@ -495,6 +495,9 @@ namespace MouthOfTruth.Editor
                         light.shadows = LightShadows.Soft;
                         light.shadowStrength = 0.50f;
                         break;
+
+                    default:
+                        break;
                 }
 
                 EditorUtility.SetDirty(light);
@@ -562,7 +565,8 @@ namespace MouthOfTruth.Editor
                         continue;
                     }
 
-                    if (sanitizedMaterialsBySource.TryGetValue(sourceMaterial, out Material sanitizedMaterial) == false)
+                    Material sanitizedMaterial;
+                    if (sanitizedMaterialsBySource.TryGetValue(sourceMaterial, out sanitizedMaterial) == false)
                     {
                         sanitizedMaterial = getOrCreateSafeMaterial(sourceMaterial);
                         sanitizedMaterialsBySource[sourceMaterial] = sanitizedMaterial;
@@ -580,7 +584,7 @@ namespace MouthOfTruth.Editor
             }
         }
 
-        private static Shader findFirstAvailableShader(IReadOnlyList<string> shaderNames)
+        private static Shader findFirstAvailableShaderOrNull(IReadOnlyList<string> shaderNames)
         {
             foreach (string shaderName in shaderNames)
             {
@@ -611,7 +615,7 @@ namespace MouthOfTruth.Editor
 
             string sanitizedMaterialAssetPath = $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
             string existingMaterialAssetPath = $"{GENERATED_MATERIAL_DIRECTORY_PATH}/{sourceMaterial.name}_SceneSafe.mat";
-            Shader safeShader = findFirstAvailableShader(
+            Shader safeShader = findFirstAvailableShaderOrNull(
                 new[]
                 {
                     "Universal Render Pipeline/Unlit",
@@ -651,7 +655,7 @@ namespace MouthOfTruth.Editor
                 return;
             }
 
-            Texture baseTexture = getFirstAvailableTexture(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
+            Texture baseTexture = getFirstAvailableTextureOrNull(sourceMaterial, "_BaseMap", "_MainTex", "_BaseColorMap");
 
             if (baseTexture != null && safeMaterial.HasProperty("_BaseMap"))
             {
@@ -678,7 +682,7 @@ namespace MouthOfTruth.Editor
             EditorUtility.SetDirty(safeMaterial);
         }
 
-        private static Texture getFirstAvailableTexture(Material material, params string[] propertyNames)
+        private static Texture getFirstAvailableTextureOrNull(Material material, params string[] propertyNames)
         {
             foreach (string propertyName in propertyNames)
             {

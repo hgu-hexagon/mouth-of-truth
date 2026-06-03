@@ -269,32 +269,32 @@ namespace MouthOfTruth.Game.App
 
         private async Task<EQuestionCardSlot> dwellSelectPresentationCardAsync(EQuestionCardSlot questionCardSlot)
         {
-            EQuestionCardSlot? confirmedQuestionCardSlot = null;
+            EQuestionCardSlot? confirmedQuestionCardSlotOrNull = null;
             float elapsedSeconds = 0.0f;
 
-            while (elapsedSeconds < CARD_SELECTION_DWELL_SECONDS && confirmedQuestionCardSlot.HasValue == false)
+            while (elapsedSeconds < CARD_SELECTION_DWELL_SECONDS && confirmedQuestionCardSlotOrNull.HasValue == false)
             {
                 float deltaSeconds = Mathf.Max(Time.deltaTime, 1.0f / 60.0f);
                 elapsedSeconds = Mathf.Min(CARD_SELECTION_DWELL_SECONDS, elapsedSeconds + deltaSeconds);
                 mGameView.UpdatePointerVisual(false, null);
                 mGameView.UpdateCardHoverVisual(questionCardSlot, Mathf.Clamp01(elapsedSeconds / CARD_SELECTION_DWELL_SECONDS));
-                confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(questionCardSlot, deltaSeconds);
+                confirmedQuestionCardSlotOrNull = mGameStateMachine.UpdateCardSelectionOrNull(questionCardSlot, deltaSeconds);
                 await Task.Yield();
             }
 
-            if (confirmedQuestionCardSlot.HasValue == false)
+            if (confirmedQuestionCardSlotOrNull.HasValue == false)
             {
-                confirmedQuestionCardSlot = mGameStateMachine.UpdateCardSelection(questionCardSlot, 1.0f / 60.0f);
+                confirmedQuestionCardSlotOrNull = mGameStateMachine.UpdateCardSelectionOrNull(questionCardSlot, 1.0f / 60.0f);
             }
 
-            if (confirmedQuestionCardSlot.HasValue == false)
+            if (confirmedQuestionCardSlotOrNull.HasValue == false)
             {
                 throw new InvalidOperationException("Presentation capture could not confirm the center card.");
             }
 
             mGameView.UpdatePointerVisual(false, null);
             mGameView.UpdateCardHoverVisual(questionCardSlot, 1.0f);
-            return confirmedQuestionCardSlot.Value;
+            return confirmedQuestionCardSlotOrNull.Value;
         }
     }
 }

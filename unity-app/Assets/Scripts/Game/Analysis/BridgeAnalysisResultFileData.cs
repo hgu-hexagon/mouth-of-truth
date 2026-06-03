@@ -3,8 +3,9 @@ using System;
 namespace MouthOfTruth.Game.Analysis
 {
     [Serializable]
-    public class BridgeAnalysisResultFileData
+    internal sealed class BridgeAnalysisResultFileData
     {
+        // JsonUtility maps fields by the Python bridge protocol keys.
         public string RequestID = string.Empty;
         public string Verdict = string.Empty;
         public string AnswerTranscript = string.Empty;

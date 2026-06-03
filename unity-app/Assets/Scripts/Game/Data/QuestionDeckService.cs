@@ -12,7 +12,7 @@ namespace MouthOfTruth.Game.Data
         private readonly List<QuestionDefinition> mAllEnabledQuestionDefinitions;
         private readonly Queue<QuestionDefinition> mRemainingQuestionDefinitions;
 
-        public QuestionDeckService(IReadOnlyList<QuestionDefinition> questionDefinitions, int? randomSeed = null)
+        public QuestionDeckService(IReadOnlyList<QuestionDefinition> questionDefinitions, int? randomSeedOrNull = null)
         {
             if (questionDefinitions == null)
             {
@@ -28,8 +28,8 @@ namespace MouthOfTruth.Game.Data
                 throw new InvalidOperationException("At least three enabled questions are required to start the game.");
             }
 
-            mRandom = randomSeed.HasValue
-                ? new Random(randomSeed.Value)
+            mRandom = randomSeedOrNull.HasValue
+                ? new Random(randomSeedOrNull.Value)
                 : new Random();
             mRemainingQuestionDefinitions = new Queue<QuestionDefinition>();
             refillDeckExcluding(Array.Empty<QuestionDefinition>());

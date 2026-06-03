@@ -148,7 +148,7 @@ namespace MouthOfTruth.Game.Input.Leap
             IsTrackingServiceConnected = leapController != null && leapController.IsServiceConnected;
             IsTrackingDeviceConnected = currentDevice != null || (leapController != null && leapController.Devices != null && leapController.Devices.ActiveDevices.Any());
 
-            Hand primaryHand = selectPrimaryHand(currentFrame);
+            Hand primaryHand = selectPrimaryHandOrNull(currentFrame);
 
             if (primaryHand == null)
             {
@@ -182,7 +182,7 @@ namespace MouthOfTruth.Game.Input.Leap
             logTrackingStateChangesIfNeeded();
         }
 
-        private Hand selectPrimaryHand(Frame currentFrame)
+        private Hand selectPrimaryHandOrNull(Frame currentFrame)
         {
             if (currentFrame == null || currentFrame.Hands == null || currentFrame.Hands.Count == 0)
             {

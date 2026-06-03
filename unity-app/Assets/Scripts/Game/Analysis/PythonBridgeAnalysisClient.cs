@@ -38,58 +38,58 @@ namespace MouthOfTruth.Game.Analysis
                 throw new ArgumentNullException(nameof(answerAnalysisRequest));
             }
 
-            Directory.CreateDirectory(PythonAnalysisBridgePaths.GetBridgeDirectoryPath());
-
-            string requestID = Guid.NewGuid().ToString("N");
-            BridgeAnalysisRequestFileData bridgeAnalysisRequestFileData =
-                new BridgeAnalysisRequestFileData
-                {
-                    RequestID = requestID,
-                    QuestionID = answerAnalysisRequest.QuestionDefinition.ID,
-                    QuestionText = answerAnalysisRequest.QuestionDefinition.Text,
-                    AnswerTranscript = answerAnalysisRequest.AnswerTranscript,
-                    AnswerAudioFilePath = buildRuntimeRelativePath(answerAnalysisRequest.AnswerAudioFilePath),
-                    FaceFramesDirectoryPath = buildRuntimeRelativePath(answerAnalysisRequest.FaceFramesDirectoryPath),
-                    FaceFrameCount = answerAnalysisRequest.FaceFrameCount,
-                    VoiceSegmentCount = answerAnalysisRequest.VoiceSegmentCount,
-                    RequestedAtUtc = DateTime.UtcNow.ToString("O"),
-                };
-
-            string requestJson = UnityEngine.JsonUtility.ToJson(bridgeAnalysisRequestFileData, true);
-            File.WriteAllText(PythonAnalysisBridgePaths.GetRequestFilePath(), requestJson);
-            deletePreviousResultIfPresent();
-
             await mAnalysisSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
+                Directory.CreateDirectory(PythonAnalysisBridgePaths.GetBridgeDirectoryPath());
+
+                string requestID = Guid.NewGuid().ToString("N");
+                BridgeAnalysisRequestFileData bridgeAnalysisRequestFileData =
+                    new BridgeAnalysisRequestFileData
+                    {
+                        RequestID = requestID,
+                        QuestionID = answerAnalysisRequest.QuestionDefinition.ID,
+                        QuestionText = answerAnalysisRequest.QuestionDefinition.Text,
+                        AnswerTranscript = answerAnalysisRequest.AnswerTranscript,
+                        AnswerAudioFilePath = buildRuntimeRelativePath(answerAnalysisRequest.AnswerAudioFilePath),
+                        FaceFramesDirectoryPath = buildRuntimeRelativePath(answerAnalysisRequest.FaceFramesDirectoryPath),
+                        FaceFrameCount = answerAnalysisRequest.FaceFrameCount,
+                        VoiceSegmentCount = answerAnalysisRequest.VoiceSegmentCount,
+                        RequestedAtUtc = DateTime.UtcNow.ToString("O"),
+                    };
+
+                string requestJson = UnityEngine.JsonUtility.ToJson(bridgeAnalysisRequestFileData, true);
+                File.WriteAllText(PythonAnalysisBridgePaths.GetRequestFilePath(), requestJson);
+                deletePreviousResultIfPresent();
+
                 await runPythonAnalysisAsync(cancellationToken).ConfigureAwait(false);
+
+                if (File.Exists(PythonAnalysisBridgePaths.GetResultFilePath()) == false)
+                {
+                    throw new FileNotFoundException("Python analysis finished without producing a result file.", PythonAnalysisBridgePaths.GetResultFilePath());
+                }
+
+                string resultJson = File.ReadAllText(PythonAnalysisBridgePaths.GetResultFilePath());
+                BridgeAnalysisResultFileData bridgeAnalysisResultFileData = UnityEngine.JsonUtility.FromJson<BridgeAnalysisResultFileData>(resultJson);
+
+                if (bridgeAnalysisResultFileData == null || bridgeAnalysisResultFileData.RequestID != requestID)
+                {
+                    throw new InvalidDataException("Python analysis returned an unexpected request identifier.");
+                }
+
+                string[] reasonCodes = bridgeAnalysisResultFileData.ReasonCodes;
+                if (reasonCodes == null)
+                {
+                    reasonCodes = Array.Empty<string>();
+                }
+
+                return new AnswerAnalysisResult(parseVerdictKind(bridgeAnalysisResultFileData.Verdict), bridgeAnalysisResultFileData.AnswerTranscript, reasonCodes);
             }
             finally
             {
                 mAnalysisSemaphore.Release();
             }
-
-            if (File.Exists(PythonAnalysisBridgePaths.GetResultFilePath()) == false)
-            {
-                throw new FileNotFoundException("Python analysis finished without producing a result file.", PythonAnalysisBridgePaths.GetResultFilePath());
-            }
-
-            string resultJson = File.ReadAllText(PythonAnalysisBridgePaths.GetResultFilePath());
-            BridgeAnalysisResultFileData bridgeAnalysisResultFileData = UnityEngine.JsonUtility.FromJson<BridgeAnalysisResultFileData>(resultJson);
-
-            if (bridgeAnalysisResultFileData == null || bridgeAnalysisResultFileData.RequestID != requestID)
-            {
-                throw new InvalidDataException("Python analysis returned an unexpected request identifier.");
-            }
-
-            string[] reasonCodes = bridgeAnalysisResultFileData.ReasonCodes;
-            if (reasonCodes == null)
-            {
-                reasonCodes = Array.Empty<string>();
-            }
-
-            return new AnswerAnalysisResult(parseVerdictKind(bridgeAnalysisResultFileData.Verdict), bridgeAnalysisResultFileData.AnswerTranscript, reasonCodes);
         }
 
         public void Dispose()

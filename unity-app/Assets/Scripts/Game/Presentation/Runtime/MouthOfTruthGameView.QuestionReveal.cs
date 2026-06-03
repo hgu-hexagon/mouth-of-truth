@@ -105,11 +105,10 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             bool isTempleApproachSceneVisible = mTempleApproachCameraObject != null;
             prepareCardLaunchPresentation(isTempleApproachSceneVisible);
             Vector2 launchStartPosition = selectedCardView.RectTransform.anchoredPosition;
-            float templeStartScale = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.localScale.x : 1.0f;
-            Vector2 templeStartPosition = isTempleApproachSceneVisible ? mTempleApproachCameraRectTransform.anchoredPosition : Vector2.zero;
-            Vector2 templeTargetPosition = isTempleApproachSceneVisible ? getTempleCameraPositionForCenteredMouth(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER) : Vector2.zero;
+            TempleCameraTransition templeCameraTransition = default;
             if (isTempleApproachSceneVisible)
             {
+                templeCameraTransition = captureTempleCameraTransition(TEMPLE_APPROACH_END_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
                 setTempleApproachMouthAlpha(CARD_SELECTION_DIM_MOUTH_ALPHA);
             }
             else
@@ -132,8 +131,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
                     if (isTempleApproachSceneVisible)
                     {
-                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_APPROACH_END_SCALE, cameraProgress);
-                        Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, cameraProgress);
+                        float cameraScale = templeCameraTransition.GetScale(TEMPLE_APPROACH_END_SCALE, cameraProgress);
+                        Vector2 cameraPosition = templeCameraTransition.GetPosition(cameraProgress);
                         float inhaleBob = Mathf.Sin(progress * Mathf.PI * 2.0f) * (1.0f - cameraProgress) * 1.2f;
                         setTempleCameraPose(cameraScale, cameraPosition.y + inhaleBob, cameraPosition.x);
                         float mouthRevealProgress = easeOut(Mathf.Clamp01(progress / 0.42f));

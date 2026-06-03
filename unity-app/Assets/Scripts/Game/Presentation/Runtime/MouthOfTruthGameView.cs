@@ -519,9 +519,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
 
             if (isTempleApproachSceneActive())
             {
-                float templeStartScale = mTempleApproachCameraRectTransform.localScale.x;
-                Vector2 templeStartPosition = mTempleApproachCameraRectTransform.anchoredPosition;
-                Vector2 templeTargetPosition = getTempleCameraPositionForCenteredMouth(TEMPLE_RESULT_FOCUS_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
+                TempleCameraTransition templeCameraTransition = captureTempleCameraTransition(TEMPLE_RESULT_FOCUS_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
 
                 await animateOverTimeAsync(
                     0.54f,
@@ -532,8 +530,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                         float shakeFalloff = 1.0f - easedProgress;
                         float residualShake = Mathf.Sin(progress * Mathf.PI * 7.0f) * shakeFalloff * 4.2f;
                         float residualVerticalShake = Mathf.Sin(progress * Mathf.PI * 8.0f) * shakeFalloff * 1.8f;
-                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_RESULT_FOCUS_SCALE, easedProgress) + (pulse * 0.020f);
-                        Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, easedProgress);
+                        float cameraScale = templeCameraTransition.GetScale(TEMPLE_RESULT_FOCUS_SCALE, easedProgress) + (pulse * 0.020f);
+                        Vector2 cameraPosition = templeCameraTransition.GetPosition(easedProgress);
                         setTempleCameraPose(cameraScale, cameraPosition.y + residualVerticalShake, cameraPosition.x + residualShake);
                         setOverlayTint(new Color(0.022f, 0.016f, 0.014f, 1.0f), Mathf.Lerp(0.39f, 0.38f, easedProgress));
                         setTempleApproachMouthColor(new Color(1.0f, 0.94f, 0.84f, Mathf.Lerp(0.90f, 1.0f, easedProgress)));
@@ -596,9 +594,7 @@ namespace MouthOfTruth.Game.Presentation.Runtime
         {
             if (isTempleApproachSceneActive())
             {
-                float templeStartScale = mTempleApproachCameraRectTransform.localScale.x;
-                Vector2 templeStartPosition = mTempleApproachCameraRectTransform.anchoredPosition;
-                Vector2 templeTargetPosition = getTempleCameraPositionForCenteredMouth(TEMPLE_ANSWER_FOCUS_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
+                TempleCameraTransition templeCameraTransition = captureTempleCameraTransition(TEMPLE_ANSWER_FOCUS_SCALE, TEMPLE_MOUTH_FOCUS_CENTER);
 
                 await animateOverTimeAsync(
                     MOUTH_JUDGEMENT_FOCUS_SECONDS * 1.28f,
@@ -606,8 +602,8 @@ namespace MouthOfTruth.Game.Presentation.Runtime
                     {
                         float easedProgress = easeInOut(progress);
                         float pulse = Mathf.Sin(progress * Mathf.PI);
-                        float cameraScale = Mathf.Lerp(templeStartScale, TEMPLE_ANSWER_FOCUS_SCALE, easedProgress) + (pulse * 0.018f);
-                        Vector2 cameraPosition = Vector2.Lerp(templeStartPosition, templeTargetPosition, easedProgress);
+                        float cameraScale = templeCameraTransition.GetScale(TEMPLE_ANSWER_FOCUS_SCALE, easedProgress) + (pulse * 0.018f);
+                        Vector2 cameraPosition = templeCameraTransition.GetPosition(easedProgress);
                         setTempleCameraPose(cameraScale, cameraPosition.y, cameraPosition.x);
                         setOverlayTint(new Color(0.025f, 0.015f, 0.012f, 1.0f), Mathf.Lerp(0.36f, 0.46f, easedProgress));
                         setTempleApproachMouthColor(new Color(1.0f, Mathf.Lerp(0.96f, 0.92f, easedProgress), Mathf.Lerp(0.86f, 0.78f, easedProgress), 1.0f));

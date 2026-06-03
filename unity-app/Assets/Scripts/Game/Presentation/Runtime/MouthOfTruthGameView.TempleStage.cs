@@ -236,6 +236,14 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             mMouthImage.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Clamp01(alpha));
         }
 
+        private TempleCameraTransition captureTempleCameraTransition(float targetScale, Vector2 targetMouthCenter)
+        {
+            return new TempleCameraTransition(
+                mTempleApproachCameraRectTransform.localScale.x,
+                mTempleApproachCameraRectTransform.anchoredPosition,
+                getTempleCameraPositionForCenteredMouth(targetScale, targetMouthCenter));
+        }
+
         private void setTempleCameraPose(float scale, float yOffset, float xOffset = 0.0f)
         {
             if (mTempleApproachCameraRectTransform == null)
@@ -328,6 +336,30 @@ namespace MouthOfTruth.Game.Presentation.Runtime
             center = mouthRectTransform.anchoredPosition;
             size = new Vector2(mouthRectTransform.rect.width * mouthRectTransform.localScale.x, mouthRectTransform.rect.height * mouthRectTransform.localScale.y);
             return size.x > 1.0f && size.y > 1.0f;
+        }
+
+        private struct TempleCameraTransition
+        {
+            private readonly float mStartScale;
+            private readonly Vector2 mStartPosition;
+            private readonly Vector2 mTargetPosition;
+
+            public TempleCameraTransition(float startScale, Vector2 startPosition, Vector2 targetPosition)
+            {
+                mStartScale = startScale;
+                mStartPosition = startPosition;
+                mTargetPosition = targetPosition;
+            }
+
+            public float GetScale(float targetScale, float progress)
+            {
+                return Mathf.Lerp(mStartScale, targetScale, progress);
+            }
+
+            public Vector2 GetPosition(float progress)
+            {
+                return Vector2.Lerp(mStartPosition, mTargetPosition, progress);
+            }
         }
     }
 }

@@ -1,9 +1,9 @@
 # Mouth of Truth
 
 `Mouth of Truth`는 질문 카드 선택, 손 입력, 음성 답변, 얼굴 캡처를 하나의
-의식 흐름으로 묶은 인터랙티브 설치형 게임입니다. 참가자는 진실의 입 앞에서
-질문을 고르고 답변하며, 앱은 얼굴 표정과 음성 감정 신호를 결합해 `TRUE`,
-`FALSE`, `UNCERTAIN` 결과를 보여줍니다.
+의식처럼 이어지는 흐름으로 묶은 인터랙티브 설치형 게임입니다. 참가자는 진실의 입
+앞에서 질문을 고르고 답변하며, 앱은 얼굴 표정과 음성 감정 신호를 결합해 `TRUE`,
+`FALSE`, `UNCERTAIN` 중 하나를 보여줍니다.
 
 Unity는 게임 화면, Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처를 담당합니다.
 Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산합니다.
@@ -17,9 +17,9 @@ Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산�
 입력이며, 실제 거짓말 탐지, 신뢰도 평가, 채용/심사/의사결정 근거로 사용하지
 않습니다.
 
-카메라와 마이크 입력은 참가자 동의가 있는 설치 환경을 전제로 합니다. 얼굴/음성
-모델과 threshold는 데이터셋, 조명, 카메라 각도, 마이크 품질, 주변 소음에 영향을
-받으므로 운영 전에는 별도 현장 검증이 필요합니다.
+카메라와 마이크는 참가자에게 수집 목적을 알리고 동의를 받은 설치 환경에서만
+사용합니다. 얼굴/음성 모델과 기준값은 데이터셋, 조명, 카메라 각도, 마이크 품질,
+주변 소음에 영향을 받으므로 운영 전 현장 검증이 필요합니다.
 
 ## 주요 화면
 
@@ -32,7 +32,7 @@ Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산�
 ## 플레이 흐름
 
 1. 참가자가 손을 올려 시작합니다.
-2. 세 장의 질문 카드 중 하나를 dwell selection으로 고릅니다.
+2. 세 장의 질문 카드 중 하나에 손을 잠시 머물러 선택합니다.
 3. 선택된 질문을 듣고 마이크로 답변합니다.
 4. 앱이 답변 중 음성 신호와 얼굴 프레임을 수집합니다.
 5. Python 분석 엔진이 얼굴/음성 점수를 결합해 판정을 반환합니다.
@@ -71,13 +71,13 @@ PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 
 | 항목 | 위치 | 안내 |
 | --- | --- | --- |
-| 얼굴/음성 모델 bundle | `python-engine/models/` | [모델 자산](python-engine/models/README.md) |
+| 얼굴/음성 모델 묶음 | `python-engine/models/` | [모델 자산](python-engine/models/README.md) |
 | Dungeon Modular Pack | `unity-app/Assets/ThirdParty/Environment/DungeonModularPack/` | [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md) |
 | Persiang Carpets URP | `unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp/` | [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md) |
 | Ultraleap Hand Tracking Software | 실행 PC | [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md) |
-| Python runtime bundle | `python-runtime/`, `python-runtime-windows/` | 릴리스 빌드 시 생성 |
+| Python 실행 환경 묶음 | `python-runtime/`, `python-runtime-windows/` | 릴리스 빌드 시 생성 |
 
-모델 bundle 복원:
+모델 묶음 복원:
 
 ```bash
 tools/restore-model-assets.sh <path-to>/mouth-of-truth-models-required.tar.gz
@@ -93,7 +93,7 @@ Windows PowerShell:
 
 ```text
 unity-app/       Unity 프로젝트, 게임 화면, 입력, 빌드 자동화
-python-engine/   얼굴/음성 분석 엔진, Python bridge, 판정 정책
+python-engine/   얼굴/음성 분석 엔진, Python 브리지, 판정 정책
 bridge/          Unity와 Python이 JSON 요청/결과를 교환하는 런타임 폴더
 tools/           모델 복원, 모델 패키징, 릴리스 빌드 스크립트
 docs/            프로젝트 설정과 릴리스 빌드 문서
@@ -130,13 +130,13 @@ unity-app/Assets/Scripts/Game/Analysis/DeterministicAnswerAnalysisClient.cs
 
 자동 검증은 하드웨어 없이 확인 가능한 경계를 대상으로 합니다.
 
-- Python JSON bridge contract와 판정 정책
+- Python JSON 교환 형식과 판정 정책
 - 얼굴/음성 점수 규칙의 기본 방향성
-- Unity 상태 머신, dwell selection, 답변 종료 정책, deterministic fallback
-- Unity runtime/editor C# 컴파일
+- Unity 상태 머신, 손 머무름 선택, 답변 종료 정책, 결정적 대체 판정
+- Unity 런타임/에디터 C# 컴파일
 
-Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 latency는 장비가 연결된
-Unity 실행 환경에서 별도 수동 QA가 필요합니다.
+Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처, 실제 모델 지연 시간은 장비가 연결된
+Unity 실행 환경에서 별도로 확인해야 합니다.
 
 ## 검증
 
@@ -162,5 +162,5 @@ Unity EditMode 테스트는 Unity Test Runner에서 실행하거나 batchmode로
   -testResults /tmp/mouth-of-truth-editmode-results.xml
 ```
 
-릴리스 빌드는 필수 Python 런타임 파일과 모델 SHA-256을 자동 검증합니다. 필수
-자산이 없거나 checksum이 맞지 않으면 빌드가 중단됩니다.
+릴리스 빌드는 필수 Python 실행 파일과 모델 SHA-256을 자동으로 확인합니다. 필수
+자산이 없거나 검사값이 맞지 않으면 빌드가 중단됩니다.

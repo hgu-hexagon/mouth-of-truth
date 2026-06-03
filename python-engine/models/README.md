@@ -3,7 +3,7 @@
 이 디렉터리는 모델 배치 구조만 Git에 유지합니다. 실제 모델 바이너리는 Git에
 포함하지 않습니다.
 
-데이터셋 신청, label mapping, 모델 교체 계약, 재학습 시 산출물 기준은 아래
+데이터셋 신청, 레이블 매핑, 모델 교체 기준, 재학습 시 남길 산출물은 아래
 문서를 먼저 확인합니다.
 
 ```text
@@ -12,7 +12,7 @@ docs/model-training-and-datasets.md
 
 ## 필수 구조
 
-`mouth-of-truth-models-required.tar.gz` bundle을 받은 뒤 저장소 루트에서 복원합니다.
+`mouth-of-truth-models-required.tar.gz` 묶음 파일을 받은 뒤 저장소 루트에서 복원합니다.
 
 ```bash
 tools/restore-model-assets.sh <path-to>/mouth-of-truth-models-required.tar.gz
@@ -78,11 +78,11 @@ whisper/models--openai--whisper-tiny/
 
 ## 대용량 파일 관리
 
-모델 bundle은 GitHub Release asset, 모델 저장소, 사내 저장소, 또는 다른 artifact
-storage로 관리합니다. 일반 GitHub Git push는 100 MiB를 초과하는 단일 파일을
+모델 묶음 파일은 GitHub Release asset, 모델 저장소, 사내 저장소, 또는 다른 외부
+저장소로 관리합니다. 일반 GitHub Git push는 100 MiB를 초과하는 단일 파일을
 차단합니다.
 
-로컬 모델 파일로 bundle을 만들 때:
+로컬 모델 파일로 묶음 파일을 만들 때:
 
 ```bash
 tools/package-model-assets.sh
@@ -97,5 +97,5 @@ dist/model-assets/mouth-of-truth-models-required.tar.gz.sha256
 
 ## 모델 교체
 
-배포본은 학습된 모델 artifact를 사용합니다. 다른 모델을 사용할 때는 같은 경로와
-출력 포맷을 맞추고, 얼굴/음성 점수 규칙이 기대하는 label 체계를 유지합니다.
+배포본은 학습된 모델 산출물을 사용합니다. 다른 모델을 사용할 때는 같은 경로와
+출력 포맷을 맞추고, 얼굴/음성 점수 규칙이 기대하는 레이블 체계를 유지합니다.

@@ -45,6 +45,8 @@ namespace MouthOfTruth.Editor
             }
 
             string runtimeRootPath = MouthOfTruthRuntimePaths.GetRuntimeRootPath();
+            ReleaseRuntimeValidator.ValidateProjectRuntimeAssets(runtimeRootPath);
+
             string distributionRootPath = Path.Combine(runtimeRootPath, DISTRIBUTION_ROOT_RELATIVE_PATH);
             string applicationPath = Path.Combine(distributionRootPath, APPLICATION_NAME);
 
@@ -65,6 +67,7 @@ namespace MouthOfTruth.Editor
             }
 
             stageRuntimeSupport(runtimeRootPath, distributionRootPath);
+            ReleaseRuntimeValidator.ValidateDistributionRuntimeAssets(distributionRootPath);
             pruneDistributionArtifacts(distributionRootPath);
             writeLauncherScript(distributionRootPath);
             AssetDatabase.Refresh();
@@ -200,7 +203,7 @@ namespace MouthOfTruth.Editor
 
             if (Directory.Exists(sourcePath) == false)
             {
-                return;
+                throw new BuildFailedException($"Release source path is missing: {sourcePath}");
             }
 
             if (Directory.Exists(destinationPath))

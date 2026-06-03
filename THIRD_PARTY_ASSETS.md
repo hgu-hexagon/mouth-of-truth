@@ -4,11 +4,11 @@
 
 | 항목 | Git 포함 | 별도 설치/복원 | 비고 |
 | --- | --- | --- | --- |
-| Ultraleap Unity package `com.ultraleap.tracking` | 포함 | 선택 | Unity project integration용 package입니다. |
-| Ultraleap Hand Tracking Software | 미포함 | 필요 | Leap Motion/Ultraleap camera를 실제로 쓰는 PC에 설치합니다. |
+| Ultraleap Unity package `com.ultraleap.tracking` | 포함 | 선택 | Unity 프로젝트에서 사용하는 embedded package입니다. |
+| Ultraleap Hand Tracking Software | 미포함 | 필요 | Leap Motion/Ultraleap camera를 연결한 실행 PC에 설치합니다. |
 | Dungeon Modular Pack | 미포함 | 필요 | Unity Asset Store에서 라이선스 보유 계정으로 import합니다. |
 | Persiang Carpets URP | 미포함 | 필요 | Unity Asset Store에서 라이선스 보유 계정으로 import합니다. |
-| Runtime art/audio/question assets | 포함 | 불필요 | `unity-app/Assets/StreamingAssets/` 아래에 포함되어 있습니다. |
+| Runtime art, audio, question assets | 포함 | 불필요 | `unity-app/Assets/StreamingAssets/` 아래에 포함되어 있습니다. |
 | Face/voice model binaries | 미포함 | 필요 | 모델 bundle을 받아 `python-engine/models/`에 복원합니다. |
 | Whisper cache | 미포함 | 선택 | 전사 기능을 켤 때만 필요합니다. |
 | Python runtime bundle | 미포함 | 릴리스 빌드 시 생성 | `python-runtime/`, `python-runtime-windows/`는 Git에 넣지 않습니다. |
@@ -52,8 +52,8 @@ https://docs.ultraleap.com/hand-tracking/Hyperion/index.html
 
 ### Unity package를 다시 받아야 하는 경우
 
-정상 clone에는 `unity-app/Packages/com.ultraleap.tracking/`이 포함됩니다. 해당
-폴더가 빠진 경우에만 다시 받습니다.
+정상적으로 clone한 저장소에는 `unity-app/Packages/com.ultraleap.tracking/`이
+포함됩니다. 해당 폴더가 빠진 경우에만 다시 받습니다.
 
 GitHub release:
 
@@ -82,8 +82,8 @@ OpenUPM 목록에 `7.3.0`이 없으면 GitHub release package를 사용합니다
 ## Unity Asset Store 환경 자산
 
 아래 원본 자산은 Git에 포함하지 않습니다. Unity Asset Store 자산은 빌드된 제품에
-embedded component로 사용할 수 있지만, 원본 asset file을 공개 source repository에
-그대로 재배포하지 않습니다.
+embedded component로 사용할 수 있지만, 원본 asset 파일을 공개 Git 저장소에 그대로
+재배포하지 않습니다.
 
 공식 참고:
 
@@ -180,7 +180,7 @@ Windows PowerShell:
 .\tools\restore-model-assets.ps1 -ModelBundlePath <path-to>\mouth-of-truth-models-required.tar.gz
 ```
 
-릴리스 담당자가 모델 bundle을 만들 때:
+로컬 모델 파일로 bundle을 만들 때:
 
 ```bash
 tools/package-model-assets.sh

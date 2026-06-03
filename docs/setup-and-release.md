@@ -1,4 +1,4 @@
-# Mouth of Truth 배포 가이드
+# Mouth of Truth 프로젝트 설정과 릴리스 빌드
 
 ## 1. 필수 환경
 
@@ -87,7 +87,7 @@ shasum -a 256 \
 macOS와 Windows 릴리스 빌드는 위 필수 모델의 존재 여부와 SHA-256을 자동으로
 검증합니다. 필수 파일이 없거나 checksum이 다르면 빌드가 중단됩니다.
 
-릴리스 담당자가 로컬 모델 파일로 bundle을 만들 때:
+로컬 모델 파일로 bundle을 만들 때:
 
 ```bash
 tools/package-model-assets.sh
@@ -215,8 +215,8 @@ com.ultraleap.tracking 7.3.0
 unity-app/Packages/manifest.json: "com.ultraleap.tracking": "file:com.ultraleap.tracking"
 ```
 
-정상 clone에는 embedded package가 포함되어 있으므로 Unity Package Manager에서
-추가 설치가 필요하지 않습니다.
+정상적으로 clone한 저장소에는 embedded package가 포함되어 있으므로 Unity Package
+Manager에서 추가 설치가 필요하지 않습니다.
 
 패키지가 빠진 상태를 복원할 때:
 
@@ -448,7 +448,7 @@ dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
 git grep -n -I --fixed-strings "$HOME" -- . ':!unity-app/Packages/com.ultraleap.tracking'
 
 PUBLIC_RELEASE_SECRET_PATTERN='(api[_-]?key|access[_-]?token|auth[_-]?token|secret|password|PRIVATE KEY)'
-git grep -n -I -E "$PUBLIC_RELEASE_SECRET_PATTERN" -- . ':!docs/final-release-guide-ko.md' ':!unity-app/Packages/com.ultraleap.tracking'
+git grep -n -I -E "$PUBLIC_RELEASE_SECRET_PATTERN" -- . ':!docs/setup-and-release.md' ':!unity-app/Packages/com.ultraleap.tracking'
 ```
 
 Windows PowerShell:

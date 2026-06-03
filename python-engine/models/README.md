@@ -75,7 +75,7 @@ whisper/models--openai--whisper-tiny/
 storage로 관리합니다. 일반 GitHub Git push는 100 MiB를 초과하는 단일 파일을
 차단합니다.
 
-릴리스 담당자가 로컬 모델 파일로 bundle을 만들 때:
+로컬 모델 파일로 bundle을 만들 때:
 
 ```bash
 tools/package-model-assets.sh

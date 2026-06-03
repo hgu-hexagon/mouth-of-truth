@@ -1,35 +1,68 @@
 # Mouth of Truth
 
-Unity와 Python 분석 엔진으로 구성된 인터랙티브 진실 판정 프로젝트입니다.
-Unity는 화면 흐름, Leap Motion/Ultraleap 입력, 마이크 녹음, 웹캠 얼굴 프레임
-캡처를 처리합니다. Python 엔진은 얼굴/음성 분석 결과를 결합해 `TRUE`,
-`FALSE`, `UNCERTAIN` 판정을 반환합니다.
+`Mouth of Truth`는 질문 카드 선택, 손 입력, 음성 답변, 얼굴 캡처를 하나의
+의식 흐름으로 묶은 인터랙티브 설치형 게임입니다. 참가자는 진실의 입 앞에서
+질문을 고르고 답변하며, 앱은 얼굴 표정과 음성 감정 신호를 결합해 `TRUE`,
+`FALSE`, `UNCERTAIN` 결과를 보여줍니다.
 
-## 바로 시작
+Unity는 게임 화면, Ultraleap 손 입력, 마이크 녹음, 웹캠 캡처를 담당합니다.
+Python 엔진은 얼굴/음성 분석 결과를 받아 최종 판정을 계산합니다.
+
+## 주요 화면
+
+| 시작 화면 | 질문 카드 선택 | 판정 결과 |
+| --- | --- | --- |
+| ![Mouth of Truth 시작 화면](docs/images/readme-title.jpg) | ![질문 카드 선택 화면](docs/images/readme-card-selection.jpg) | ![TRUE 판정 결과 화면](docs/images/readme-verdict.jpg) |
+
+## 플레이 흐름
+
+1. 참가자가 손을 올려 시작합니다.
+2. 세 장의 질문 카드 중 하나를 dwell selection으로 고릅니다.
+3. 선택된 질문을 듣고 마이크로 답변합니다.
+4. 앱이 답변 중 음성 신호와 얼굴 프레임을 수집합니다.
+5. Python 분석 엔진이 얼굴/음성 점수를 결합해 판정을 반환합니다.
+6. 진실의 입이 `TRUE`, `FALSE`, `UNCERTAIN` 중 하나를 보여줍니다.
+
+## 실행 준비
+
+필수 환경:
+
+```text
+Unity Editor 6000.4.1f1
+Git
+Miniforge, Mambaforge, Anaconda 중 하나
+conda-pack
+Leap Motion 또는 Ultraleap 호환 장치
+Ultraleap Hand Tracking Software
+```
+
+저장소를 받은 뒤 Unity Hub에서 `unity-app` 폴더를 엽니다. 저장소 루트가 아니라
+Unity 프로젝트 폴더를 열어야 합니다.
 
 ```bash
+git clone <repository-url>
+cd mouth-of-truth
+
 conda env create -f python-engine/environment.yml
 conda activate mouth-of-truth
 python -m compileall -q python-engine/src
 PYTHONPATH=python-engine/src python -m unittest discover -s python-engine/tests
 ```
 
-Unity Hub에서 아래 폴더를 엽니다.
+## 별도 복원 파일
 
-```text
-unity-app
-```
+아래 항목은 라이선스와 용량 때문에 Git에 포함하지 않습니다. 프로젝트 실행 또는
+릴리스 빌드 전에 지정 위치에 복원합니다.
 
-기준 Unity 버전:
+| 항목 | 위치 | 안내 |
+| --- | --- | --- |
+| 얼굴/음성 모델 bundle | `python-engine/models/` | [모델 자산](python-engine/models/README.md) |
+| Dungeon Modular Pack | `unity-app/Assets/ThirdParty/Environment/DungeonModularPack/` | [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md) |
+| Persiang Carpets URP | `unity-app/Assets/ThirdParty/Environment/PersianCarpetUrp/` | [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md) |
+| Ultraleap Hand Tracking Software | 실행 PC | [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md) |
+| Python runtime bundle | `python-runtime/`, `python-runtime-windows/` | 릴리스 빌드 시 생성 |
 
-```text
-6000.4.1f1
-```
-
-## 필수 로컬 자산
-
-아래 모델 파일은 Git에 포함되지 않습니다. `mouth-of-truth-models-required.tar.gz`
-bundle을 받은 뒤 저장소 루트에서 복원합니다.
+모델 bundle 복원:
 
 ```bash
 tools/restore-model-assets.sh <path-to>/mouth-of-truth-models-required.tar.gz
@@ -41,54 +74,21 @@ Windows PowerShell:
 .\tools\restore-model-assets.ps1 -ModelBundlePath <path-to>\mouth-of-truth-models-required.tar.gz
 ```
 
-복원 후 파일 구조:
-
-```text
-python-engine/models/face/yolo26x_rafdb_best.pt
-python-engine/models/voice/best_wav2vec2_iemocap/config.json
-python-engine/models/voice/best_wav2vec2_iemocap/model.safetensors
-python-engine/models/voice/best_wav2vec2_iemocap/preprocessor_config.json
-```
-
-릴리스 담당자가 로컬 모델 파일로 bundle을 만들 때:
-
-```bash
-tools/package-model-assets.sh
-```
-
-생성 위치:
-
-```text
-dist/model-assets/mouth-of-truth-models-required.tar.gz
-dist/model-assets/mouth-of-truth-models-required.tar.gz.sha256
-```
-
-Whisper 전사를 사용할 때만 아래 캐시를 추가합니다.
-
-```text
-python-engine/models/whisper/models--openai--whisper-tiny/
-```
-
-다른 모델 루트를 사용하려면:
-
-```bash
-export MOUTH_OF_TRUTH_MODELS_ROOT="/path/to/model-root"
-```
-
-## 주요 문서
-
-- [배포 가이드](docs/final-release-guide-ko.md)
-- [서드파티 자산과 SDK](THIRD_PARTY_ASSETS.md)
-- [모델 자산 배치](python-engine/models/README.md)
-
 ## 프로젝트 구조
 
 ```text
 unity-app/       Unity 프로젝트, 게임 화면, 입력, 빌드 자동화
-python-engine/   Python 분석 브리지, 모델 로더, 판정 정책
-bridge/          Unity/Python 런타임 JSON 교환 디렉터리
-tools/           릴리스 빌드 스크립트
+python-engine/   얼굴/음성 분석 엔진, Python bridge, 판정 정책
+bridge/          Unity와 Python이 JSON 요청/결과를 교환하는 런타임 폴더
+tools/           모델 복원, 모델 패키징, 릴리스 빌드 스크립트
+docs/            프로젝트 설정과 릴리스 빌드 문서
 ```
+
+## 주요 문서
+
+- [프로젝트 설정과 릴리스 빌드](docs/setup-and-release.md)
+- [서드파티 자산과 런타임](THIRD_PARTY_ASSETS.md)
+- [모델 자산](python-engine/models/README.md)
 
 ## 판정 정책
 
@@ -121,27 +121,3 @@ dotnet build unity-app/Assembly-CSharp-Editor.csproj --no-restore /m:1
 
 릴리스 빌드는 필수 Python 런타임 파일과 모델 SHA-256을 자동 검증합니다. 필수
 자산이 없거나 checksum이 맞지 않으면 빌드가 중단됩니다.
-
-## 모델 교체
-
-배포본은 학습된 모델 artifact를 사용합니다. 다른 모델을 사용할 때는 같은 경로와
-출력 포맷을 맞추고, 얼굴/음성 점수 규칙이 기대하는 label 체계를 유지합니다.
-
-음성 분석은 기본적으로 실시간 응답성을 우선하는 fast acoustic summary를 사용합니다.
-학습된 wav2vec2 음성 모델을 사용하려면 아래 값을 설정합니다.
-
-```bash
-export MOUTH_OF_TRUTH_USE_TRAINED_VOICE_MODEL=1
-```
-
-## macOS 릴리스 빌드
-
-```bash
-conda activate mouth-of-truth
-python-engine/scripts/package_python_runtime.sh
-
-UNITY_EDITOR_PATH="<unity-editor-executable>" \
-./tools/build-macos-release.sh
-```
-
-빌드 결과물은 `dist/` 아래에 생성됩니다. `dist/`는 Git에 포함하지 않습니다.

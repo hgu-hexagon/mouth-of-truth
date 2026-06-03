@@ -18,7 +18,7 @@ __pycache__/
 
 # Local docs kept intentionally uncommitted
 docs/*.md
-!docs/final-release-guide-ko.md
+!docs/setup-and-release.md
 assets/reference/
 
 # Bridge runtime outputs
